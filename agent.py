@@ -1,9 +1,9 @@
 from basis import Basis
 import numpy as np
-from model_dynamics import SingleIntegrator
+from model_dynamics import SingleIntegrator, DoubleIntegrator
 
 class Agent():
-    def __init__(self, L1, L2, Kmax, dynamics_model: SingleIntegrator, phi=None, uNominal=None):
+    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -20,7 +20,7 @@ class Agent():
         self._phi = phi if phi is not None else lambda s: 2  # Default to constant 0 function if not provided
         self.basis.phi = self._phi
 
-
+    # Simulates default input and returns full state trajectory
     def simulateForward(self, x0, ti, udef=None, T=1.0):
         """
         Simulate the system forward in time using the dynamics model.'
@@ -36,7 +36,7 @@ class Agent():
             udef_ = udef(x0, t)
         else:
             # Default udef is a zero vector of the same size as the state
-            udef_ = np.zeros((2,))
+            udef_ = np.zeros((self.model.num_of_inputs,))
 
         # Reset the model with the initial state and simulate forward
         self.model.reset(x0)
@@ -54,7 +54,7 @@ class Agent():
         '''
         Simulate the adjoint state to get rho(t)
         '''
-        rho = np.zeros((len(x_traj), 2))
+        rho = np.zeros((len(x_traj), self.model.num_of_states))
 
         for i in range(len(x_traj)-2, -1, -1):
             # Jacobian of the dynamics with respect to x
@@ -71,7 +71,9 @@ class Agent():
                     hk = self.basis.calcHk(k1, k2)
                     ck_ = ck[k1, k2]
                     phi_k = self.basis.calcPhikCoeff(k1, k2)
-                    dFdx = self.basis.dFk_dx(x_traj[i], k1, k2, hk)
+                    dFdx = self.basis.dFk_dx(x_traj[i][:2], k1, k2, hk)
+                    # TODO: Check: Since Fk(xv) the derivative lacks dimensions to reach x. So i think we should append 0s
+                    dFdx = np.concatenate((dFdx, np.zeros((self.model.num_of_states - 2,))))
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
                     # if dFdx[0] > 0.1 or dFdx[1] > 0.1 or ck_ > 0.1 or phi_k > 0.1:
                     #     print(f"dFdx: {dFdx[0]:.1f} - {dFdx[1]:.1f} \t@ (k1, k2): ({k1}, {k2}) \t ck: {ck[k1, k2]} \t phi_k: {phi_k} \t hk: {hk:.1f} \t rho_dot: {rho_dot}")

@@ -77,6 +77,7 @@ class Basis():
             for k2 in range(self.Kmax+1):
                 self.calcPhikCoeff(k1, k2)
 
+    # xv: [x1, x2] (2D point) - Ergodic dimensions
     def Fk(self, xv, k1, k2, hk):
         Fk = np.cos(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk
         return Fk
@@ -108,9 +109,9 @@ class Basis():
     def calcCkCoeff(self, x_traj, ti, T, x_buffer=None):
         '''
         Calculate the coefficients Ck for the trajectory x_traj from time ti to T.
-            x_traj: array of shape (n_points, 2) containing trajectory points
-            ti: initial time
-            T: Duration
+            x_traj: Ergodic states trajectory only (x1, x2)
+            ti:     Current Initial Time
+            T:      Duration forward
         '''
         ck = np.zeros((self.Kmax+1, self.Kmax+1))
         

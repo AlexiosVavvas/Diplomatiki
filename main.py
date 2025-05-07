@@ -72,7 +72,7 @@ def plotPhi(agent_basis, phi_new, x_traj=None):
 # -----------------------------------------------------------------------------------
 def main():
     from agent import Agent
-    from model_dynamics import SingleIntegrator
+    from model_dynamics import DoubleIntegrator, SingleIntegrator
     from ergodic_controllers import DecentralisedErgodicController
     import time
 
@@ -85,11 +85,11 @@ def main():
 
     # Generate Agent and connect to an ergodic controller object
     agent = Agent(L1=1.0, L2=1.0, Kmax=4, 
-                  dynamics_model=SingleIntegrator(dt=0.005), phi=phiExample)
+                  dynamics_model=DoubleIntegrator(dt=0.005), phi=phiExample)
                 #   dynamics_model=SingleIntegrator(dt=0.005), phi=lambda s: 2)
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, T_sampling=0.02, T_horizon=0.3, Q=1, deltaT_erg=0.9)
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, T_sampling=0.01, T_horizon=0.3, Q=1, deltaT_erg=0.6)
     
-    x0 = np.array([0.1, 0.9])  # Initial state
+    x0 = np.array([0.1, 0.9, 0, 0])  # Initial state
     agent.model.reset(x0)  # Reset the model to the initial state
     
     states_list = [x0.copy()]  
@@ -139,7 +139,7 @@ def main():
         
         u = u.clip(-3, 3)
         agent.model.step(u)  # Step the model with the control action
-        agent.erg_c.past_states_buffer.push(agent.model.state.copy())  # Store the state in the buffer
+        agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
         u_list.append(u.copy())
         states_list.append(agent.model.state.copy())

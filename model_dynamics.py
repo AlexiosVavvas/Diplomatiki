@@ -13,6 +13,8 @@ class SingleIntegrator():
     '''
     def __init__(self, dt=0.001):
         self.dt = dt
+        self.num_of_states = 2
+        self.num_of_inputs = 2
 
         self.A = np.array([
                 [0., 0.],
@@ -32,6 +34,7 @@ class SingleIntegrator():
             np.random.seed(0)
             self.state = np.random.uniform(0., 1., size=(2,))
         else:
+            assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
             self.state = state.copy()
         return self.state.copy()
     
@@ -85,10 +88,14 @@ class DoubleIntegrator():
         x = [x1, x2, x3, x4]    -> Ergodic state: xv = [x, y] = [x1, x2]
         x = [x,  y,  x', y']
         u = [u1, u2]
+    
+    Note: By design of my code, the ergodic states should ALWAYS be the first two elements of the state vector.
     '''
     def __init__(self, dt=0.001):
         
         self.dt = dt
+        self.num_of_states = 4
+        self.num_of_inputs = 2
 
         self.A = np.array([
                 [0., 0., 1.0-0.2, 0.],
@@ -112,6 +119,7 @@ class DoubleIntegrator():
             np.random.seed(0)
             self.state = np.random.uniform(0., 1., size=(4,))
         else:
+            assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
             self.state = state.copy()
         return self.state.copy()
 

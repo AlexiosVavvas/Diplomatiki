@@ -13,12 +13,18 @@ class DecentralisedErgodicController():
         self.T = T_horizon
         self.Ts = T_sampling
         self.deltaT_erg = deltaT_erg
+        
+        # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
+        assert R.shape[0] == R.shape[1] == agent.model.num_of_inputs, "R must be a square matrix of size (num_of_inputs, num_of_inputs)"
+        if uNominal is not None:
+            assert callable(uNominal), "uNominal must be a callable function."
+            assert uNominal(agent.model.state, 0).shape[0] == agent.model.num_of_inputs, "uNominal must return a vector of size (num_of_inputs,)"
 
         # Variable to store action if available (non zero if calculated and within sample space)
-        self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), 2))
+        self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), agent.model.num_of_inputs))
         # Variable to store past states for better Ck calculation (using Δte)
-        self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,))
+        self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,)) # size = 2, cause we only care about 2 ergodic dimensions
 
     def calcNextActionTriplet(self, ti):
         """
@@ -29,15 +35,15 @@ class DecentralisedErgodicController():
         traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T)
 
         # Calc Ck Coefficients
-        ck = self.agent.basis.calcCkCoeff(traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
+        ck = self.agent.basis.calcCkCoeff(traj[:, :2], x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
         erg_cost = self.calcErgodicCost(ck)
 
         # Simulate Adjoint Backward to get rho(t)
         rho, _ = self.agent.simulateAdjointBackward(traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
-        dt = self.T / len(traj)
+        dt = self.T / len(traj) # TODO: Can i eliminate this calculation of dt? Take it from a definition?
 
         # Evaluate Ustar
-        ustar = np.zeros((len(traj), 2))
+        ustar = np.zeros((len(traj), self.agent.model.num_of_inputs))
         Rinv = np.linalg.inv(self.R)
         for i in range(len(traj)):
             ustar[i] = -Rinv @ self.agent.model.h(traj[i]).T @ rho[i]
@@ -110,7 +116,8 @@ class DecentralisedErgodicController():
             plt.show()            
 
 
-        # TODO: Do gradient descent
+        # TODO: Do gradient descent or something faster / clever?
+        # TODO: Make sure we dont always choose the first value
         # Generate time points for evaluation
         t = np.linspace(ti, ti+T, len(x_traj))
         Jt_values = np.array([Jt(tau) for tau in t])
