@@ -3,7 +3,7 @@ from scipy.integrate import nquad
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -27,7 +27,8 @@ class Basis():
         self.precalcAllLamdaK()
 
         # Precalculate PhiK for all k1, k2 pairs
-        self.precalcAllPhiK()
+        if precalc_phik_coeff:
+            self.precalcAllPhiK()
 
 
     def calcHk(self, k1, k2):
@@ -103,7 +104,7 @@ class Basis():
 
         return phi_k
     
-    def calcCkCoeff(self, x_traj, ti, T):
+    def calcCkCoeff(self, x_traj, ti, T, x_buffer=None):
         '''
         Calculate the coefficients Ck for the trajectory x_traj from time ti to T.
             x_traj: array of shape (n_points, 2) containing trajectory points
@@ -111,6 +112,10 @@ class Basis():
             T: Duration
         '''
         ck = np.zeros((self.Kmax+1, self.Kmax+1))
+        
+        # Append to the trajectory the buffer points at the beginning with the traj continueing from the last buffer poit
+        if x_buffer is not None:
+            x_traj = np.concatenate((x_buffer, x_traj), axis=0)
         
         # Calculate time step (dt) assuming uniform time spacing
         n_points = len(x_traj)
@@ -152,11 +157,11 @@ class Basis():
         '''
         Create a copy of the current object with the same parameters and target distribution.
         '''
-        new_basis = Basis(self.L1, self.L2, self.Kmax, precalc_hk_coeff=False)
+        new_basis = Basis(self.L1, self.L2, self.Kmax, precalc_hk_coeff=False, phi_=self._phi, precalc_phik_coeff=False)
         
-        new_basis.phi = self._phi
         new_basis.hk_cache = self.hk_cache.copy()
         new_basis.phi_coeff_cache = self.phi_coeff_cache.copy()
+        print("Coefficients copied.")
         
         return new_basis
     

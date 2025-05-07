@@ -1,8 +1,9 @@
 import numpy as np
+from replay_buffer import ReplayBufferFIFO
 
 class DecentralisedErgodicController():
     def __init__(self, agent, phi=None, num_of_agents=1, R=np.eye(2), Q = 1, uNominal=None,
-                 T_horizon = 1, T_sampling=0.01):
+                 T_horizon = 1, T_sampling=0.01, deltaT_erg=0.01):
 
         self.agent = agent
         self.num_of_agents = num_of_agents
@@ -11,10 +12,13 @@ class DecentralisedErgodicController():
         self.uNominal = uNominal
         self.T = T_horizon
         self.Ts = T_sampling
+        self.deltaT_erg = deltaT_erg
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
 
         # Variable to store action if available (non zero if calculated and within sample space)
         self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), 2))
+        # Variable to store past states for better Ck calculation (using Δte)
+        self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,))
 
     def calcNextActionTriplet(self, ti):
         """
@@ -25,7 +29,7 @@ class DecentralisedErgodicController():
         traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T)
 
         # Calc Ck Coefficients
-        ck = self.agent.basis.calcCkCoeff(traj, ti=ti, T=self.T)
+        ck = self.agent.basis.calcCkCoeff(traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
         erg_cost = self.calcErgodicCost(ck)
 
         # Simulate Adjoint Backward to get rho(t)
@@ -44,11 +48,13 @@ class DecentralisedErgodicController():
         
         # Calculate Application Time
         tau, Jtau = self.calcApplicationTime(ustar, rho, traj, ti, self.T)
-        assert Jtau != 0, "Jtau is zero, which is not expected."
+        assert Jtau < 0, "Jtau is Non Negative, which is not expected."
 
         # Determine Control Duration
-        lamda_duration = self.agent.model.dt * 6
+        lamda_duration = self.agent.model.dt*2  # Default to the sampling time
+        # lamda_duration = self.agent.model.dt * np.random.randint(1, int(self.Ts / self.agent.model.dt))
 
+        # Keep the approprate control from t=tau
         us = ustar[int((tau - ti) / self.agent.model.dt)]
 
         # So we have the triplet:
@@ -67,14 +73,9 @@ class DecentralisedErgodicController():
             plt.show()
         
         # normalize each us to be between -1 and 1 using the max value of us
-        # ustar[:, 0] = ustar[:, 0] / np.max(np.abs(ustar[:, 0])) if np.max(np.abs(ustar[:, 0])) != 0 else ustar[:, 0]
-        # ustar[:, 1] = ustar[:, 1] / np.max(np.abs(ustar[:, 1])) if np.max(np.abs(ustar[:, 1])) != 0 else ustar[:, 1]
-        # ustar[:, 0] *= 20
-        # ustar[:, 1] *= 20
         # plotUs(ustar)
         # plotUs(rho)
-    
-
+        # print(f"us: {us} \t tau-ti: {tau-ti}")
         return us, tau, lamda_duration, erg_cost
 
 

@@ -70,19 +70,23 @@ class Agent():
                 for k2 in range(self.Kmax+1):
                     lamda_k = self.basis.LamdaK_cache[(k1, k2)]
                     hk = self.basis.calcHk(k1, k2)
+                    ck_ = ck[k1, k2]
                     phi_k = self.basis.calcPhikCoeff(k1, k2)
-                    rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck[k1, k2] - phi_k) * self.basis.dFk_dx(x_traj[i], k1, k2, hk)
-
+                    dFdx = self.basis.dFk_dx(x_traj[i], k1, k2, hk)
+                    rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
+                    # if dFdx[0] > 0.1 or dFdx[1] > 0.1 or ck_ > 0.1 or phi_k > 0.1:
+                    #     print(f"dFdx: {dFdx[0]:.1f} - {dFdx[1]:.1f} \t@ (k1, k2): ({k1}, {k2}) \t ck: {ck[k1, k2]} \t phi_k: {phi_k} \t hk: {hk:.1f} \t rho_dot: {rho_dot}")
+            # self.visualiseCoefficients(ck)
+            # input("Press Enter to continue...")
                     # Print 0 instead of the number if it's smaller than 1e-4
             #         rho_dot_str = "0" if abs(rho_dot).all() < 1e-4 else str(rho_dot)
             #         ck_str = "0" if abs(ck[k1, k2]) < 1e-4 else str(ck[k1, k2])
             #         phi_k_str = "0" if abs(phi_k) < 1e-4 else str(phi_k)
             #         hk_str = "0" if abs(hk) < 1e-4 else str(hk)
             #         lamda_k_str = "0" if abs(lamda_k) < 1e-4 else str(lamda_k)
-            #         basis = "0" if abs(self.basis.dFk_dx(x_traj[i], k1, k2, hk)).all() < 1e-2 else str(self.basis.dFk_dx(x_traj[i], k1, k2, hk))
+            #         basis = "0" if abs(self.basis.dFk_dx(x_traj[i], k1, k2, hk)).all() < 1e-2 else str(dFdx)
             #         print(f"rho_dot: {rho_dot_str}\t ck[{k1}, {k2}]: {ck_str}\t phi_k: {phi_k_str}\t hk: {hk_str}\t lamda_k: {lamda_k_str}\t basis: {basis}")
             # print(f"rho_dot: {rho_dot}\t dt: {self.model.dt}\n\n")
-            
             # Update rho using the computed rho_dot
             rho[i] = rho[i+1] - rho_dot * self.model.dt 
             # input("Press Enter to continue...")
@@ -97,8 +101,8 @@ class Agent():
                 plt.legend()
                 plt.grid()
                 plt.show()
-            # plotRho(rho)
-
+            # plotRho(x_traj)
+        # input("Press Enter to continue...")
         return rho, np.linspace(0, T, len(x_traj))
 
     def visualiseColorForTraj(self, ck, x_traj):

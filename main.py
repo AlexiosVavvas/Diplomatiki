@@ -28,7 +28,7 @@ def phiExample(s):
     # Combine all components
     return bumps + 2 #+ waves + trend + ridge
 
-def plotPhi(base, phi_new, x_traj=None):
+def plotPhi(phi_old, phi_new, x_traj=None):
     x1 = np.linspace(0, 1, 50)
     x2 = np.linspace(0, 1, 50)
 
@@ -41,7 +41,7 @@ def plotPhi(base, phi_new, x_traj=None):
 
     for i in range(len(x1)):
         for j in range(len(x2)):
-            Z_original[i, j] = phiExample([x1[i], x2[j]])
+            Z_original[i, j] = phi_old([x1[i], x2[j]])
             Z_reconstructed[i, j] = phi_new([x1[i], x2[j]])
         
     fig = plt.figure(figsize=(12, 6))
@@ -72,24 +72,24 @@ def main():
     from agent import Agent
     from model_dynamics import SingleIntegrator
     from ergodic_controllers import DecentralisedErgodicController
-    from tqdm import tqdm
 
     def uFunc(x, t):
         # Example control function: a simple sinusoidal control
         u_ = np.ones((2,))
-        # u_[0] = np.random.uniform(-1, 1)  # Random control for x1
-        # u_[1] = np.random.uniform(-1, 1)  # Random control for x2
-        return u_ * 0
+        u_[0] = np.random.uniform(-1, 1)  # Random control for x1
+        u_[1] = np.random.uniform(-1, 1)  # Random control for x2
+        return u_ * 0.1
 
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
+    agent = Agent(L1=1.0, L2=1.0, Kmax=3, 
                   dynamics_model=SingleIntegrator(), phi=phiExample)
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, T_sampling=0.01, T_horizon=0.05, Q=1)
+                #   dynamics_model=SingleIntegrator(), phi=lambda s: 2)
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, T_sampling=0.01, T_horizon=0.3, Q=1, deltaT_erg=0.6)
     
     # Set time intervals
-    agent.model.dt = 0.001  # Time step size
+    agent.model.dt = 0.005  # Time step size
 
-    x0 = np.array([0.5, 0.5])  # Initial state
+    x0 = np.array([0.1, 0.9])  # Initial state
     agent.model.reset(x0)  # Reset the model to the initial state
     
     states_list = [x0.copy()]  
@@ -101,12 +101,15 @@ def main():
     ti = t_list[0]; ti_indx = 0
     
     i = 0
-    while delta_erg_cost > 1e-3:
+    TMAX = 0.6 # [s]
+    TMIN = 0.3
+    while i < 2000:
+    # while delta_erg_cost > 1e-5 and t_list[i] < TMAX:
         if t_list[i] % agent.erg_c.Ts < 0.01:
             ti = t_list[i]; ti_indx = i
             # Calculate ergodic control for the sample step
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(t_list[i])
-            erg_cost_list.append(erg_cost); print(f"Ergodic cost: {erg_cost}")
+            erg_cost_list.append(erg_cost); print(f"Ergodic cost: {erg_cost:.3f} \t i: {i}/2000 \t perc: {i/2000:.2%}")
             # Update the action mask
             agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
         
@@ -127,9 +130,11 @@ def main():
             u = np.zeros((2,))
             # print("Stepping with ZERO control action.")
         
+        u = u.clip(-3, 3)
         agent.model.step(u)  # Step the model with the control action
+        agent.erg_c.past_states_buffer.push(agent.model.state.copy())  # Store the state in the buffer
 
-        u_list.append(u)
+        u_list.append(u.copy())
         states_list.append(agent.model.state.copy())
 
         t_list.append(t_list[i] + agent.model.dt)
@@ -159,7 +164,8 @@ def main():
     plt.grid()
 
     # vis traj
-    plotPhi(agent.basis, agent.basis.phi, x_traj=states_list)
+    phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
+    plotPhi(agent.basis.phi, phi_rec, x_traj=states_list)
     plt.show()
 
 
