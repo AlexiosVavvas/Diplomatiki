@@ -3,7 +3,7 @@ import numpy as np
 class SingleIntegrator():
 
     def __init__(self):
-        self.dt = 0.01
+        self.dt = 0.001
 
         self.A = np.array([
                 [0., 0.],

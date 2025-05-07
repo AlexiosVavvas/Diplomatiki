@@ -2,18 +2,21 @@ import numpy as np
 
 class DecentralisedErgodicController():
     def __init__(self, agent, phi=None, num_of_agents=1, R=np.eye(2), Q = 1, uNominal=None,
-                 T = 1):
+                 T_horizon = 1, T_sampling=0.01):
 
         self.agent = agent
         self.num_of_agents = num_of_agents
         self.R = R
         self.Q = Q
         self.uNominal = uNominal
-        self.T = T
+        self.T = T_horizon
+        self.Ts = T_sampling
+        assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
 
-        self.agent.setPhi(phi)  # Set the target distribution in the basis object
+        # Variable to store action if available (non zero if calculated and within sample space)
+        self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), 2))
 
-    def calcNextAction(self, ti):
+    def calcNextActionTriplet(self, ti):
         """
         Calculate the next action based on the current state and the target distribution.
         """
@@ -23,6 +26,7 @@ class DecentralisedErgodicController():
 
         # Calc Ck Coefficients
         ck = self.agent.basis.calcCkCoeff(traj, ti=ti, T=self.T)
+        erg_cost = self.calcErgodicCost(ck)
 
         # Simulate Adjoint Backward to get rho(t)
         rho, _ = self.agent.simulateAdjointBackward(traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
@@ -33,7 +37,8 @@ class DecentralisedErgodicController():
         Rinv = np.linalg.inv(self.R)
         for i in range(len(traj)):
             ustar[i] = -Rinv @ self.agent.model.h(traj[i]).T @ rho[i]
-            
+            # print(f"rho[{i}]: {rho[i]}, \nustar[{i}]: {ustar[i]}\nh[{i}]: {self.agent.model.h(traj[i])}\n\n")
+
             if self.uNominal is not None:
                 ustar[i] += self.uNominal(traj[i], ti + i * dt)
         
@@ -42,7 +47,7 @@ class DecentralisedErgodicController():
         assert Jtau != 0, "Jtau is zero, which is not expected."
 
         # Determine Control Duration
-        lamda_duration = 0.01
+        lamda_duration = self.agent.model.dt * 6
 
         us = ustar[int((tau - ti) / self.agent.model.dt)]
 
@@ -52,7 +57,8 @@ class DecentralisedErgodicController():
         def plotUs(us):
             import matplotlib.pyplot as plt
             plt.figure(figsize=(10, 5))
-            plt.plot(us[:, 0], 'o-', label='Control Action')
+            plt.plot(us[:, 0], 'o-', label='Control Action 1')
+            plt.plot(us[:, 0], 'x-', label='Control Action 2')
             plt.title('Control Action over Time')
             plt.xlabel('Control 1')
             plt.ylabel('Control 2')
@@ -66,9 +72,10 @@ class DecentralisedErgodicController():
         # ustar[:, 0] *= 20
         # ustar[:, 1] *= 20
         # plotUs(ustar)
+        # plotUs(rho)
+    
 
-
-        return us, tau, lamda_duration
+        return us, tau, lamda_duration, erg_cost
 
 
 
@@ -114,6 +121,20 @@ class DecentralisedErgodicController():
         return optimal_tau, Jt(optimal_tau)
         
 
+    def updateActionMask(self, ti, us, tau, lamda_duration):
+        # Reset previous calculations
+        self.ustar_mask[:] = 0
+        # Calculate starting index
+        i_start = int((tau - ti) / self.agent.model.dt)
+        # Check wether tau is within the current timestep (τ ε [ti, ti + Ts])
+        if i_start >= 0 and i_start < len(self.ustar_mask):
+            # Calculate end index based on duration
+            i_end = int((tau + lamda_duration - ti) / self.agent.model.dt)
+            i_end = min(i_end, len(self.ustar_mask))
+            # Save control to variable mask            
+            for j in range(i_start, i_end):
+                self.ustar_mask[j] = us
+
 
         
     def calcErgodicCost(self, ck):
@@ -122,4 +143,5 @@ class DecentralisedErgodicController():
             for k2 in range(self.agent.Kmax+1):
                 ergodic_cost += (ck[k1, k2] - self.agent.basis.calcPhikCoeff(k1, k2))**2
         ergodic_cost *= self.Q
+        # print(f"Ergodic Cost: {ergodic_cost}")
         return ergodic_cost

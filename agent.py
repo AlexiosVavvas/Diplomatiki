@@ -3,7 +3,7 @@ import numpy as np
 from model_dynamics import SingleIntegrator
 
 class Agent():
-    def __init__(self, L1, L2, Kmax, dynamics_model: SingleIntegrator, phi=None, Ts=0.01, uNominal=None, T_horizon=1.0):
+    def __init__(self, L1, L2, Kmax, dynamics_model: SingleIntegrator, phi=None, Ts=0.01, uNominal=None):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -13,14 +13,7 @@ class Agent():
         self.Ts = Ts
 
         # Initialize the basis object
-        self.basis = Basis(L1, L2, Kmax)
-
-        # Set the target distribution (phi)
-        self.setPhi(phi)  # Set the target distribution in the basis object
-
-        # Initialise Actions
-        self.ustar_actions = np.zeros(int(T_horizon / Ts), dtype=np.float64)
-        
+        self.basis = Basis(L1, L2, Kmax, phi)
 
 
     def setPhi(self, phi=None):
@@ -67,7 +60,11 @@ class Agent():
         for i in range(len(x_traj)-2, -1, -1):
             # Jacobian of the dynamics with respect to x
             f_x = self.model.f_x(x_traj[i])
-            
+            # print(f"f_x: {f_x}")
+
+            # self.erg_c.calcErgodicCost(ck)
+            # self.visualiseCoefficients(ck)
+
             rho_dot = -np.dot(f_x.T, rho[i+1])  # TOCHECK: f_x.T
             for k1 in range(self.Kmax+1):
                 for k2 in range(self.Kmax+1):
@@ -76,9 +73,19 @@ class Agent():
                     phi_k = self.basis.calcPhikCoeff(k1, k2)
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck[k1, k2] - phi_k) * self.basis.dFk_dx(x_traj[i], k1, k2, hk)
 
+                    # Print 0 instead of the number if it's smaller than 1e-4
+            #         rho_dot_str = "0" if abs(rho_dot).all() < 1e-4 else str(rho_dot)
+            #         ck_str = "0" if abs(ck[k1, k2]) < 1e-4 else str(ck[k1, k2])
+            #         phi_k_str = "0" if abs(phi_k) < 1e-4 else str(phi_k)
+            #         hk_str = "0" if abs(hk) < 1e-4 else str(hk)
+            #         lamda_k_str = "0" if abs(lamda_k) < 1e-4 else str(lamda_k)
+            #         basis = "0" if abs(self.basis.dFk_dx(x_traj[i], k1, k2, hk)).all() < 1e-2 else str(self.basis.dFk_dx(x_traj[i], k1, k2, hk))
+            #         print(f"rho_dot: {rho_dot_str}\t ck[{k1}, {k2}]: {ck_str}\t phi_k: {phi_k_str}\t hk: {hk_str}\t lamda_k: {lamda_k_str}\t basis: {basis}")
+            # print(f"rho_dot: {rho_dot}\t dt: {self.model.dt}\n\n")
+            
             # Update rho using the computed rho_dot
             rho[i] = rho[i+1] - rho_dot * self.model.dt 
-
+            # input("Press Enter to continue...")
             def plotRho(rho):
                 import matplotlib.pyplot as plt
                 plt.figure(figsize=(10, 5))
@@ -126,11 +133,43 @@ class Agent():
         plt.tight_layout()
         plt.show()
 
-    def updateActionsWindow(self, us, tau, lamda_duration, ti):
-        for i in range(len(self.ustar_actions)):
-            pass
 
 
 
 
 
+    def visualiseCoefficients(self, ck):
+        import matplotlib.pyplot as plt
+        from matplotlib import cm
+
+        k1 = np.linspace(0, self.Kmax, self.Kmax+1)
+        k2 = np.linspace(0, self.Kmax, self.Kmax+1)
+        K1, K2 = np.meshgrid(k1, k2)
+        Z_ck = np.zeros((len(k1), len(k2)))
+        Z_phik = np.zeros((len(k1), len(k2)))
+        
+        for i in range(len(k1)):
+            for j in range(len(k2)):
+                Z_ck[i, j] = ck[i, j]
+                Z_phik[i, j] = self.basis.calcPhikCoeff(int(k1[i]), int(k2[j]))
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        
+        # Plot Ck coefficients
+        im1 = ax1.imshow(Z_ck, cmap=cm.viridis, origin='lower', 
+                        extent=[0, self.Kmax, 0, self.Kmax], aspect='equal')
+        ax1.set_title('Ck Coefficients')
+        ax1.set_xlabel('k1')
+        ax1.set_ylabel('k2')
+        fig.colorbar(im1, ax=ax1, label='Ck Value')
+        
+        # Plot Phi_k coefficients
+        im2 = ax2.imshow(Z_phik, cmap=cm.viridis, origin='lower', 
+                        extent=[0, self.Kmax, 0, self.Kmax], aspect='equal')
+        ax2.set_title('Phi_k Coefficients')
+        ax2.set_xlabel('k1')
+        ax2.set_ylabel('k2')
+        fig.colorbar(im2, ax=ax2, label='Phi_k Value')
+        
+        plt.tight_layout()
+        plt.show()

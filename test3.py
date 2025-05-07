@@ -14,4 +14,4 @@ def uFunc(x, t):
 
 
 erg_c = DecentralisedErgodicController(agent, phi=None, num_of_agents=1, R=np.eye(2), uNominal=None)
-erg_c.calcNextAction(ti=0, T=1)
+erg_c.calcNextActionTriplet(ti=0, T=1)

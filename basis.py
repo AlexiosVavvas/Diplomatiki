@@ -3,18 +3,21 @@ from scipy.integrate import nquad
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, precalc_hk_coeff=True):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
         
-        # Target Distribution (Phi = f(s) where s -> s[0], s[1])
-        self._phi = None
-
         # Dictionary to store precomputed values
         self.hk_cache = {}
         self.phi_coeff_cache = {}
         self.LamdaK_cache = {}
+
+        # Target Distribution (Phi = f(s) where s -> s[0], s[1])
+        self._phi = None
+        if phi_ is not None:
+            assert callable(phi_), "phi must be a callable function."
+            self.phi = phi_
 
         # Precalculate hk for all k1, k2 pairs
         if precalc_hk_coeff:
@@ -22,6 +25,9 @@ class Basis():
 
         # Precalculate LamdaK for all k1, k2 pairs
         self.precalcAllLamdaK()
+
+        # Precalculate PhiK for all k1, k2 pairs
+        self.precalcAllPhiK()
 
 
     def calcHk(self, k1, k2):
@@ -64,6 +70,12 @@ class Basis():
                 lamda_k_ = (1 + abs_k_sq) ** (-(v_+1)/2)
                 self.LamdaK_cache[(k1, k2)] = lamda_k_
 
+    # Precompute PhiK
+    def precalcAllPhiK(self):
+        for k1 in range(self.Kmax+1):
+            for k2 in range(self.Kmax+1):
+                self.calcPhikCoeff(k1, k2)
+
     def Fk(self, s, k1, k2, hk):
         Fk = np.cos(k1*np.pi/self.L1*s[0]) * np.cos(k2*np.pi/self.L2*s[1]) / hk
         return Fk
@@ -79,6 +91,7 @@ class Basis():
 
         # Check if the value is already computed
         if (k1, k2) in self.phi_coeff_cache:
+            # print(f"----> Phi Coefficients already calculated for k1={k1}, k2={k2}.")
             return self.phi_coeff_cache[(k1, k2)]
 
         hk = self.calcHk(k1, k2)
@@ -86,6 +99,7 @@ class Basis():
                 [[0, self.L1], [0, self.L2]])
 
         self.phi_coeff_cache[(k1, k2)] = phi_k
+        print(f"Phi Coefficients calculated for k1={k1}, k2={k2}.")
 
         return phi_k
     
@@ -129,6 +143,7 @@ class Basis():
         assert callable(new_phi), "phi must be a callable function."
         # Change Phi Target Distribution
         self._phi = new_phi
+        print("Setting new PHI")
         # Clear the cache for phi coefficients since the target distribution has changed
         self.phi_coeff_cache.clear()
 
