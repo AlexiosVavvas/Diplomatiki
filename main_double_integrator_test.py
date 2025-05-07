@@ -72,7 +72,7 @@ def plotPhi(agent_basis, phi_new, x_traj=None):
 # -----------------------------------------------------------------------------------
 def main():
     from agent import Agent
-    from model_dynamics import SingleIntegrator
+    from model_dynamics import SingleIntegrator, DoubleIntegrator
     from ergodic_controllers import DecentralisedErgodicController
     import time
 

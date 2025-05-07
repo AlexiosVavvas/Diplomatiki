@@ -1,9 +1,18 @@
 import numpy as np
 
 class SingleIntegrator():
-
-    def __init__(self):
-        self.dt = 0.001
+    '''
+    Basic First Order Dynamics Model ----
+    Model: 
+        x1' = u1       -> x1 = x
+        x2' = u2       -> x2 = y
+    So, the state is:
+        x = [x1, x2]    -> Ergodic state: xv = [x, y] = [x1, x2]
+        x = [x, y]
+        u = [u1, u2]
+    '''
+    def __init__(self, dt=0.001):
+        self.dt = dt
 
         self.A = np.array([
                 [0., 0.],
@@ -55,12 +64,31 @@ class SingleIntegrator():
         self.state = self.state + self.f(self.state, u) * self.dt
         return self.state
     
+    @property
+    def ergodic_state(self):
+        return self.state.copy()
+    
 
 
 class DoubleIntegrator():
-
-    def __init__(self):
-        self.dt = 0.001
+    '''
+    Basic Second Order Dynamics Model ----
+    Model: 
+        x1'' = u1       -> x1 = x  |  x3 = x'
+        x2'' = u2       -> x2 = y  |  x4 = y'
+    Or equivalently:
+        x1' = x3
+        x2' = x4
+        x3' = u1
+        x4' = u2
+    So, the state is:
+        x = [x1, x2, x3, x4]    -> Ergodic state: xv = [x, y] = [x1, x2]
+        x = [x,  y,  x', y']
+        u = [u1, u2]
+    '''
+    def __init__(self, dt=0.001):
+        
+        self.dt = dt
 
         self.A = np.array([
                 [0., 0., 1.0-0.2, 0.],
@@ -115,3 +143,7 @@ class DoubleIntegrator():
     def step(self, u):
         self.state = self.state + self.f(self.state, u) * self.dt
         return self.state
+    
+    @property
+    def ergodic_state(self):
+        return self.state[:2].copy()

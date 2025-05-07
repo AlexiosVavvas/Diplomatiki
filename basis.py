@@ -77,14 +77,14 @@ class Basis():
             for k2 in range(self.Kmax+1):
                 self.calcPhikCoeff(k1, k2)
 
-    def Fk(self, s, k1, k2, hk):
-        Fk = np.cos(k1*np.pi/self.L1*s[0]) * np.cos(k2*np.pi/self.L2*s[1]) / hk
+    def Fk(self, xv, k1, k2, hk):
+        Fk = np.cos(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk
         return Fk
     
-    def dFk_dx(self, x, k1, k2, hk):
+    def dFk_dx(self, xv, k1, k2, hk):
         Fk_x = np.zeros((2,))
-        Fk_x[0] = -np.sin(k1*np.pi/self.L1*x[0]) * np.cos(k2*np.pi/self.L2*x[1]) / hk * (k1*np.pi/self.L1)
-        Fk_x[1] = -np.cos(k1*np.pi/self.L1*x[0]) * np.sin(k2*np.pi/self.L2*x[1]) / hk * (k2*np.pi/self.L2)
+        Fk_x[0] = -np.sin(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk * (k1*np.pi/self.L1)
+        Fk_x[1] = -np.cos(k1*np.pi/self.L1*xv[0]) * np.sin(k2*np.pi/self.L2*xv[1]) / hk * (k2*np.pi/self.L2)
         return Fk_x
         
     def calcPhikCoeff(self, k1, k2):
@@ -104,6 +104,7 @@ class Basis():
 
         return phi_k
     
+    # TODO: Recursively calculate the coefficients Ck
     def calcCkCoeff(self, x_traj, ti, T, x_buffer=None):
         '''
         Calculate the coefficients Ck for the trajectory x_traj from time ti to T.

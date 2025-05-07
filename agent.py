@@ -3,14 +3,13 @@ import numpy as np
 from model_dynamics import SingleIntegrator
 
 class Agent():
-    def __init__(self, L1, L2, Kmax, dynamics_model: SingleIntegrator, phi=None, Ts=0.01, uNominal=None):
+    def __init__(self, L1, L2, Kmax, dynamics_model: SingleIntegrator, phi=None, uNominal=None):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
         
         self.model = dynamics_model
         self.model.reset()
-        self.Ts = Ts
 
         # Initialize the basis object
         self.basis = Basis(L1, L2, Kmax, phi)

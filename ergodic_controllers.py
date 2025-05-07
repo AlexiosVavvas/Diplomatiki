@@ -2,8 +2,8 @@ import numpy as np
 from replay_buffer import ReplayBufferFIFO
 
 class DecentralisedErgodicController():
-    def __init__(self, agent, phi=None, num_of_agents=1, R=np.eye(2), Q = 1, uNominal=None,
-                 T_horizon = 1, T_sampling=0.01, deltaT_erg=0.01):
+    def __init__(self, agent, num_of_agents=1, R=np.eye(2), Q = 1, uNominal=None,
+                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9):
 
         self.agent = agent
         self.num_of_agents = num_of_agents
@@ -51,7 +51,8 @@ class DecentralisedErgodicController():
         assert Jtau < 0, "Jtau is Non Negative, which is not expected."
 
         # Determine Control Duration
-        lamda_duration = self.agent.model.dt*2  # Default to the sampling time
+        # TODO: Implement a better way to determine the control duration
+        lamda_duration = self.Ts
         # lamda_duration = self.agent.model.dt * np.random.randint(1, int(self.Ts / self.agent.model.dt))
 
         # Keep the approprate control from t=tau
