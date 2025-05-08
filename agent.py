@@ -75,6 +75,11 @@ class Agent():
                     # TODO: Check: Since Fk(xv) the derivative lacks dimensions to reach x. So i think we should append 0s
                     dFdx = np.concatenate((dFdx, np.zeros((self.model.num_of_states - 2,))))
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
+                    # Add the barrier term
+                    barr_dx = self.erg_c.barrier.dx(x_traj[i][:2])
+                    # However we need to append 0s to the non ergodic dimensions before adding to rho_dot
+                    barr_dx = np.concatenate((barr_dx, np.zeros((self.model.num_of_states - 2,))))
+                    rho_dot -= barr_dx
                     # if dFdx[0] > 0.1 or dFdx[1] > 0.1 or ck_ > 0.1 or phi_k > 0.1:
                     #     print(f"dFdx: {dFdx[0]:.1f} - {dFdx[1]:.1f} \t@ (k1, k2): ({k1}, {k2}) \t ck: {ck[k1, k2]} \t phi_k: {phi_k} \t hk: {hk:.1f} \t rho_dot: {rho_dot}")
             # self.visualiseCoefficients(ck)
@@ -91,20 +96,30 @@ class Agent():
             # Update rho using the computed rho_dot
             rho[i] = rho[i+1] - rho_dot * self.model.dt 
             # input("Press Enter to continue...")
-            def plotRho(rho):
-                import matplotlib.pyplot as plt
-                plt.figure(figsize=(10, 5))
-                plt.plot(rho[:, 0], 'o-', label='Rho 1')
-                plt.plot(rho[:, 1], 'o-', label='Rho 2')
-                plt.title('Adjoint State Rho over Time')
-                plt.xlabel('Time Step')
-                plt.ylabel('Rho Value')
-                plt.legend()
-                plt.grid()
-                plt.show()
-            # plotRho(x_traj)
+        # def plotRho(rho):
+        #     import matplotlib.pyplot as plt
+        #     plt.figure(figsize=(10, 5))
+        #     plt.plot(rho[:, 0], 'o-', label='Rho 1')
+        #     plt.plot(rho[:, 1], 'o-', label='Rho 2')
+        #     plt.title('Adjoint State Rho over Time')
+        #     plt.xlabel('Time Step')
+        #     plt.ylabel('Rho Value')
+        #     plt.legend()
+        #     plt.grid()
+        #     plt.show()
+        # plotRho(rho)
         # input("Press Enter to continue...")
         return rho, np.linspace(0, T, len(x_traj))
+
+    def withinBounds(self, x):
+        '''
+        Check if the state is within the bounds of the system
+        '''
+        # Check if the 2 first ergodic dimension are within the bounds L1, L2
+        if x[0] < 0 or x[0] > self.L1 or x[1] < 0 or x[1] > self.L2:
+            print(f"--> State out of bounds: {x}")
+            return False
+        return True
 
     def visualiseColorForTraj(self, ck, x_traj):
         '''

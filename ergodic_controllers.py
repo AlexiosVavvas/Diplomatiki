@@ -1,18 +1,29 @@
 import numpy as np
 from replay_buffer import ReplayBufferFIFO
+from barrier import Barrier
 
 class DecentralisedErgodicController():
-    def __init__(self, agent, num_of_agents=1, R=np.eye(2), Q = 1, uNominal=None,
-                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9):
+    def __init__(self, agent, num_of_agents=1, R=np.eye(2), Q = 1, 
+                 uNominal=None, uLimits=None,
+                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9,
+                 barrier_weight=100, barrier_eps=0.01):
 
         self.agent = agent
         self.num_of_agents = num_of_agents
-        self.R = R
-        self.Q = Q
-        self.uNominal = uNominal
+
         self.T = T_horizon
         self.Ts = T_sampling
         self.deltaT_erg = deltaT_erg
+        
+        self.R = R
+        self.Q = Q
+        self.uNominal = uNominal
+        if uLimits is None:
+            self.uLimits = np.array([[-np.inf, np.inf] for _ in range(agent.model.num_of_inputs)])
+        else:
+            assert len(uLimits) == agent.model.num_of_inputs, "uLimits should contain [lower, upper] pairs for every control (num_of_inputs)."
+            self.uLimits = np.array(uLimits)
+        self.barrier = Barrier(L1=agent.L1, L2=agent.L2, pow_=2, weight=barrier_weight, eps_=barrier_eps)
         
         # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
@@ -33,10 +44,11 @@ class DecentralisedErgodicController():
 
         # Simulate Trajectory Forward
         traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T)
-
+        erg_traj = traj[:, :2] # Only take the ergodic dimensions
+        
         # Calc Ck Coefficients
-        ck = self.agent.basis.calcCkCoeff(traj[:, :2], x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
-        erg_cost = self.calcErgodicCost(ck)
+        ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
+        erg_cost = self.calcErgodicCost(ck) 
 
         # Simulate Adjoint Backward to get rho(t)
         rho, _ = self.agent.simulateAdjointBackward(traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
@@ -55,10 +67,11 @@ class DecentralisedErgodicController():
         # Calculate Application Time
         tau, Jtau = self.calcApplicationTime(ustar, rho, traj, ti, self.T)
         assert Jtau < 0, "Jtau is Non Negative, which is not expected."
-
+        # print(f"tau-ti: {(tau-ti)/self.agent.model.dt} \t Jtau: {Jtau}")
+        
         # Determine Control Duration
         # TODO: Implement a better way to determine the control duration
-        lamda_duration = self.Ts
+        lamda_duration = self.Ts * 1.5
         # lamda_duration = self.agent.model.dt * np.random.randint(1, int(self.Ts / self.agent.model.dt))
 
         # Keep the approprate control from t=tau
@@ -79,7 +92,9 @@ class DecentralisedErgodicController():
             plt.grid()
             plt.show()
         
-        # normalize each us to be between -1 and 1 using the max value of us
+        # Saturate Control to given limits
+        us = np.clip(us, self.uLimits[:, 0], self.uLimits[:, 1])
+
         # plotUs(ustar)
         # plotUs(rho)
         # print(f"us: {us} \t tau-ti: {tau-ti}")
@@ -94,7 +109,7 @@ class DecentralisedErgodicController():
             i = int((tau - ti) / self.agent.model.dt)
             x = x_traj[i]
             us = ustar[i]
-            udef = self.uNominal(x, tau) if self.uNominal is not None else np.zeros((2,))
+            udef = self.uNominal(x, tau) if self.uNominal is not None else np.zeros((self.agent.model.num_of_inputs,))
             
             Jt_value = rho[i].T @ (self.agent.model.f(x, us) - self.agent.model.f(x, udef))
             return Jt_value
@@ -117,7 +132,7 @@ class DecentralisedErgodicController():
 
 
         # TODO: Do gradient descent or something faster / clever?
-        # TODO: Make sure we dont always choose the first value
+        # TODO: Make sure we dont always choose the first value - Seems like we do
         # Generate time points for evaluation
         t = np.linspace(ti, ti+T, len(x_traj))
         Jt_values = np.array([Jt(tau) for tau in t])
@@ -126,6 +141,7 @@ class DecentralisedErgodicController():
         # Find time that minimizes Jt (argmin Jt)
         min_idx = np.argmin(Jt_values)
         optimal_tau = t[min_idx]
+        # optimal_tau = ti
         
         return optimal_tau, Jt(optimal_tau)
         
@@ -154,3 +170,4 @@ class DecentralisedErgodicController():
         ergodic_cost *= self.Q
         # print(f"Ergodic Cost: {ergodic_cost}")
         return ergodic_cost
+

@@ -1,6 +1,6 @@
 import numpy as np
 
-class ReplayBufferFIFO(object):
+class ReplayBufferFIFO:
     def __init__(self, capacity, element_size=(2,)):
         self.capacity = capacity
         self.element_size = element_size

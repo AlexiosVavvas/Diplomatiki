@@ -91,15 +91,16 @@ class DoubleIntegrator():
     
     Note: By design of my code, the ergodic states should ALWAYS be the first two elements of the state vector.
     '''
-    def __init__(self, dt=0.001):
+    def __init__(self, mass=1, dt=0.001):
         
         self.dt = dt
         self.num_of_states = 4
         self.num_of_inputs = 2
+        self.m = mass
 
         self.A = np.array([
-                [0., 0., 1.0-0.2, 0.],
-                [0., 0., 0., 1.0-0.2],
+                [0., 0., 1.0, 0.],
+                [0., 0., 0., 1.0],
                 [0., 0., 0., 0.],
                 [0., 0., 0., 0.]
         ])# - np.diag([0,0,1,1]) * 0.25
@@ -109,7 +110,8 @@ class DoubleIntegrator():
                 [0., 0.],
                 [1.0, 0.],
                 [0., 1.0]
-        ])
+        ]) / self.m
+        
 
         self.state = self.reset()
 

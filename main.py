@@ -6,15 +6,27 @@ import cProfile
 import pstats
 from pstats import SortKey
 
-def phiExample(s):
+def phiExample(s, L1=1.0, L2=1.0):
     # Complex function with multiple peaks, valleys, and non-linearities
     x, y = s[0], s[1]
     
     # Multiple Gaussian bumps
-    bumps = 3 * np.exp(-30 * ((x-0.2)**2 + (y-0.3)**2)) + \
-            4 * np.exp(-40 * ((x-0.7)**2 + (y-0.8)**2)) + \
-            2 * np.exp(-25 * ((x-0.5)**2 + (y-0.1)**2)) + \
-            5 * np.exp(-35 * ((x-0.9)**2 + (y-0.5)**2))
+    # Generate random bump positions within the L1, L2 boundaries
+    bump_positions = [
+        (0.2 * L1, 0.3 * L2), 
+        (0.7 * L1, 0.8 * L2), 
+        (0.5 * L1, 0.1 * L2), 
+        (0.9 * L1, 0.5 * L2)
+    ]
+    bump_heights = [3, 4, 2, 5]
+    bump_widths = [30, 40, 25, 35]
+    
+    bumps = 0
+    for i in range(len(bump_positions)):
+        pos_x, pos_y = bump_positions[i]
+        height = bump_heights[i]
+        width = bump_widths[i]
+        bumps += height * np.exp(-width * ((x-pos_x)**2 + (y-pos_y)**2))
     
     # Sinusoidal variations
     # waves = 2 * np.sin(8 * np.pi * x) * np.cos(6 * np.pi * y)
@@ -28,11 +40,11 @@ def phiExample(s):
     # Combine all components
     return bumps + 2 #+ waves + trend + ridge
 
-def plotPhi(agent_basis, phi_new, x_traj=None):
-    phi_old = agent_basis.phi
+def plotPhi(agent, phi_new, x_traj=None):
+    phi_old = agent.basis.phi
 
-    x1 = np.linspace(0, 1, 50)
-    x2 = np.linspace(0, 1, 50)
+    x1 = np.linspace(0, agent.L1, 50)
+    x2 = np.linspace(0, agent.L2, 50)
 
     # Plot both in a 1x2 matplotlib figure as heatmap colors
     import matplotlib.pyplot as plt
@@ -49,7 +61,7 @@ def plotPhi(agent_basis, phi_new, x_traj=None):
     fig = plt.figure(figsize=(12, 6))
     # Not 3d, just 2d with imshow color
     ax1 = fig.add_subplot(121)
-    im1 = ax1.imshow(Z_original, extent=(0, 1, 0, 1), origin='lower', cmap=cm.viridis)
+    im1 = ax1.imshow(Z_original, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
     ax1.set_title('Original Function')
     ax1.set_xlabel('x1')
     ax1.set_ylabel('x2')
@@ -57,7 +69,7 @@ def plotPhi(agent_basis, phi_new, x_traj=None):
     plt.colorbar(im1, ax=ax1, label='Function Value')
 
     ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(Z_reconstructed, extent=(0, 1, 0, 1), origin='lower', cmap=cm.viridis)
+    im2 = ax2.imshow(Z_reconstructed, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
     ax2.set_title('Reconstructed Function')
     ax2.set_xlabel('x1')
     ax2.set_ylabel('x2')
@@ -77,67 +89,64 @@ def main():
     import time
 
     def uFunc(x, t):
-        # Example control function: a simple sinusoidal control
-        u_ = np.ones((2,))
-        u_[0] = np.random.uniform(-1, 1)  # Random control for x1
-        u_[1] = np.random.uniform(-1, 1)  # Random control for x2
-        return u_ * 0.1
+        #  Potential force pussing away from the boundaries [0xL1=2, 0xL2=2]
+        pass 
+ 
 
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=4, 
-                  dynamics_model=DoubleIntegrator(dt=0.005), phi=phiExample)
+    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
+                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=1.0, L2=1.0))
                 #   dynamics_model=SingleIntegrator(dt=0.005), phi=lambda s: 2)
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, T_sampling=0.01, T_horizon=0.3, Q=1, deltaT_erg=0.6)
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-10, 10], [-10, 10]],
+                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=1.3*2,
+                                                 barrier_weight=1e3, barrier_eps=0.1)
     
-    x0 = np.array([0.1, 0.9, 0, 0])  # Initial state
+    x0 = np.array([0.5, 0.4, 0, 0])  # Initial state
     agent.model.reset(x0)  # Reset the model to the initial state
     
     states_list = [x0.copy()]  
     t_list = [0]  # Time vector
     u_list = [np.zeros((2,))]  # Control action list
     erg_cost_list = []
-    delta_erg_cost = 10  # Threshold for ergodic cost
 
     ti = t_list[0]; ti_indx = 0
+    Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
     
-    TMAX = 0.5 # [s]
-    TMIN = 0.5
     # Initialize timing variables
+    initial_time = time.time()
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 300
+    i = 0; IMAX = 2000
     while i < IMAX:
-    # while delta_erg_cost > 1e-5 and t_list[i] < TMAX:
-        # Start timing this iteration
-        iter_start_time = time.time()
-        
-        if t_list[i] % agent.erg_c.Ts < 0.01:
+        # If multiple of Ts, calculate ergodic action
+        if i % Ts_iter == 0:
             ti = t_list[i]; ti_indx = i
             # Calculate ergodic control for the sample step
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(t_list[i])
-            erg_cost_list.append(erg_cost); print(f"Ergodic cost: {erg_cost:.3f} \t i: {i}/{IMAX} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}")
+            erg_cost_list.append(erg_cost)
+            if i % 1 == 0:
+                print(f"Ergodic cost: {erg_cost:.3f} \t i: {i}/{IMAX} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+                # Debug print if agent inside boundaries
+                agent.withinBounds(agent.model.state[:2])
             # Update the action mask
             agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
         
+        # Continue with simulation of agent
         us_ = agent.erg_c.ustar_mask[i - ti_indx]
         
         if us_.all() != 0:
             # Apply the control action to the agent's model
             u = us_
-            # print(f"Stepping with ERGODIC control action: {u}")
         elif agent.erg_c.uNominal is not None:
             # If no ergodic control is available, use the nominal control
             u_nom = agent.erg_c.uNominal(agent.model.state, t_list[i])
             # Apply the nominal control action to the agent's model
             u = u_nom
-            # print(f"Stepping with NOMINAL control action: {u}")
         else:
             # If no ergodic control and no nominal control, just step the model with zero control
             u = np.zeros((2,))
-            # print("Stepping with ZERO control action.")
         
-        u = u.clip(-3, 3)
         agent.model.step(u)  # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
@@ -149,7 +158,8 @@ def main():
         
         # Calculate delta time for this iteration
         current_time = time.time()
-        delta_time = current_time - last_iter_time
+        # delta_time is for when we calculated ergodic control. Otherwise we dont care, its fast
+        delta_time = current_time - last_iter_time if (i%Ts_iter == 0) else delta_time
         last_iter_time = current_time
         
         i += 1
@@ -178,13 +188,13 @@ def main():
 
     # vis traj
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
-    plotPhi(agent.basis, phi_rec, x_traj=states_list)
+    plotPhi(agent, phi_rec, x_traj=states_list)
     # plt.show()
     
     ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)
     # ck_ = agent.basis.calcCkCoeff(agent.erg_c.past_states_buffer.get(), x_buffer=None, ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-    plotPhi(agent.basis, phi_rec_from_ck, x_traj=states_list)
+    plotPhi(agent, phi_rec_from_ck, x_traj=states_list)
     plt.show()
 
 
