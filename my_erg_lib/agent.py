@@ -1,6 +1,6 @@
-from basis import Basis
+from my_erg_lib.basis import Basis
 import numpy as np
-from model_dynamics import SingleIntegrator, DoubleIntegrator
+from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator
 
 class Agent():
     def __init__(self, L1, L2, Kmax, dynamics_model, phi=None):
@@ -127,7 +127,7 @@ class Agent():
         '''
         import matplotlib.pyplot as plt
         from matplotlib import cm
-        from basis import ReconstructedPhiFromCk
+        from my_erg_lib.basis import ReconstructedPhiFromCk
         # Reconstruct the target distribution using the coefficients
         phi_from_ck = ReconstructedPhiFromCk(self.basis, ck)
 

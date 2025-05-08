@@ -1,6 +1,6 @@
 import numpy as np
-from replay_buffer import ReplayBufferFIFO
-from barrier import Barrier
+from my_erg_lib.replay_buffer import ReplayBufferFIFO
+from my_erg_lib.barrier import Barrier
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1, R=np.eye(2), Q = 1, 

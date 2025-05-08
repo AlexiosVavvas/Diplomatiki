@@ -1,4 +1,4 @@
-from basis import Basis, ReconstructedPhi, ReconstructedPhiFromCk
+from my_erg_lib.basis import Basis, ReconstructedPhi, ReconstructedPhiFromCk
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -83,9 +83,9 @@ def plotPhi(agent, phi_new, x_traj=None):
 
 # -----------------------------------------------------------------------------------
 def main():
-    from agent import Agent
-    from model_dynamics import DoubleIntegrator, SingleIntegrator
-    from ergodic_controllers import DecentralisedErgodicController
+    from my_erg_lib.agent import Agent
+    from my_erg_lib.model_dynamics import DoubleIntegrator, SingleIntegrator
+    from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     import time
 
     def uFunc(x, t):
@@ -94,11 +94,11 @@ def main():
  
 
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
-                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=1.0, L2=1.0))
+    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
+                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=2.0, L2=2.0))
                 #   dynamics_model=SingleIntegrator(dt=0.005), phi=lambda s: 2)
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-10, 10], [-10, 10]],
-                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=1.3*2,
+                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=0.3*10,
                                                  barrier_weight=1e3, barrier_eps=0.1)
     
     x0 = np.array([0.5, 0.4, 0, 0])  # Initial state
@@ -117,7 +117,7 @@ def main():
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 2000
+    i = 0; IMAX = 4000
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
@@ -188,7 +188,7 @@ def main():
 
     # vis traj
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
-    plotPhi(agent, phi_rec, x_traj=states_list)
+    plotPhi(agent, phi_rec, x_traj=None)
     # plt.show()
     
     ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)

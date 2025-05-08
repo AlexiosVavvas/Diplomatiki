@@ -2,7 +2,7 @@ import numpy as np
 
 class ReplayBufferFIFO:
     def __init__(self, capacity, element_size=(2,)):
-        self.capacity = capacity
+        self.capacity = capacity if capacity > 0 else 1
         self.element_size = element_size
         self.buffer = np.zeros((0, *element_size))
         self.current_size = 0
