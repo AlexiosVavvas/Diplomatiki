@@ -7,6 +7,7 @@ class Basis():
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
+        assert Kmax >= 1, "Kmax must be greater than or equal to 1."
         
         # Dictionary to store precomputed values
         self.hk_cache = {}
@@ -93,7 +94,6 @@ class Basis():
 
         # Check if the value is already computed
         if (k1, k2) in self.phi_coeff_cache:
-            # print(f"----> Phi Coefficients already calculated for k1={k1}, k2={k2}.")
             return self.phi_coeff_cache[(k1, k2)]
 
         hk = self.calcHk(k1, k2)

@@ -90,8 +90,8 @@ class GroundVehicle(Agent):
                 print("Sending pose")
                 print("(%f,%f)" % (coord[0], coord[1]))
                 self.sendPose(self.goal_pose.target_latitude, self.goal_pose.target_longitude, -1)
-            except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+            except rospy.ServiceException as e:
+                print("Service call failed: %s"%e)
 
 
 if __name__ == '__main__':

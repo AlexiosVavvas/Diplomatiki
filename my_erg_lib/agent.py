@@ -3,13 +3,17 @@ import numpy as np
 from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator
 
 class Agent():
-    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None):
+    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None):
+        self.agent_id = agent_id
+
+        # Space Parameters
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
         
+        # Connecting model dynamics
         self.model = dynamics_model
-        self.model.reset()
+        self.model.reset(x0)
 
         # Initialize the basis object
         self.basis = Basis(L1, L2, Kmax, phi)
@@ -50,23 +54,22 @@ class Agent():
         return np.array(trajectory)
     
     
-    def simulateAdjointBackward(self, x_traj, ck, T=1.0, Q=1, num_of_agents=1):
+    def simulateAdjointBackward(self, x_traj, ck, ti, T=1.0, Q=1, num_of_agents=1):
         '''
         Simulate the adjoint state to get rho(t)
+        Integrating with simple Euler method Backwards from rho(ti+T) = 0
         '''
         rho = np.zeros((len(x_traj), self.model.num_of_states))
 
+        # Integrating with simple Euler method Backwards from ρ(ti+T) = 0
         for i in range(len(x_traj)-2, -1, -1):
             # Jacobian of the dynamics with respect to x
             f_x = self.model.f_x(x_traj[i])
-            # print(f"f_x: {f_x}")
-
-            # self.erg_c.calcErgodicCost(ck)
-            # self.visualiseCoefficients(ck)
 
             rho_dot = -np.dot(f_x.T, rho[i+1])  # TOCHECK: f_x.T
             for k1 in range(self.Kmax+1):
                 for k2 in range(self.Kmax+1):
+                    # Calculating summation terms
                     lamda_k = self.basis.LamdaK_cache[(k1, k2)]
                     hk = self.basis.calcHk(k1, k2)
                     ck_ = ck[k1, k2]
@@ -74,42 +77,20 @@ class Agent():
                     dFdx = self.basis.dFk_dx(x_traj[i][:2], k1, k2, hk)
                     # TODO: Check: Since Fk(xv) the derivative lacks dimensions to reach x. So i think we should append 0s
                     dFdx = np.concatenate((dFdx, np.zeros((self.model.num_of_states - 2,))))
+                    
+                    # Adding to rho_dot(x[i], t[i])
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
+                    
                     # Add the barrier term
                     barr_dx = self.erg_c.barrier.dx(x_traj[i][:2])
                     # However we need to append 0s to the non ergodic dimensions before adding to rho_dot
                     barr_dx = np.concatenate((barr_dx, np.zeros((self.model.num_of_states - 2,))))
                     rho_dot -= barr_dx
-                    # if dFdx[0] > 0.1 or dFdx[1] > 0.1 or ck_ > 0.1 or phi_k > 0.1:
-                    #     print(f"dFdx: {dFdx[0]:.1f} - {dFdx[1]:.1f} \t@ (k1, k2): ({k1}, {k2}) \t ck: {ck[k1, k2]} \t phi_k: {phi_k} \t hk: {hk:.1f} \t rho_dot: {rho_dot}")
-            # self.visualiseCoefficients(ck)
-            # input("Press Enter to continue...")
-                    # Print 0 instead of the number if it's smaller than 1e-4
-            #         rho_dot_str = "0" if abs(rho_dot).all() < 1e-4 else str(rho_dot)
-            #         ck_str = "0" if abs(ck[k1, k2]) < 1e-4 else str(ck[k1, k2])
-            #         phi_k_str = "0" if abs(phi_k) < 1e-4 else str(phi_k)
-            #         hk_str = "0" if abs(hk) < 1e-4 else str(hk)
-            #         lamda_k_str = "0" if abs(lamda_k) < 1e-4 else str(lamda_k)
-            #         basis = "0" if abs(self.basis.dFk_dx(x_traj[i], k1, k2, hk)).all() < 1e-2 else str(dFdx)
-            #         print(f"rho_dot: {rho_dot_str}\t ck[{k1}, {k2}]: {ck_str}\t phi_k: {phi_k_str}\t hk: {hk_str}\t lamda_k: {lamda_k_str}\t basis: {basis}")
-            # print(f"rho_dot: {rho_dot}\t dt: {self.model.dt}\n\n")
+
             # Update rho using the computed rho_dot
             rho[i] = rho[i+1] - rho_dot * self.model.dt 
-            # input("Press Enter to continue...")
-        # def plotRho(rho):
-        #     import matplotlib.pyplot as plt
-        #     plt.figure(figsize=(10, 5))
-        #     plt.plot(rho[:, 0], 'o-', label='Rho 1')
-        #     plt.plot(rho[:, 1], 'o-', label='Rho 2')
-        #     plt.title('Adjoint State Rho over Time')
-        #     plt.xlabel('Time Step')
-        #     plt.ylabel('Rho Value')
-        #     plt.legend()
-        #     plt.grid()
-        #     plt.show()
-        # plotRho(rho)
-        # input("Press Enter to continue...")
-        return rho, np.linspace(0, T, len(x_traj))
+
+        return rho, np.linspace(ti, ti + T, len(x_traj))
 
     def withinBounds(self, x):
         '''
@@ -117,9 +98,10 @@ class Agent():
         '''
         # Check if the 2 first ergodic dimension are within the bounds L1, L2
         if x[0] < 0 or x[0] > self.L1 or x[1] < 0 or x[1] > self.L2:
-            print(f"--> State out of bounds: {x}")
+            print(f"--> ATTENTION: State out of bounds: {x}")
             return False
         return True
+
 
     def visualiseColorForTraj(self, ck, x_traj):
         '''
@@ -152,11 +134,6 @@ class Agent():
 
         plt.tight_layout()
         plt.show()
-
-
-
-
-
 
     def visualiseCoefficients(self, ck):
         import matplotlib.pyplot as plt
@@ -193,3 +170,5 @@ class Agent():
         
         plt.tight_layout()
         plt.show()
+
+

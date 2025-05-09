@@ -1,6 +1,4 @@
-from my_erg_lib.basis import Basis, ReconstructedPhi, ReconstructedPhiFromCk
 import numpy as np
-import matplotlib.pyplot as plt
 
 import cProfile
 import pstats
@@ -40,73 +38,34 @@ def phiExample(s, L1=1.0, L2=1.0):
     # Combine all components
     return bumps + 2 #+ waves + trend + ridge
 
-def plotPhi(agent, phi_new, x_traj=None):
-    phi_old = agent.basis.phi
-
-    x1 = np.linspace(0, agent.L1, 50)
-    x2 = np.linspace(0, agent.L2, 50)
-
-    # Plot both in a 1x2 matplotlib figure as heatmap colors
-    import matplotlib.pyplot as plt
-    from matplotlib import cm
-
-    Z_original = np.zeros((len(x1), len(x2)))
-    Z_reconstructed = np.zeros((len(x1), len(x2)))
-
-    for i in range(len(x1)):
-        for j in range(len(x2)):
-            Z_original[i, j] = phi_old([x1[i], x2[j]])
-            Z_reconstructed[i, j] = phi_new([x1[i], x2[j]])
-        
-    fig = plt.figure(figsize=(12, 6))
-    # Not 3d, just 2d with imshow color
-    ax1 = fig.add_subplot(121)
-    im1 = ax1.imshow(Z_original, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
-    ax1.set_title('Original Function')
-    ax1.set_xlabel('x1')
-    ax1.set_ylabel('x2')
-    ax1.set_aspect('auto')
-    plt.colorbar(im1, ax=ax1, label='Function Value')
-
-    ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(Z_reconstructed, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
-    ax2.set_title('Reconstructed Function')
-    ax2.set_xlabel('x1')
-    ax2.set_ylabel('x2')
-    ax2.set_aspect('auto')
-    plt.colorbar(im2, ax=ax2, label='Function Value')
-
-    if x_traj is not None:
-        ax2.plot(x_traj[:, 1], x_traj[:, 0], 'r-', label='Trajectory')
-
-    plt.tight_layout()
-
 # -----------------------------------------------------------------------------------
 def main():
     from my_erg_lib.agent import Agent
     from my_erg_lib.model_dynamics import DoubleIntegrator, SingleIntegrator
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
+    from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
+    import matplotlib.pyplot as plt
+    from vis import plotPhi
     import time
 
     def uFunc(x, t):
         #  Potential force pussing away from the boundaries [0xL1=2, 0xL2=2]
         pass 
  
-
+    # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
-                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=2.0, L2=2.0))
-                #   dynamics_model=SingleIntegrator(dt=0.005), phi=lambda s: 2)
+    agent = Agent(L1=2.0, L2=2.0, Kmax=3, 
+                #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
+                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=2.0, L2=2.0),
+                  x0=[0.5, 0.4, 0, 0])
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-10, 10], [-10, 10]],
-                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=0.3*10,
-                                                 barrier_weight=1e3, barrier_eps=0.1)
+                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=0.3*20,
+                                                 barrier_weight=1e3/2, barrier_eps=0.3)
     
-    x0 = np.array([0.5, 0.4, 0, 0])  # Initial state
-    agent.model.reset(x0)  # Reset the model to the initial state
-    
-    states_list = [x0.copy()]  
+    states_list = [agent.model.state.copy()]  
     t_list = [0]  # Time vector
     u_list = [np.zeros((2,))]  # Control action list
+    u_before = np.zeros((2,))  # Previous control action
     erg_cost_list = []
 
     ti = t_list[0]; ti_indx = 0
@@ -117,7 +76,8 @@ def main():
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 4000
+    i = 0; IMAX = 2e3
+    phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
@@ -131,6 +91,16 @@ def main():
                 agent.withinBounds(agent.model.state[:2])
             # Update the action mask
             agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
+
+            
+            # Simulation saving file
+            # traj = agent.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T)
+            # erg_traj = traj[:, :2] # Only take the ergodic dimensions
+            # ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
+            # phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+            # plotPhi2(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
+            # plt.savefig(f"images/phi_{ti:.2f}.png")
+            # plt.close()
         
         # Continue with simulation of agent
         us_ = agent.erg_c.ustar_mask[i - ti_indx]
@@ -138,15 +108,15 @@ def main():
         if us_.all() != 0:
             # Apply the control action to the agent's model
             u = us_
-        elif agent.erg_c.uNominal is not None:
-            # If no ergodic control is available, use the nominal control
-            u_nom = agent.erg_c.uNominal(agent.model.state, t_list[i])
-            # Apply the nominal control action to the agent's model
-            u = u_nom
         else:
-            # If no ergodic control and no nominal control, just step the model with zero control
-            u = np.zeros((2,))
+            # If no ergodic control is available, use the nominal control
+            u = agent.erg_c.uNominal(agent.model.state, t_list[i])
         
+        # Lets smooth out with the previous control action
+        a = 1
+        u = a * u + (1-a) * u_before  # Smooth the control action
+        u_before = u.copy()
+
         agent.model.step(u)  # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
@@ -169,14 +139,14 @@ def main():
 
     # Visualize the trajectory
     plt.figure(figsize=(8, 6))
-    plt.plot(t_list, states_list[:, 0], 'b-', label='state 0')
-    plt.plot(t_list, states_list[:, 1], 'r-', label='state 1')
+    for i in range(agent.model.num_of_states):
+        plt.plot(t_list, states_list[:, i], label=f"state {i}")
     plt.legend()
     plt.grid()
     
     plt.figure(figsize=(8, 6))
-    plt.plot(t_list, u_list[:, 0], 'g-', label='control 1')
-    plt.plot(t_list, u_list[:, 1], 'r-', label='control 2')
+    for i in range(agent.model.num_of_inputs):
+        plt.plot(t_list, u_list[:, i], label=f"control {i}")
     plt.legend()
     plt.grid()
 
@@ -187,14 +157,12 @@ def main():
     plt.grid()
 
     # vis traj
-    phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
-    plotPhi(agent, phi_rec, x_traj=None)
-    # plt.show()
-    
     ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)
     # ck_ = agent.basis.calcCkCoeff(agent.erg_c.past_states_buffer.get(), x_buffer=None, ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-    plotPhi(agent, phi_rec_from_ck, x_traj=states_list)
+    phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
+    plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_rec, all_traj=states_list)
+
     plt.show()
 
 

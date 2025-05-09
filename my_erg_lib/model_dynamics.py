@@ -11,7 +11,7 @@ class SingleIntegrator():
         x = [x, y]
         u = [u1, u2]
     '''
-    def __init__(self, dt=0.001):
+    def __init__(self, dt=0.001, x0=None):
         self.dt = dt
         self.num_of_states = 2
         self.num_of_inputs = 2
@@ -26,16 +26,16 @@ class SingleIntegrator():
                 [0., 1.0]
         ])
 
-        self.state = self.reset()
+        self.state = self.reset(x0)
 
     def reset(self, state=None):
         if state is None:
             # random seed for reproducibility
             np.random.seed(0)
-            self.state = np.random.uniform(0., 1., size=(2,))
+            self.state = np.random.uniform(0., 1., size=(self.num_of_states,))
         else:
             assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
-            self.state = state.copy()
+            self.state = np.array(state.copy())
         return self.state.copy()
     
     def f(self, x, u):
@@ -91,7 +91,7 @@ class DoubleIntegrator():
     
     Note: By design of my code, the ergodic states should ALWAYS be the first two elements of the state vector.
     '''
-    def __init__(self, mass=1, dt=0.001):
+    def __init__(self, mass=1, dt=0.001, x0=None):
         
         self.dt = dt
         self.num_of_states = 4
@@ -112,17 +112,16 @@ class DoubleIntegrator():
                 [0., 1.0]
         ]) / self.m
         
-
-        self.state = self.reset()
+        self.state = self.reset(x0)
 
     def reset(self, state=None):
         if state is None:
             # random seed for reproducibility
             np.random.seed(0)
-            self.state = np.random.uniform(0., 1., size=(4,))
+            self.state = np.random.uniform(0., 1., size=(self.num_of_states,))
         else:
             assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
-            self.state = state.copy()
+            self.state = np.array(state.copy())
         return self.state.copy()
 
     def f(self, x, u):

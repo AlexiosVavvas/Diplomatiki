@@ -14,6 +14,8 @@ class Barrier:
         self.space_top_lim = np.array([L1, L2])
         self.space_bot_lim = np.array([0, 0])
 
+        assert pow_ >= 1, "Power must be greater than or equal to 1."
+
     def cost(self, x):
         '''
         Returns the actual cost of the barrier
