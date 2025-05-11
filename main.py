@@ -54,7 +54,7 @@ def main():
 
     # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
+    agent = Agent(L1=2.0, L2=2.0, Kmax=3, 
                 #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
                   dynamics_model=DoubleIntegrator(dt=0.005), phi=phi_func,
                   x0=[0.5, 0.4, 0, 0])

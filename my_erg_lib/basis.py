@@ -152,12 +152,19 @@ class Basis():
         # Append to the trajectory the buffer points at the beginning with the traj continueing from the last buffer poit
         if x_buffer is not None:
             x_traj = np.concatenate((x_buffer, x_traj), axis=0)
+            # Lets calculate simulation time step (dt) assuming uniform time spacing
+            dt = (T - ti) / len(x_traj)
+            # How much time in the back do we go with the buffer?
+            delta_t = len(x_buffer) * dt  # Ergodic memory time
+        else:
+            # If we dont play with a buffer, we dont need ergodic memory
+            delta_t = 0            
         
         # Calculate time step (dt) assuming uniform time spacing
         n_points = len(x_traj)
         
         # Time points corresponding to trajectory points
-        t_points = np.linspace(ti, ti+T, n_points)
+        t_points = np.linspace(ti-delta_t, ti+T, n_points)
         
         for k1 in range(self.Kmax+1):
             for k2 in range(self.Kmax+1):
@@ -167,7 +174,7 @@ class Basis():
                 fk_values = np.array([self.Fk(x, k1, k2, hk) for x in x_traj])
                 
                 # Perform trapezoidal integration
-                ck[k1, k2] = np.trapz(fk_values, x=t_points) / T
+                ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
         
         return ck
 
