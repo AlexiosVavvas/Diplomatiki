@@ -53,14 +53,16 @@ def main():
     import time
 
     # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
+    # TODO: Something is wrong with the effect of the mass. Check it out
     # Generate Agent and connect to an ergodic controller object
     agent = Agent(L1=2.0, L2=2.0, Kmax=3, 
                 #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
-                  dynamics_model=DoubleIntegrator(dt=0.005), phi=phi_func,
+                  dynamics_model=DoubleIntegrator(dt=0.005, mass=1), phi=phi_func,
                   x0=[0.5, 0.4, 0, 0])
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-10, 10], [-10, 10]],
-                                                 T_sampling=0.1, T_horizon=0.3, deltaT_erg=0.3*20,
-                                                 barrier_weight=1e3/2, barrier_eps=0.3)
+    UMAX = 2
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-UMAX, UMAX], [-UMAX, UMAX]],
+                                                 T_sampling=0.1, T_horizon=0.15, deltaT_erg=0.3*30,
+                                                 barrier_weight=100, barrier_eps=0.4, barrier_pow=2)
     # Lists to store for plotting
     states_list = [agent.model.state.copy()]  
     t_list = [0]  # Time vector
@@ -76,7 +78,7 @@ def main():
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 2e3
+    i = 0; IMAX = 20e3
     phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
@@ -86,7 +88,7 @@ def main():
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(t_list[i])
             erg_cost_list.append(erg_cost)
             if i % 1 == 0:
-                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])
             # Update the action mask
@@ -113,7 +115,7 @@ def main():
             u = agent.erg_c.uNominal(agent.model.state, t_list[i])
         
         # Lets smooth out with the previous control action
-        a = 1
+        a = 0.9
         u = a * u + (1-a) * u_before  # Smooth the control action
         u_before = u.copy()
 

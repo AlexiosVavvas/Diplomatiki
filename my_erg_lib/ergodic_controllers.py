@@ -6,7 +6,7 @@ class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
                  uNominal=None, uLimits=None, R=np.eye(2), Q = 1,
                  T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9,
-                 barrier_weight=100, barrier_eps=0.01):
+                 barrier_weight=100, barrier_eps=0.01, barrier_pow=2):
 
         # Connect the agent
         # Make sure agent is of type Agent from my_erg_lib
@@ -34,7 +34,7 @@ class DecentralisedErgodicController():
             assert len(uLimits) == agent.model.num_of_inputs, "uLimits should contain [lower, upper] pairs for every control (num_of_inputs)."
             self.uLimits = np.array(uLimits)
         # Set barrier to avoid going outside the exploration space
-        self.barrier = Barrier(L1=agent.L1, L2=agent.L2, pow_=2, weight=barrier_weight, eps_=barrier_eps)
+        self.barrier = Barrier(L1=agent.L1, L2=agent.L2, weight=barrier_weight, eps_=barrier_eps, pow_=barrier_pow)
         
         # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
