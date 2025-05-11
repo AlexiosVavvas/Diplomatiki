@@ -38,6 +38,10 @@ def phiExample(s, L1=1.0, L2=1.0):
     # Combine all components
     return bumps + 2 #+ waves + trend + ridge
 
+# Function to be used for phi with specific L1 and L2 values
+def phi_func(s):
+    return phiExample(s, L1=2.0, L2=2.0)
+
 # -----------------------------------------------------------------------------------
 def main():
     from my_erg_lib.agent import Agent
@@ -48,20 +52,16 @@ def main():
     from vis import plotPhi
     import time
 
-    def uFunc(x, t):
-        #  Potential force pussing away from the boundaries [0xL1=2, 0xL2=2]
-        pass 
- 
     # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=2.0, L2=2.0, Kmax=3, 
+    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
                 #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
-                  dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: phiExample(s, L1=2.0, L2=2.0),
+                  dynamics_model=DoubleIntegrator(dt=0.005), phi=phi_func,
                   x0=[0.5, 0.4, 0, 0])
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-10, 10], [-10, 10]],
                                                  T_sampling=0.1, T_horizon=0.3, deltaT_erg=0.3*20,
                                                  barrier_weight=1e3/2, barrier_eps=0.3)
-    
+    # Lists to store for plotting
     states_list = [agent.model.state.copy()]  
     t_list = [0]  # Time vector
     u_list = [np.zeros((2,))]  # Control action list

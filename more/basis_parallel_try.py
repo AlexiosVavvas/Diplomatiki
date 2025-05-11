@@ -1,9 +1,13 @@
 import numpy as np
 from scipy.integrate import nquad
+# Libraries for paraller computation of PhiK coefficients
+import multiprocessing as mp
+from functools import partial
+from itertools import product
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -13,12 +17,6 @@ class Basis():
         self.hk_cache = {}
         self.phi_coeff_cache = {}
         self.LamdaK_cache = {}
-        
-        # Integration method and parameters for phik calculation
-        self.integration_method = integration_method   # Integration method for calculating phi coefficients integral
-        self.num_gauss_points = num_gauss_points       # Number of Gauss-Legendre points for integration
-        assert integration_method in ['gauss', 'nquad'], "Method must be either 'gauss' or 'nquad'."
-        assert num_gauss_points >= 1, "Number of Gauss points must be greater than or equal to 1."
 
         # Target Distribution (Phi = f(s) where s -> s[0], s[1])
         self._phi = None
@@ -35,7 +33,7 @@ class Basis():
 
         # Precalculate PhiK for all k1, k2 pairs
         if precalc_phik_coeff:
-            self.precalcAllPhiK()
+            self.precalcAllPhiK(n_processes=None)
 
 
     def calcHk(self, k1, k2):
@@ -76,13 +74,70 @@ class Basis():
             for k2 in range(self.Kmax+1):
                 abs_k_sq = k1**2 + k2**2
                 lamda_k_ = (1 + abs_k_sq) ** (-(v_+1)/2)
-                self.LamdaK_cache[(k1, k2)] = lamda_k_
+                self.LamdaK_cache[(k1, k2)] = lamda_k_    # Helper function for parallel computing
 
-    # Precompute PhiK
-    def precalcAllPhiK(self):
-        for k1 in range(self.Kmax+1):
-            for k2 in range(self.Kmax+1):
+    def _calc_phi_k_wrapper(self, k_values):
+        """Helper function for parallel processing of PhiK coefficients"""
+        k1, k2 = k_values
+        phi_k = self.calcPhikCoeff(k1, k2, save_to_cache=False)
+        return (k1, k2, phi_k)
+    
+    # Precompute PhiK using parallel processing
+    def precalcAllPhiK(self, n_processes=None):
+        """
+        Precompute PhiK coefficients for all k1, k2 pairs in parallel.
+        
+        Parameters:
+        -----------
+        n_processes : int, optional
+            Number of processes to use. If None, uses the number of CPU cores.
+        """
+        # Create all k1, k2 pairs
+        k_pairs = list(product(range(self.Kmax+1), range(self.Kmax+1)))
+        
+        # Filter out pairs that are already computed
+        k_pairs = [(k1, k2) for k1, k2 in k_pairs if (k1, k2) not in self.phi_coeff_cache]
+        
+        if not k_pairs:
+            print("All PhiK coefficients are already computed.")
+            return
+        
+        # Use available CPU cores if n_processes is not specified
+        if n_processes is None:
+            n_processes = mp.cpu_count()
+        
+        # Limit processes to a reasonable number
+        MAX_PROCESSES = 8
+        n_processes = min(n_processes, MAX_PROCESSES, len(k_pairs))
+        
+        # If only a few calculations or multiprocessing not available, use sequential approach
+        if n_processes <= 1 or len(k_pairs) <= 4 or not hasattr(mp, 'Pool'):
+            print(f"Computing {len(k_pairs)} PhiK coefficients sequentially...")
+            for k1, k2 in k_pairs:
                 self.calcPhikCoeff(k1, k2)
+            print("All PhiK coefficients computed successfully.")
+            return
+        
+        try:
+            print(f"Computing {len(k_pairs)} PhiK coefficients using {n_processes} processes...")
+            
+            # Create a pool of worker processes
+            with mp.Pool(processes=n_processes) as pool:
+                # Map the calculation function to all k pairs
+                results = pool.map(partial(self._calc_phi_k_wrapper), k_pairs)
+                
+                # Store results in the cache
+                for k1, k2, phi_k in results:
+                    self.phi_coeff_cache[(k1, k2)] = phi_k
+            
+            print("All PhiK coefficients computed successfully.")
+        except Exception as e:
+            print(f"Error in parallel computation: {e}")
+            print("Falling back to sequential computation...")
+            # Fallback to sequential computation
+            for k1, k2 in k_pairs:
+                if (k1, k2) not in self.phi_coeff_cache:  # Check again in case some were computed
+                    self.calcPhikCoeff(k1, k2)
 
     # xv: [x1, x2] (2D point) - Ergodic dimensions
     def Fk(self, xv, k1, k2, hk):
@@ -95,8 +150,7 @@ class Basis():
         Fk_x[1] = -np.cos(k1*np.pi/self.L1*xv[0]) * np.sin(k2*np.pi/self.L2*xv[1]) / hk * (k2*np.pi/self.L2)
         return Fk_x
         
-    def calcPhikCoeff(self, k1, k2, save_to_cache=True):
-        
+    def calcPhikCoeff(self, k1, k2, save_to_cache=True, num_gauss_points=10, method='nquad'):
         assert self._phi != None, "Target distribution phi is not set."
 
         # Check if the value is already computed
@@ -105,10 +159,11 @@ class Basis():
 
         hk = self.calcHk(k1, k2)
 
-        if self.integration_method == 'gauss':
+        if method == 'gauss':
             # Get Gauss-Legendre quadrature points and weights
-            x1_points, x1_weights = np.polynomial.legendre.leggauss(self.num_gauss_points)
-            x2_points, x2_weights = np.polynomial.legendre.leggauss(self.num_gauss_points)
+            num_gauss_points = 10
+            x1_points, x1_weights = np.polynomial.legendre.leggauss(num_gauss_points)
+            x2_points, x2_weights = np.polynomial.legendre.leggauss(num_gauss_points)
             
             # Transform from [-1,1] to [0,L1] and [0,L2]
             x1_points = 0.5 * self.L1 * (x1_points + 1)
@@ -118,13 +173,13 @@ class Basis():
             
             # Compute the integral
             result = 0.0
-            for i in range(self.num_gauss_points):
-                for j in range(self.num_gauss_points):
+            for i in range(num_gauss_points):
+                for j in range(num_gauss_points):
                     x1, x2 = x1_points[i], x2_points[j]
                     result += x1_weights[i] * x2_weights[j] * self._phi([x1, x2]) * self.Fk([x1, x2], k1, k2, hk)
             
             phi_k = result
-        elif self.integration_method == 'nquad':
+        elif method == 'nquad':
             # Use nquad for numerical integration
             phi_k, _ = nquad(lambda x1, x2: self._phi([x1, x2]) * self.Fk([x1, x2], k1, k2, hk),
                 [[0, self.L1], [0, self.L2]])
@@ -210,11 +265,9 @@ class ReconstructedPhi():
         # Precalculate coefficients at start
         if precalc_phik:
             self.precalcAllPhikCoeff()
-
-    def precalcAllPhikCoeff(self):
-        for k1 in range(self.base.Kmax+1):
-            for k2 in range(self.base.Kmax+1):
-                self.base.calcPhikCoeff(k1, k2)
+            
+    def precalcAllPhikCoeff(self, n_processes=None):
+        self.base.precalcAllPhiK(n_processes=n_processes)
 
     def __call__(self, *args, **kwds):
         result = 0
