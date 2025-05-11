@@ -117,6 +117,7 @@ class Basis():
             x2_weights = 0.5 * self.L2 * x2_weights
             
             # Compute the integral
+            # TODO: Maybe vectorize this part
             result = 0.0
             for i in range(self.num_gauss_points):
                 for j in range(self.num_gauss_points):
@@ -169,9 +170,13 @@ class Basis():
         for k1 in range(self.Kmax+1):
             for k2 in range(self.Kmax+1):
                 hk = self.calcHk(k1, k2)
+
+                # Vectorized Fk calculation
+                cos_k1 = np.cos(k1*np.pi/self.L1*x_traj[:, 0])
+                cos_k2 = np.cos(k2*np.pi/self.L2*x_traj[:, 1])
                 
                 # Evaluate Fk at each trajectory point
-                fk_values = np.array([self.Fk(x, k1, k2, hk) for x in x_traj])
+                fk_values = cos_k1 * cos_k2 / hk
                 
                 # Perform trapezoidal integration
                 ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
