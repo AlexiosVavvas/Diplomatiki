@@ -86,7 +86,7 @@ def main():
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(t_list[i])
             erg_cost_list.append(erg_cost)
             if i % 1 == 0:
-                print(f"Ergodic cost: {erg_cost:.3f} \t i: {i}/{IMAX} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])
             # Update the action mask
@@ -185,4 +185,4 @@ if __name__ == "__main__":
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats(SortKey.CUMULATIVE)
     # Filter to only show functions from the current file
-    stats.print_stats("agent.py|basis.py|target_distribution.py|model_dynamics.py|ergodic_controllers.py")  # Show only your modules
+    stats.print_stats("agent.py|basis.py|model_dynamics.py|ergodic_controllers.py|barrier.py|replay_buffer.py")  # Show only your modules

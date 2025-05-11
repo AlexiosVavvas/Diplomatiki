@@ -66,7 +66,8 @@ class Agent():
             # Jacobian of the dynamics with respect to x
             f_x = self.model.f_x(x_traj[i])
 
-            rho_dot = -np.dot(f_x.T, rho[i+1])  # TOCHECK: f_x.T
+            rho_dot = -np.dot(f_x.T, rho[i+1])
+            
             for k1 in range(self.Kmax+1):
                 for k2 in range(self.Kmax+1):
                     # Calculating summation terms
@@ -81,8 +82,14 @@ class Agent():
                     # Adding to rho_dot(x[i], t[i])
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
                     
-                    # Add the barrier term
-                    barr_dx = self.erg_c.barrier.dx(x_traj[i][:2])
+                    # if we are epsilon close to the barrier, we need to add the barrier term	
+                    eps = self.erg_c.barrier.eps
+                    x1 = x_traj[i][0]; x1_max = self.erg_c.barrier.space_top_lim[0] - eps; x1_min = eps
+                    x2 = x_traj[i][1]; x2_max = self.erg_c.barrier.space_top_lim[1] - eps; x2_min = eps
+                    if x1 >= x1_max or x1 <= x1_min or x2 >= x2_max or x2 <= x2_min:
+                        barr_dx = self.erg_c.barrier.dx(x_traj[i][:2])
+                    else: 
+                        barr_dx = np.zeros((2,))
                     # However we need to append 0s to the non ergodic dimensions before adding to rho_dot
                     barr_dx = np.concatenate((barr_dx, np.zeros((self.model.num_of_states - 2,))))
                     rho_dot -= barr_dx
