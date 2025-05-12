@@ -59,7 +59,7 @@ def main():
                 #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
                   dynamics_model=DoubleIntegrator(dt=0.005, mass=1), phi=phi_func,
                   x0=[0.5, 0.4, 0, 0])
-    UMAX = 2
+    UMAX = 10
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-UMAX, UMAX], [-UMAX, UMAX]],
                                                  T_sampling=0.1, T_horizon=0.15, deltaT_erg=0.3*30,
                                                  barrier_weight=100, barrier_eps=0.4, barrier_pow=2)
