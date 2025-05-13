@@ -45,32 +45,58 @@ def phi_func(s):
 # -----------------------------------------------------------------------------------
 def main():
     from my_erg_lib.agent import Agent
-    from my_erg_lib.model_dynamics import DoubleIntegrator, SingleIntegrator
+    from my_erg_lib.model_dynamics import DoubleIntegrator, SingleIntegrator, Quadcopter
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
-    from vis import plotPhi
+    import vis
     import time
 
     # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
-    # TODO: Something is wrong with the effect of the mass. Check it out
+    # TODO: Something is wrong with the effect of the mass. Check it out (Double Integrator etc)
+    # Set up the agent -----------------------------------------------------------------------------
+    
+    # ===== Dynamics Model =====
+    # Quadrotor model -----------
+    x0 = [0.6, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
+    LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
+    mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
+    model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
+    u_limits = model.input_limits
+    u_nominal = model.calcLQRcontrol
+    Q_ = 7
+    PREDICTION_DT = model.dt * 100
+    RELAX_FACTOR = 0.3
+
+    # Double integrator model ----
+    # x0 = [0.5, 0.4, 0, 0]
+    # u_limits = [[-10, 10], [-10, 10]]
+    # model = DoubleIntegrator(dt=0.005)
+    # u_nominal = None
+    # Q_ = 2
+    # PREDICTION_DT = model.dt * 1
+    # RELAX_FACTOR = 0.9
+    
+    # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=2.0, L2=2.0, Kmax=3, 
-                #   dynamics_model=DoubleIntegrator(dt=0.005), phi=lambda s: 2,
-                  dynamics_model=DoubleIntegrator(dt=0.005, mass=1), phi=phi_func,
-                  x0=[0.5, 0.4, 0, 0])
-    UMAX = 10
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=None, Q=2, uLimits=[[-UMAX, UMAX], [-UMAX, UMAX]],
-                                                 T_sampling=0.1, T_horizon=0.15, deltaT_erg=0.3*30,
-                                                 barrier_weight=100, barrier_eps=0.4, barrier_pow=2)
+    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
+                  dynamics_model=model, phi=phi_func, x0=x0)
+    
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
+                                                 T_sampling=0.1, T_horizon=0.25*5, deltaT_erg=0.25 * 30,
+                                                 barrier_weight=50, barrier_eps=0.3, barrier_pow=2)
+    
+    # --------------------------------------------------------------------------------------------------
+    
     # Lists to store for plotting
     states_list = [agent.model.state.copy()]  
-    t_list = [0]  # Time vector
-    u_list = [np.zeros((2,))]  # Control action list
-    u_before = np.zeros((2,))  # Previous control action
+    time_list = [0]  # Time vector
+    u_list = [np.zeros((agent.model.num_of_inputs,))]  # Control action list
+    u_before = np.zeros((agent.model.num_of_inputs,))  # Previous control action
     erg_cost_list = []
 
-    ti = t_list[0]; ti_indx = 0
+    ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
     
     # Initialize timing variables
@@ -78,26 +104,34 @@ def main():
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 20e3
+    i = 0; IMAX = 50e3
     phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
-            ti = t_list[i]; ti_indx = i
+            ti = time_list[i]; ti_indx = i
             # Calculate ergodic control for the sample step
-            us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(t_list[i])
+            us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(time_list[i], prediction_dt=PREDICTION_DT)
             erg_cost_list.append(erg_cost)
-            if i % 1 == 0:
-                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t dt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+
+            if i % 160 == 0:
+                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+                print(f"x = {agent.model.state[:3]} \t u = {us} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])
+
+            if np.any(np.abs(agent.model.state[:2]) > 200):
+                print("--> Agent WAYY out of bounds! Stopping simulation.")
+                break
+            
             # Update the action mask
-            agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
+            if lamda_dur > 0:
+                agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
 
             
             # Simulation saving file
-            # traj = agent.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T)
-            # erg_traj = traj[:, :2] # Only take the ergodic dimensions
+            # x_traj, u_traj, t_traj = agent.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T)
+            # erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
             # ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
             # phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
             # plotPhi2(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
@@ -112,20 +146,20 @@ def main():
             u = us_
         else:
             # If no ergodic control is available, use the nominal control
-            u = agent.erg_c.uNominal(agent.model.state, t_list[i])
-        
+            u = agent.erg_c.uNominal(agent.model.state, time_list[i])
+            
         # Lets smooth out with the previous control action
-        a = 0.9
-        u = a * u + (1-a) * u_before  # Smooth the control action
+        u = RELAX_FACTOR * u + (1-RELAX_FACTOR) * u_before  # Smooth the control action
         u_before = u.copy()
 
-        agent.model.step(u)  # Step the model with the control action
+        # TODO: Here we should simulate forware for simulation_dt with a dt, instead of stepping. Implemend model simulation function
+        agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
         u_list.append(u.copy())
         states_list.append(agent.model.state.copy())
 
-        t_list.append(t_list[i] + agent.model.dt)
+        time_list.append(time_list[i] + agent.model.dt)
         delta_erg_cost = abs(erg_cost_list[-1] - erg_cost_list[-2]) if len(erg_cost_list) > 1 else 10
         
         # Calculate delta time for this iteration
@@ -142,13 +176,13 @@ def main():
     # Visualize the trajectory
     plt.figure(figsize=(8, 6))
     for i in range(agent.model.num_of_states):
-        plt.plot(t_list, states_list[:, i], label=f"state {i}")
+        plt.plot(time_list, states_list[:, i], label=agent.model.state_names[i])
     plt.legend()
     plt.grid()
     
     plt.figure(figsize=(8, 6))
     for i in range(agent.model.num_of_inputs):
-        plt.plot(t_list, u_list[:, i], label=f"control {i}")
+        plt.plot(time_list, u_list[:, i], marker='.', linestyle="-",label=f"control {i}")
     plt.legend()
     plt.grid()
 
@@ -163,9 +197,16 @@ def main():
     # ck_ = agent.basis.calcCkCoeff(agent.erg_c.past_states_buffer.get(), x_buffer=None, ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
-    plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_rec, all_traj=states_list)
+    vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_rec, all_traj=states_list)
 
     plt.show()
+
+    from vis import animateQuadcopter, plotQuadTrajWithInputs
+    if isinstance(agent.model, Quadcopter):
+        # def plotQuadTrajWithInputs(time_list, states_list, input_list, conv_inp_list=None, quad_model=None):
+        plotQuadTrajWithInputs(time_list, states_list, u_list, conv_inp_list=None, quad_model=agent.model)	
+        # Animate the quadcopter trajectory
+        animateQuadcopter(time_list, states_list)
 
 
 

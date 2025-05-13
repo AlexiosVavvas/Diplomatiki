@@ -1,6 +1,6 @@
 from my_erg_lib.basis import Basis
 import numpy as np
-from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator
+from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
 
 class Agent():
     def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None):
@@ -25,46 +25,47 @@ class Agent():
         self.basis.phi = self._phi
 
     # Simulates default input and returns full state trajectory
-    def simulateForward(self, x0, ti, udef=None, T=1.0):
+    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
         """
         Simulate the system forward in time using the dynamics model.'
         From ti -> ti+T
         """
+        dt = self.model.dt if dt is None else dt
         t = ti
         x = x0.copy()
-        trajectory = [x.copy()]
+        x_traj = []
+        u_traj = []
+        t_traj = []
         
         # Check for callable udef
         assert callable(udef) or udef is None, "udef must be a callable function or None."
-        if udef != None:
-            udef_ = udef(x0, t)
-        else:
-            # Default udef is a zero vector of the same size as the state
-            udef_ = np.zeros((self.model.num_of_inputs,))
 
         # Reset the model with the initial state and simulate forward
         self.model.reset(x0)
         while t < ti + T:
-            udef_ = udef(x, t) if callable(udef) else udef_
-            x = self.model.step(udef_)
-            trajectory.append(x.copy())
-            t += self.model.dt  # Increment time by the model's time step
+            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
+            x = self.model.step(x=x, u=udef_, dt=dt)
+            x_traj.append(x.copy())
+            u_traj.append(udef_.copy())
+            t_traj.append(t)
+            t += dt  # Increment time by the model's time step
         
         self.model.reset(x0)  # Reset the model to the initial state after simulation
-        return np.array(trajectory)
+        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
     
     
-    def simulateAdjointBackward(self, x_traj, ck, ti, T=1.0, Q=1, num_of_agents=1):
+    def simulateAdjointBackward(self, x_traj, u_traj, t_traj, ck, T=1.0, Q=1, num_of_agents=1):
         '''
         Simulate the adjoint state to get rho(t)
         Integrating with simple Euler method Backwards from rho(ti+T) = 0
         '''
+        dt = t_traj[1] - t_traj[0]  # Time step: Dt is not a variable here. We chose it to be the same as the forward pass
         rho = np.zeros((len(x_traj), self.model.num_of_states))
 
         # Integrating with simple Euler method Backwards from ρ(ti+T) = 0
         for i in range(len(x_traj)-2, -1, -1):
             # Jacobian of the dynamics with respect to x
-            f_x = self.model.f_x(x_traj[i])
+            f_x = self.model.f_x(x=x_traj[i], u=u_traj[i])
 
             rho_dot = -np.dot(f_x.T, rho[i+1])
             
@@ -95,9 +96,9 @@ class Agent():
                     rho_dot -= barr_dx
 
             # Update rho using the computed rho_dot
-            rho[i] = rho[i+1] - rho_dot * self.model.dt 
+            rho[i] = rho[i+1] - rho_dot * dt 
 
-        return rho, np.linspace(ti, ti + T, len(x_traj))
+        return rho, t_traj
 
     def withinBounds(self, x):
         '''
@@ -106,8 +107,13 @@ class Agent():
         # Check if the 2 first ergodic dimension are within the bounds L1, L2
         if x[0] < 0 or x[0] > self.L1 or x[1] < 0 or x[1] > self.L2:
             print(f"--> ATTENTION: State out of bounds: {x}")
-            return False
-        return True
+
+        # Check if model is quadcopter
+        if isinstance(self.model, Quadcopter):
+            # Check if the 3rd dimension is within the bounds
+            z = self.model.state[2]
+            if z < 0 or z > self.model.z_target * 20:
+                print(f"--> Quad is getting out of hand in the Z dim: {z:.2f} m")
 
 
     def visualiseColorForTraj(self, ck, x_traj):

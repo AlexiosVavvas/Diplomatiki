@@ -1,10 +1,11 @@
 import numpy as np
 from my_erg_lib.replay_buffer import ReplayBufferFIFO
 from my_erg_lib.barrier import Barrier
+import vis
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
-                 uNominal=None, uLimits=None, R=np.eye(2), Q = 1,
+                 uNominal=None, uLimits=None, R=None, Q = 1,
                  T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9,
                  barrier_weight=100, barrier_eps=0.01, barrier_pow=2):
 
@@ -21,7 +22,7 @@ class DecentralisedErgodicController():
         self.deltaT_erg = deltaT_erg
         
         # Control Parameters
-        self.R = R
+        self.R = R if R is not None else np.eye(agent.model.num_of_inputs)
         self.Rinv = np.linalg.inv(self.R)
         self.Q = Q
         # If uNominal is not provided, set it to a zero function
@@ -32,13 +33,14 @@ class DecentralisedErgodicController():
             self.uLimits = np.array([[-np.inf, np.inf] for _ in range(agent.model.num_of_inputs)])
         else:
             assert len(uLimits) == agent.model.num_of_inputs, "uLimits should contain [lower, upper] pairs for every control (num_of_inputs)."
-            self.uLimits = np.array(uLimits)
+            self.uLimits = np.asarray(uLimits)
+
         # Set barrier to avoid going outside the exploration space
         self.barrier = Barrier(L1=agent.L1, L2=agent.L2, weight=barrier_weight, eps_=barrier_eps, pow_=barrier_pow)
         
         # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
-        assert R.shape[0] == R.shape[1] == agent.model.num_of_inputs, "R must be a square matrix of size (num_of_inputs, num_of_inputs)"
+        assert self.R.shape[0] == self.R.shape[1] == agent.model.num_of_inputs, "R must be a square matrix of size (num_of_inputs, num_of_inputs)"
         if uNominal is not None:
             assert callable(uNominal), "uNominal must be a callable function."
             assert uNominal(agent.model.state, 0).shape[0] == agent.model.num_of_inputs, "uNominal must return a vector of size (num_of_inputs,)"
@@ -48,7 +50,7 @@ class DecentralisedErgodicController():
         # Variable to store past states for better Ck calculation (using Δte)
         self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
 
-    def calcNextActionTriplet(self, ti):
+    def calcNextActionTriplet(self, ti, prediction_dt=None):
         """
         Calculate the next action based on the current state and the target distribution.
         Returns the ergodic control triplet: 
@@ -58,37 +60,41 @@ class DecentralisedErgodicController():
             - tau: the time at which the control action should start (τ ε [ti, ti + Ts])
             - lamda_duration: the duration for which the control action should be applied (λ ε [0, Ts])
         """
+        # Set default prediction_dt to model_dt if not provided
+        prediction_dt = self.agent.model.dt if prediction_dt is None else prediction_dt
 
-        # Simulate Trajectory Forward
-        traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T)
-        erg_traj = traj[:, :2] # Only take the ergodic dimensions
+        # Simulate Trajectory Forward using prediction dt
+        x_traj, u_traj, t_traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T, dt=prediction_dt)
+        erg_traj = x_traj[:, :2] # Save seperately the ergodic dimensions
         
         # Calc Ck Coefficients
         ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
         erg_cost = self.calcErgodicCost(ck) 
 
         # Simulate Adjoint Backward to get rho(t)
-        rho, _ = self.agent.simulateAdjointBackward(traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents, ti=ti)
-        dt = self.T / len(traj) # TODO: Can i eliminate this calculation of dt? Take it from a definition?
+        rho, _ = self.agent.simulateAdjointBackward(x_traj, u_traj, t_traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
+        # vis.simplePlot(x=t_traj - ti, y=rho, 
+        #            title="Time [s]", y_label="Rho Values", y_type="np.array",
+        #            x_lim=None, y_lim=None,
+        #            T_SHOW=0.1, fig_num=0)
 
         # Evaluate Ustar
-        ustar = np.zeros((len(traj), self.agent.model.num_of_inputs))
-        for i in range(len(traj)):
-            ustar[i] = -self.Rinv @ self.agent.model.h(traj[i]).T @ rho[i]
+        ustar = np.zeros((len(x_traj), self.agent.model.num_of_inputs))
+        for i in range(len(x_traj)):
+            ustar[i] = -self.Rinv @ self.agent.model.h(x_traj[i]).T @ rho[i]
 
             # Add nominal control if available
-            ustar[i] += self.uNominal(traj[i], ti + i * dt)
+            ustar[i] += self.uNominal(x_traj[i], ti + i * prediction_dt)
         
         # Calculate Application Time
-        tau, Jtau = self.calcApplicationTime(ustar, rho, traj, ti, self.T)
+        tau, Jtau = self.calcApplicationTime(ustar, rho, x_traj, t_traj, ti, self.T)
         assert Jtau < 0, "Jtau is Non Negative, which is not expected."
         
         # Determine Control Duration
-        # TODO: Implement a better way to determine the control duration
-        lamda_duration = self.Ts * 1.5
+        lamda_duration = self.calcLambdaDuration() # Default: 0.1 * Ts
 
         # Keep the approprate control from t=tau
-        us = ustar[int((tau - ti) / self.agent.model.dt)]
+        us = ustar[int((tau - ti) / prediction_dt)]
 
         # So we have the triplet:
         # (u, τ, λ) = (us, tau, lamda_duration)
@@ -100,33 +106,43 @@ class DecentralisedErgodicController():
 
 
 
-    def calcApplicationTime(self, ustar, rho, x_traj, ti, T):
+    def calcApplicationTime(self, ustar, rho, x_traj, t_traj, ti, T):
 
         # Calculate the cost function Jt for a given tau
-        def Jt(tau):
-            i = int((tau - ti) / self.agent.model.dt)
-            x = x_traj[i]
-            us = ustar[i]
-            udef = self.uNominal(x, tau)
+        def Jt(t, x, us, rho):
+            udef = self.uNominal(x, t)
             
-            Jt_value = rho[i].T @ (self.agent.model.f(x, us) - self.agent.model.f(x, udef))
+            Jt_value = rho.T @ (self.agent.model.f(x, us) - self.agent.model.f(x, udef))
+            
             # Make sure Jt is a scalar number, otherwise something went wrong
             assert type(Jt_value) == np.float64, f"Jt is not a scalar number, but {type(Jt_value)} (Jt = {Jt_value}). Check the calculation of Jt."
             return Jt_value
 
-
-        # TODO: Do gradient descent or something faster / clever?
+        # TODO: Do gradient descent or something faster / clever? - Could change the time step here from t_traj to go faster
         # TODO: Make sure we dont always choose the first value - Seems like we do
-        # Generate time points for evaluation
-        t = np.linspace(ti, ti+T, len(x_traj))
-        Jt_values = np.array([Jt(tau) for tau in t])
+        Jt_values = np.array([Jt(t_traj[i], x_traj[i], ustar[i], rho[i]) for i in range(len(t_traj))])
+        # vis.simplePlot(x=(t_traj - ti)/self.Ts, y=[Jt_values], 
+        #            title="Jt_values", y_label="Jt", y_type="list",
+        #            x_lim=None, y_lim=None,
+        #            T_SHOW=0.1, fig_num=1)
 
         # Find time that minimizes Jt (argmin Jt)
         min_idx = np.argmin(Jt_values)
-        optimal_tau = t[min_idx]
+        optimal_tau = t_traj[min_idx]
+        optimal_Jt = Jt(t_traj[min_idx], x_traj[min_idx], ustar[min_idx], rho[min_idx])
         
-        return optimal_tau, Jt(optimal_tau)
+        return optimal_tau, optimal_Jt
         
+    def calcLambdaDuration(self):
+        # TODO: Implement a better way to determine the control duration
+        """
+        Je(x(u*)) - Je(x(unom)) = ΔJe ~= pJe_pλ|τ * λ 
+        Also ΔJe < Ce 
+        We need to find the max value of λ that satisfies this condition
+        We start with a big value and halve it until the condition is met.
+        """
+        lamda = self.Ts * 0.2
+        return lamda
 
     def updateActionMask(self, ti, us, tau, lamda_duration):
         # Reset previous calculations
@@ -136,7 +152,7 @@ class DecentralisedErgodicController():
         # Check wether tau is within the current timestep (τ ε [ti, ti + Ts])
         if i_start >= 0 and i_start < len(self.ustar_mask):
             # Calculate end index based on duration
-            i_end = int((tau + lamda_duration - ti) / self.agent.model.dt)
+            i_end = int((tau + lamda_duration - ti) / self.agent.model.dt) + 1
             i_end = min(i_end, len(self.ustar_mask))
             # Save control to variable mask            
             for j in range(i_start, i_end):

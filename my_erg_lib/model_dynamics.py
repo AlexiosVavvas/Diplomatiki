@@ -28,6 +28,9 @@ class SingleIntegrator():
 
         self.reset(x0)
 
+        # State names for plotting purposes
+        self.state_names = ["x", "y"]
+
     def reset(self, state=None):
         if state is None:
             # random seed for reproducibility
@@ -44,7 +47,7 @@ class SingleIntegrator():
         '''
         return self.A @ x + self.B @ u
 
-    def f_x(self, x):
+    def f_x(self, x, u):
         '''
         Jacobian of the dynamics with respect to x
         '''
@@ -63,8 +66,9 @@ class SingleIntegrator():
         return self.f_u(x)
 
 
-    def step(self, u):
-        self.state = self.state + self.f(self.state, u) * self.dt
+    def step(self, x, u, dt=None):
+        dt = self.dt if dt is None else dt
+        self.state = self.state + self.f(self.state, u) * dt
         return self.state
     
     @property
@@ -114,6 +118,9 @@ class DoubleIntegrator():
         
         self.reset(x0)
 
+        # State Names for plotting purposes
+        self.state_names = ["x", "y", "x'", "y'"]
+
     def reset(self, state=None):
         if state is None:
             # random seed for reproducibility
@@ -130,7 +137,7 @@ class DoubleIntegrator():
         '''
         return self.A @ x + self.B @ u
 
-    def f_x(self, x):
+    def f_x(self, x, u):
         '''
         Jacobian of the dynamics with respect to x
         '''
@@ -149,8 +156,9 @@ class DoubleIntegrator():
         return self.f_u(x)
 
 
-    def step(self, u):
-        self.state = self.state + self.f(self.state, u) * self.dt
+    def step(self, x, u, dt=None):
+        dt = self.dt if dt is None else dt
+        self.state = self.state + self.f(self.state, u) * dt
         return self.state
     
     @property
@@ -185,7 +193,7 @@ class Quadcopter():
             u[3]: Roll moment/torque  (controls rotation around x-axis)
     '''
 
-    def __init__(self, dt=0.001, x0=None, mass=0.1, damping=0, Q=None, R=None):
+    def __init__(self, dt=0.001, x0=None, mass=0.1, damping=0, Q=None, R=None, z_target=1, motor_limits=None, zero_out_states=None):
         self.dt = dt
         self.num_of_states = 12
         self.num_of_inputs = 4
@@ -193,13 +201,27 @@ class Quadcopter():
         self.damping = damping
         self.A = np.zeros((self.num_of_states, self.num_of_states)) +  np.diag([1.0]*6, 6)
         self.B = np.zeros((self.num_of_states, self.num_of_inputs))
+        self.z_target = z_target
 
         self.reset(x0)
 
-        # LQR Control for stabilization
-        #                                                    [x,   y,   z,   psi, theta, phi, x',  y',  z',  psidot, thetadot, phidot]
-        self.Q = np.asarray(Q) if Q is not None else np.diag([0.1, 0.1, 100, 1,   1,     1,   10,  10,  10,  1,      1,        1])
-        self.R = np.asarray(R) if R is not None else np.diag([1, 1, 1, 1])
+        # Lets now set the motor limits
+        self.input_limits = self.convertMotorLimitsToInputLimits(motor_limits)
+
+        # State Names for plotting purposes etc
+        self.state_names = ["x", "y", "z", "ψ", "θ", "φ", "x'", "y'", "z'", "ψ'", "θ'", "φ'"]
+        # Dictionary of state_names and positions
+        self._state_names_dict = {name: i for i, name in enumerate(self.state_names)}
+
+        # LQR Control for stabilization ------------
+        # Zeroed out are the states for which we dont care to implement LQR control (like position for an airplane etc)
+        if zero_out_states is not None:
+            assert isinstance(zero_out_states, list), "zero_out_states must be a list of state names."
+            assert all(state in self.state_names for state in zero_out_states), f"zero_out_states must be a list of state names from: {self.state_names}."
+        self.zero_out_states = zero_out_states
+        #                                                    [x,    y,    z,   psi,  theta, phi,  x',   y',   z',  psidot, thetadot, phidot]
+        self.Q = np.asarray(Q) if Q is not None else np.diag([0.01, 0.01, 100, 0.01, 0.1,   0.1,  0.1,  0.1,  10,  0.1,    0.1,      0.1])
+        self.R = np.asarray(R) if R is not None else np.diag([1, 1, 1, 1]) # TODO: Maybe change R, since it doesnt refer to motor inputs, but to input_u. But with which mapping...?
         self.k_lqr = self._calculateLqrControlGain(self.Q, self.R)
 
 
@@ -225,6 +247,9 @@ class Quadcopter():
         return x + (dt/6.0)*(k1 + 2*k2 + 2*k3 + k4)
 
     def f(self, x, u):
+
+        # Lets clip the inputs to the limits
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
 
         psi = x[3]
         theta = x[4]
@@ -253,7 +278,10 @@ class Quadcopter():
                 phiddot
             ])
 
-    def fdx(self, x, u):
+    def f_x(self, x, u):
+        # Lets clip the inputs to the limits
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        
         psi = x[3]
         theta = x[4]
         phi = x[5]
@@ -271,7 +299,7 @@ class Quadcopter():
         self.A[11,11] = -self.damping
         return self.A
     
-    def fdu(self, x, u):
+    def f_u(self, x):
         psi = x[3]
         theta = x[4]
         phi = x[5]
@@ -289,8 +317,14 @@ class Quadcopter():
         '''
         return self.f_u(x)
 
-    def step(self, x0, u0):
-        return self.rk4Step(self.f, x0, self.dt, *(u0,))
+    def step(self, x, u, dt=None):
+        dt = self.dt if dt is None else dt
+
+        # Lets clip the inputs to the limits
+        u = np.asarray(u)
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        
+        return self.rk4Step(self.f, x, dt, *(u,))
     
 
     def _calculateLqrControlGain(self, Q, R):
@@ -304,8 +338,8 @@ class Quadcopter():
         u_nom = np.zeros((self.num_of_inputs,))
         u_nom[0] = self.m * 9.81
 
-        self.fdx(self.state, u_nom)
-        self.fdu(self.state, u_nom)
+        self.f_x(self.state, u_nom)
+        self.f_u(self.state)
 
         # Solve the continuous-time algebraic Riccati equation
         P = solve_continuous_are(self.A, self.B, Q, R)
@@ -313,21 +347,28 @@ class Quadcopter():
         # Calculate the LQR gain
         K = np.linalg.inv(R) @ self.B.T @ P
 
-        # Zero out the first two columns of K, we dont need to control x or y 
-        K[:, :2] = 0
-        # K[:, 6:8] = 0 # Uncomment if we dont care about controlling x'. y; 
-        
+        # Zero out the states that we dont care about
+        if self.zero_out_states is not None:
+            indices = [self._state_names_dict[state_name] for state_name in self.zero_out_states if state_name in self._state_names_dict]
+            K[:, indices] = 0
+
+
         return K
 
-    def calcLQRcontrol(self, x, t, z_target=1):
+    # This is the Nominal Input we use to the ergodic controller
+    def calcLQRcontrol(self, x, t):
         
         # Define the target state
-        state_target = np.array([0, 0, z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        state_target = np.array([0, 0, self.z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
         # Calculate the control input
         u = -self.k_lqr @ (x - state_target)
 
         u[0] += self.m * 9.81 # Adjust thrust to maintain altitude
+
+        # Lets clip the inputs to the limits
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        
         return u
 
 
@@ -367,6 +408,90 @@ class Quadcopter():
         motors = np.maximum(0, np.array([m1, m2, m3, m4]))
         
         return motors
+    
+    def convertMotorCommandsToInput(self, motors):
+        """
+        Convert motor commands back to control inputs
+        
+        Parameters:
+        motors: Array of 4 motor commands [m1, m2, m3, m4]
+        
+        Returns:
+        Array of control inputs [u1, u2, u3, u4]
+        """
+        # Extract motor commands
+        m1, m2, m3, m4 = motors
+        
+        # Apply inverse mixer matrix
+        thrust = m1 + m2 + m3 + m4
+        yaw = m1 - m2 + m3 - m4
+        pitch = m1 + m2 - m3 - m4
+        roll = m1 - m2 - m3 + m4
+        
+        return np.array([thrust, yaw, pitch, roll])
+
+
+    def convertMotorLimitsToInputLimits(self, motor_limits=None):
+        # TODO: The limits are not converted properly. A mapping of the limits cant be made, we need a convert -> clip -> convert approach
+        if motor_limits is None:
+            # Set infinite limits if not provided
+            motor_limits = np.array([[-np.inf, np.inf], [-np.inf, np.inf], [-np.inf, np.inf], [-np.inf, np.inf]])
+        else:
+            motor_limits = np.asarray(motor_limits)
+            assert motor_limits.shape == (4, 2), "motor_limits should be a 4x2 array with [lower, upper] pairs for each motor."
+            # Make sure every lower bound is less than the upper bound
+            assert np.all(motor_limits[:, 0] < motor_limits[:, 1]), "Lower bounds must be less than upper bounds."
+
+        m_min = motor_limits[:, 0]
+        m_max = motor_limits[:, 1]
+
+        is_any_max_inf = np.any(m_max == np.inf)
+        is_any_min_inf = np.any(m_min == -np.inf)
+
+        # Throttle limits
+        # m1 + m2 + m3 + m4
+        t_max = +np.inf if is_any_max_inf else m_max[0] + m_max[1] + m_max[2] + m_max[3]
+        t_min = -np.inf if is_any_min_inf else m_min[0] + m_min[1] + m_min[2] + m_min[3]
+
+        # Yaw limits
+        # m1 - m2 + m3 - m4
+        if m_max[0] == np.inf or m_max[2] == np.inf or m_min[1] == -np.inf or m_min[3] == -np.inf:
+            y_max = np.inf
+        else: 
+            y_max = m_max[0] - m_min[1] + m_max[2] - m_min[3]
+        if m_min[0] == -np.inf or m_min[2] == -np.inf or m_max[1] == np.inf or m_max[3] == np.inf:
+            y_min = -np.inf
+        else:
+            y_min = m_min[0] - m_max[1] + m_min[2] - m_max[3]
+
+        # Pitch limits
+        # m1 + m2 - m3 - m4
+        if m_max[0] == np.inf or m_max[1] == np.inf or m_min[2] == -np.inf or m_min[3] == -np.inf:
+            p_max = np.inf
+        else: 
+            p_max = m_max[0] + m_max[1] - m_min[2] - m_min[3]
+        if m_min[0] == -np.inf or m_min[1] == -np.inf or m_max[2] == np.inf or m_max[3] == np.inf:
+            p_min = -np.inf
+        else:
+            p_min = m_min[0] + m_min[1] - m_max[2] - m_max[3]
+
+        # Roll limits
+        # m1 - m2 - m3 + m4
+        if m_max[0] == np.inf or m_min[1] == -np.inf or m_min[2] == -np.inf or m_max[3] == np.inf:
+            r_max = np.inf
+        else: 
+            r_max = m_max[0] - m_min[1] - m_min[2] + m_max[3]
+        if m_min[0] == -np.inf or m_max[1] == np.inf or m_max[2] == np.inf or m_min[3] == -np.inf:
+            r_min = -np.inf
+        else:
+            r_min = m_min[0] - m_max[1] - m_max[2] + m_min[3]
+
+
+        u_limits = np.array([[t_min, t_max], [y_min, y_max], [p_min, p_max], [r_min, r_max]])
+        # print limits
+        print("Motor Limits: \n", motor_limits)
+        print("Input Limits: \n", u_limits)
+        return u_limits
 
 
     @property

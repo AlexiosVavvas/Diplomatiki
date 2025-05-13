@@ -226,22 +226,72 @@ def plotQuadTrajWithInputs(time_list, states_list, input_list, conv_inp_list=Non
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
     # Control Inputs
-    ax1.plot(time_list, input_list[:, 0], label='u1 - Thrust')
-    ax1.plot(time_list, input_list[:, 1], label='u2 - Yaw Torque')
-    ax1.plot(time_list, input_list[:, 2], label='u3 - Pitch Torque')
-    ax1.plot(time_list, input_list[:, 3], label='u4 - Roll Torque')
+    ax1.plot(time_list, input_list[:, 0], label='u1 - Thrust', marker = ".")
+    ax1.plot(time_list, input_list[:, 1], label='u2 - Yaw Torque', marker = ".")
+    ax1.plot(time_list, input_list[:, 2], label='u3 - Pitch Torque', marker = ".")
+    ax1.plot(time_list, input_list[:, 3], label='u4 - Roll Torque', marker = ".")
     ax1.set_title('Control Inputs')
     ax1.legend()
     ax1.grid()
 
     # Motor Commands
-    ax2.plot(time_list, conv_inp_list[:, 0], label='Motor 1')
-    ax2.plot(time_list, conv_inp_list[:, 1], label='Motor 2')
-    ax2.plot(time_list, conv_inp_list[:, 2], label='Motor 3')
-    ax2.plot(time_list, conv_inp_list[:, 3], label='Motor 4')
+    ax2.plot(time_list, conv_inp_list[:, 0], label='Motor 1', marker = ".")
+    ax2.plot(time_list, conv_inp_list[:, 1], label='Motor 2', marker = ".")
+    ax2.plot(time_list, conv_inp_list[:, 2], label='Motor 3', marker = ".")
+    ax2.plot(time_list, conv_inp_list[:, 3], label='Motor 4', marker = ".")
     ax2.set_title('Motor Commands')
     ax2.legend()
     ax2.grid()
 
     plt.tight_layout()
     plt.show()
+
+
+def simplePlot(x, y, label_list=None, title=None, x_label=None, y_label=None, y_type=None, x_lim=None, y_lim=None, T_SHOW=None, fig_num=None):    
+    """
+    Simple plot function to plot multiple y values against x.
+    Parameters:
+    - x: x values (1D array)
+    - y_list: list of y values (2D array)
+    - label_list: list of labels for each y value (optional)
+    - T_SHOW: time in seconds to pause the plot before continuing execution (optional)
+    - fig_num: figure number to reuse an existing figure (optional)
+    """
+    # Use interactive mode to prevent blocking
+    plt.ion()
+    
+    # Clear and reuse figure if fig_num is provided
+    if fig_num is not None:
+        fig = plt.figure(fig_num)
+        plt.clf()  # Clear the figure
+    else:
+        fig = plt.figure()
+        
+    if y_type == "list":
+        for i, y_vals in enumerate(y):
+            plt.plot(x, y_vals, label=f"y{i}" if label_list is None else label_list[i])
+    elif y_type == "np.array":
+        for i in range(y.shape[1]):
+            plt.plot(x, y[:, i], label=f"y{i}" if label_list is None else label_list[i])
+    else: 
+        raise ValueError("y_type must be 'list' or 'np.array'.")
+    
+    plt.title(title if title is not None else "Simple Plot")
+    plt.xlabel(x_label if x_label is not None else "X-axis")
+    plt.ylabel(y_label if y_label is not None else "Y-axis")
+    plt.xlim(x_lim if x_lim is not None else (None, None))
+    plt.ylim(y_lim if y_lim is not None else (None, None))
+    plt.legend()
+    plt.grid()
+    
+    # Draw and display the figure
+    plt.draw()
+    
+    # Pause for T_SHOW seconds if specified
+    if T_SHOW is not None:
+        plt.pause(T_SHOW)
+    else:
+        plt.pause(0.001)  # Small pause to update the figure
+    
+    # Return the figure number for reuse
+    return fig.number
