@@ -5,7 +5,7 @@ This repository contains an implementation of ergodic control algorithms for mul
 
 The core concept is to make the time-averaged statistics of an agent's trajectory match a desired spatial distribution, creating an efficient exploration pattern that focuses more time on high-importance regions while still covering the entire space.
 
-![Quadrotor Ergodic Exploration](images/gifs/phi1_animation.gif)
+![Quadrotor Ergodic Exploration](images/gifs/phi2_animation.gif)
 
 *The animation shows a 12-DoF quadrotor model ergodically exploring a spatial distribution, demonstrating how the algorithm balances between visiting high-density regions while maintaining coverage of the entire domain.*
 
