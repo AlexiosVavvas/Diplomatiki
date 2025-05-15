@@ -52,6 +52,53 @@ class DecentralisedErgodicController():
         self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
 
 
+    def simulateAdjointBackward(self, x_traj, u_traj, t_traj, ck, T=1.0, Q=1, num_of_agents=1):
+        '''
+        Simulate the adjoint state to get rho(t)
+        Integrating with simple Euler method Backwards from rho(ti+T) = 0
+        '''
+        dt = t_traj[1] - t_traj[0]  # Time step: Dt is not a variable here. We chose it to be the same as the forward pass
+        rho = np.zeros((len(x_traj), self.agent.model.num_of_states))
+
+        # Integrating with simple Euler method Backwards from ρ(ti+T) = 0
+        for i in range(len(x_traj)-2, -1, -1):
+            # Jacobian of the dynamics with respect to x
+            f_x = self.agent.model.f_x(x=x_traj[i], u=u_traj[i])
+
+            rho_dot = -np.dot(f_x.T, rho[i+1])
+            
+            for k1 in range(self.agent.Kmax+1):
+                for k2 in range(self.agent.Kmax+1):
+                    # Calculating summation terms
+                    lamda_k = self.agent.basis.LamdaK_cache[(k1, k2)]
+                    hk = self.agent.basis.calcHk(k1, k2)
+                    ck_ = ck[k1, k2]
+                    phi_k = self.agent.basis.calcPhikCoeff(k1, k2)
+                    dFdx = self.agent.basis.dFk_dx(x_traj[i][:2], k1, k2, hk)
+                    # TODO: Check: Since Fk(xv) the derivative lacks dimensions to reach x. So i think we should append 0s
+                    dFdx = np.concatenate((dFdx, np.zeros((self.agent.model.num_of_states - 2,))))
+                    
+                    # Adding to rho_dot(x[i], t[i])
+                    rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
+                    
+                    # if we are epsilon close to the barrier, we need to add the barrier term	
+                    eps = self.agent.erg_c.barrier.eps
+                    x1 = x_traj[i][0]; x1_max = self.agent.erg_c.barrier.space_top_lim[0] - eps; x1_min = eps
+                    x2 = x_traj[i][1]; x2_max = self.agent.erg_c.barrier.space_top_lim[1] - eps; x2_min = eps
+                    if x1 >= x1_max or x1 <= x1_min or x2 >= x2_max or x2 <= x2_min:
+                        barr_dx = self.agent.erg_c.barrier.dx(x_traj[i][:2])
+                    else: 
+                        barr_dx = np.zeros((2,))
+                    # However we need to append 0s to the non ergodic dimensions before adding to rho_dot
+                    barr_dx = np.concatenate((barr_dx, np.zeros((self.agent.model.num_of_states - 2,))))
+                    rho_dot -= barr_dx
+
+            # Update rho using the computed rho_dot
+            rho[i] = rho[i+1] - rho_dot * dt 
+
+        return rho, t_traj
+
+
     def calcNextActionTriplet(self, ti, prediction_dt=None):
         """
         Calculate the next action based on the current state and the target distribution.
@@ -66,7 +113,7 @@ class DecentralisedErgodicController():
         prediction_dt = self.agent.model.dt if prediction_dt is None else prediction_dt
 
         # Simulate Trajectory Forward using prediction dt
-        x_traj, u_traj, t_traj = self.agent.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T, dt=prediction_dt)
+        x_traj, u_traj, t_traj = self.agent.model.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T, dt=prediction_dt)
         erg_traj = x_traj[:, :2] # Save seperately the ergodic dimensions
         
         # Calc Ck Coefficients
@@ -74,7 +121,7 @@ class DecentralisedErgodicController():
         erg_cost = self.calcErgodicCost(ck) 
 
         # Simulate Adjoint Backward to get rho(t)
-        rho, _ = self.agent.simulateAdjointBackward(x_traj, u_traj, t_traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
+        rho, _ = self.simulateAdjointBackward(x_traj, u_traj, t_traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
         # vis.simplePlot(x=t_traj - ti, y=rho, 
         #            title="Time [s]", y_label="Rho Values", y_type="np.array",
         #            x_lim=None, y_lim=None,

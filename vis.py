@@ -295,3 +295,72 @@ def simplePlot(x, y, label_list=None, title=None, x_label=None, y_label=None, y_
     
     # Return the figure number for reuse
     return fig.number
+
+
+def visualiseColorForTraj(agent, ck, x_traj):
+    '''
+    Visualise the color for the trajectory using ck coefficients
+    '''
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    from my_erg_lib.basis import ReconstructedPhiFromCk
+    # Reconstruct the target distribution using the coefficients
+    phi_from_ck = ReconstructedPhiFromCk(agent.basis, ck)
+
+    x1 = np.linspace(0, 1, 50)
+    x2 = np.linspace(0, 1, 50)
+
+
+    Z_reconstructed = np.zeros((len(x1), len(x2)))
+
+    for i in range(len(x1)):
+        for j in range(len(x2)):
+            Z_reconstructed[i, j] = phi_from_ck([x1[i], x2[j]])
+        
+    plt.figure(figsize=(6, 6))
+    plt.imshow(Z_reconstructed.T, extent=(0, 1, 0, 1), origin='lower', cmap=cm.viridis)
+    plt.title(f'Reconstructed Function (Kmax={agent.Kmax})')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+
+    if x_traj is not None:
+        plt.plot(x_traj[:, 0], x_traj[:, 1], 'r-', label='Trajectory')
+
+    plt.tight_layout()
+    plt.show()
+
+def visualiseCoefficients(agent, ck):
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+
+    k1 = np.linspace(0, agent.Kmax, agent.Kmax+1)
+    k2 = np.linspace(0, agent.Kmax, agent.Kmax+1)
+    K1, K2 = np.meshgrid(k1, k2)
+    Z_ck = np.zeros((len(k1), len(k2)))
+    Z_phik = np.zeros((len(k1), len(k2)))
+    
+    for i in range(len(k1)):
+        for j in range(len(k2)):
+            Z_ck[i, j] = ck[i, j]
+            Z_phik[i, j] = agent.basis.calcPhikCoeff(int(k1[i]), int(k2[j]))
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    
+    # Plot Ck coefficients
+    im1 = ax1.imshow(Z_ck, cmap=cm.viridis, origin='lower', 
+                    extent=[0, agent.Kmax, 0, agent.Kmax], aspect='equal')
+    ax1.set_title('Ck Coefficients')
+    ax1.set_xlabel('k1')
+    ax1.set_ylabel('k2')
+    fig.colorbar(im1, ax=ax1, label='Ck Value')
+    
+    # Plot Phi_k coefficients
+    im2 = ax2.imshow(Z_phik, cmap=cm.viridis, origin='lower', 
+                    extent=[0, agent.Kmax, 0, agent.Kmax], aspect='equal')
+    ax2.set_title('Phi_k Coefficients')
+    ax2.set_xlabel('k1')
+    ax2.set_ylabel('k2')
+    fig.colorbar(im2, ax=ax2, label='Phi_k Value')
+    
+    plt.tight_layout()
+    plt.show()

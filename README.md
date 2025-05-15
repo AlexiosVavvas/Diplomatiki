@@ -1,4 +1,4 @@
-# Diplomatiki - Ergodic Control Implementation
+# Ergodic Control Navigation
 
 ## Project Overview
 This repository contains an implementation of ergodic control algorithms for multi-agent robotic systems. Ergodic control is a control strategy that drives agents to match a specified spatial distribution, making it useful for exploration, surveillance, and monitoring applications.

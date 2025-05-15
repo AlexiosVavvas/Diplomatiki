@@ -71,6 +71,36 @@ class SingleIntegrator():
         self.state = self.state + self.f(self.state, u) * dt
         return self.state
     
+    # Simulates default input and returns full state trajectory
+    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
+        """
+        Simulate the system forward in time'
+        From ti -> ti+T
+        """
+        dt = self.dt if dt is None else dt
+        t = ti
+        x = x0.copy()
+        x_traj = []
+        u_traj = []
+        t_traj = []
+        
+        # Check for callable udef
+        assert callable(udef) or udef is None, "udef must be a callable function or None."
+
+        # Reset the model with the initial state and simulate forward
+        self.reset(x0)
+        while t < ti + T:
+            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
+            x = self.step(x=x, u=udef_, dt=dt)
+            x_traj.append(x.copy())
+            u_traj.append(udef_.copy())
+            t_traj.append(t)
+            t += dt  # Increment time by the model's time step
+        
+        self.reset(x0)  # Reset the model to the initial state after simulation
+        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
+    
+    
     @property
     def ergodic_state(self):
         return self.state.copy()
@@ -160,6 +190,37 @@ class DoubleIntegrator():
         dt = self.dt if dt is None else dt
         self.state = self.state + self.f(self.state, u) * dt
         return self.state
+    
+    # Simulates default input and returns full state trajectory
+    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
+        """
+        Simulate the system forward in time'
+        From ti -> ti+T
+        """
+        dt = self.dt if dt is None else dt
+        t = ti
+        x = x0.copy()
+        x_traj = []
+        u_traj = []
+        t_traj = []
+        
+        # Check for callable udef
+        assert callable(udef) or udef is None, "udef must be a callable function or None."
+
+        # Reset the model with the initial state and simulate forward
+        self.reset(x0)
+        while t < ti + T:
+            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
+            x = self.step(x=x, u=udef_, dt=dt)
+            x_traj.append(x.copy())
+            u_traj.append(udef_.copy())
+            t_traj.append(t)
+            t += dt  # Increment time by the model's time step
+        
+        self.reset(x0)  # Reset the model to the initial state after simulation
+        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
+    
+
     
     @property
     def ergodic_state(self):
@@ -492,6 +553,36 @@ class Quadcopter():
         print("Motor Limits: \n", motor_limits)
         print("Input Limits: \n", u_limits)
         return u_limits
+
+
+    # Simulates default input and returns full state trajectory
+    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
+        """
+        Simulate the system forward in time'
+        From ti -> ti+T
+        """
+        dt = self.dt if dt is None else dt
+        t = ti
+        x = x0.copy()
+        x_traj = []
+        u_traj = []
+        t_traj = []
+        
+        # Check for callable udef
+        assert callable(udef) or udef is None, "udef must be a callable function or None."
+
+        # Reset the model with the initial state and simulate forward
+        self.reset(x0)
+        while t < ti + T:
+            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
+            x = self.step(x=x, u=udef_, dt=dt)
+            x_traj.append(x.copy())
+            u_traj.append(udef_.copy())
+            t_traj.append(t)
+            t += dt  # Increment time by the model's time step
+        
+        self.reset(x0)  # Reset the model to the initial state after simulation
+        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
 
 
     @property
