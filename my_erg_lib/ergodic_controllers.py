@@ -26,7 +26,8 @@ class DecentralisedErgodicController():
         self.Rinv = np.linalg.inv(self.R)
         self.Q = Q
         # If uNominal is not provided, set it to a zero function
-        self.uNominal = uNominal if uNominal is not None else lambda x, t: np.zeros((agent.model.num_of_inputs,))
+        self.uNominal = NominalFunction(agent.model.num_of_inputs, agent.model.num_of_states, func=uNominal)
+
         # uLimits is the ergodic CutOff. It doesnt have to do with the physical limits of the model
         if uLimits is None:
             # Set infinite limits if not provided
@@ -49,6 +50,7 @@ class DecentralisedErgodicController():
         self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), agent.model.num_of_inputs))
         # Variable to store past states for better Ck calculation (using Δte)
         self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+
 
     def calcNextActionTriplet(self, ti, prediction_dt=None):
         """
@@ -168,3 +170,43 @@ class DecentralisedErgodicController():
         ergodic_cost *= self.Q
         return ergodic_cost
 
+
+# Default controller class
+class NominalFunction():
+    def __init__(self, num_of_inputs, num_of_states, func=None):
+        # Store them to use them for validation of the dimensions later
+        self.num_of_inputs = num_of_inputs
+        self.num_of_states = num_of_states
+        # Append the function given
+        func_ = func if func is not None else lambda x, t: np.zeros((num_of_inputs,))
+        self.additional_functions = [func_] # Store additional functions to be added
+        # Variables to remember
+        self.uNom_was_None_at_the_beg = func is None
+        self.have_already_removed_the_zero_control = False
+
+    def __call__(self, x, t):
+        result = 0
+        for func in self.additional_functions:
+            result += func(x, t)
+        return result
+    
+    def __iadd__(self, other):
+        # Add the new function to the list of additional functions
+        # Lets make sure proper function form
+        assert callable(other), "Functions appended to nominal control must be callable."
+        x0 = np.zeros((self.num_of_states,))
+        u0 = other(x0, 0)
+        assert u0.shape[0] == self.num_of_inputs, f"Functions appended to nominal control must return a vector of size ({self.num_of_inputs},)"
+
+        # Finally lets append the function to the list
+        self.additional_functions.append(other)
+
+        # If the original uNominal was None, we need to remove the zero control from the list. No need for it anymore.
+        if self.uNom_was_None_at_the_beg and not self.have_already_removed_the_zero_control:
+            # Remove the zero control from the list of additional functions
+            self.additional_functions = self.additional_functions[1:]
+            self.have_already_removed_the_zero_control = True
+
+        # Return self
+        return self
+    

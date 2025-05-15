@@ -25,6 +25,9 @@ class Basis():
         if phi_ is not None:
             assert callable(phi_), "phi must be a callable function."
             self.phi = phi_
+        else:
+            # Default to constant 1 function if not provided
+            self.phi = lambda s: 1
 
         # Precalculate hk for all k1, k2 pairs
         if precalc_hk_coeff:
