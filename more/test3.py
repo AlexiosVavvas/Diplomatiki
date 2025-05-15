@@ -1,6 +1,11 @@
-from agent import Agent
-from model_dynamics import SingleIntegrator
-from ergodic_controllers import DecentralisedErgodicController
+# cd one dir back
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# -----------------------------------------------------------------------------------
+from my_erg_lib.agent import Agent
+from my_erg_lib.model_dynamics import SingleIntegrator
+from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
