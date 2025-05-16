@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# TODO: Remove barrier class, we dont need it anymore
 class Barrier:
     '''
     This class prevents the agent from

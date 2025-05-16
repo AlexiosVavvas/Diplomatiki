@@ -18,6 +18,9 @@ class Agent():
         # Initialize the basis object
         self.basis = Basis(L1, L2, Kmax, phi)
 
+        # Initialise obstacle list
+        self.obstacle_list = []
+
 
     def setPhi(self, phi=None):
         """Set the target distribution."""

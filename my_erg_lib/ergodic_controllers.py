@@ -1,6 +1,8 @@
 import numpy as np
 from my_erg_lib.replay_buffer import ReplayBufferFIFO
 from my_erg_lib.barrier import Barrier
+from my_erg_lib.agent import Agent
+from my_erg_lib.obstacles import Obstacle
 import vis
 
 class DecentralisedErgodicController():
@@ -26,7 +28,7 @@ class DecentralisedErgodicController():
         self.Rinv = np.linalg.inv(self.R)
         self.Q = Q
         # If uNominal is not provided, set it to a zero function
-        self.uNominal = NominalFunction(agent.model.num_of_inputs, agent.model.num_of_states, func=uNominal)
+        self.uNominal = NominalFunction(agent.model.num_of_inputs, agent.model.num_of_states, func=uNominal, limits=uLimits)
 
         # uLimits is the ergodic CutOff. It doesnt have to do with the physical limits of the model
         if uLimits is None:
@@ -83,8 +85,8 @@ class DecentralisedErgodicController():
                     
                     # if we are epsilon close to the barrier, we need to add the barrier term	
                     eps = self.agent.erg_c.barrier.eps
-                    x1 = x_traj[i][0]; x1_max = self.agent.erg_c.barrier.space_top_lim[0] - eps; x1_min = eps
-                    x2 = x_traj[i][1]; x2_max = self.agent.erg_c.barrier.space_top_lim[1] - eps; x2_min = eps
+                    x1 = x_traj[i][0]; x1_max = self.agent.erg_c.barrier.space_top_lim[0] - eps; x1_min = self.agent.erg_c.barrier.space_bot_lim[0] + eps
+                    x2 = x_traj[i][1]; x2_max = self.agent.erg_c.barrier.space_top_lim[1] - eps; x2_min = self.agent.erg_c.barrier.space_bot_lim[1] + eps
                     if x1 >= x1_max or x1 <= x1_min or x2 >= x2_max or x2 <= x2_min:
                         barr_dx = self.agent.erg_c.barrier.dx(x_traj[i][:2])
                     else: 
@@ -220,7 +222,7 @@ class DecentralisedErgodicController():
 
 # Default controller class
 class NominalFunction():
-    def __init__(self, num_of_inputs, num_of_states, func=None):
+    def __init__(self, num_of_inputs, num_of_states, func=None, limits=None):
         # Store them to use them for validation of the dimensions later
         self.num_of_inputs = num_of_inputs
         self.num_of_states = num_of_states
@@ -230,11 +232,34 @@ class NominalFunction():
         # Variables to remember
         self.uNom_was_None_at_the_beg = func is None
         self.have_already_removed_the_zero_control = False
+        # Cap to limits
+        if limits is not None:
+            assert len(limits) == num_of_inputs, "Limits should contain [lower, upper] pairs for every control (num_of_inputs)."
+            assert np.all(np.array(limits)[:, 0] < np.array(limits)[:, 1]), "Limits should be in the form [lower, upper] for every control (num_of_inputs)."
+            self.limits = np.asarray(limits)
+        else:
+            # Set infinite limits if not provided
+            self.limits = np.array([[-np.inf, np.inf] for _ in range(num_of_inputs)])
 
     def __call__(self, x, t):
-        result = 0
-        for func in self.additional_functions:
-            result += func(x, t)
+        # Initialize with the first function
+        first_result = self.additional_functions[0](x, t)
+        result = first_result.copy()
+        
+        # Apply remaining functions and track their percentage contribution
+        for i in range(1, len(self.additional_functions)):
+            func_result = self.additional_functions[i](x, t)
+            result += func_result
+            
+            # Print percentage contribution relative to the first function
+            # if np.any(first_result != 0):
+            #     percentage = np.linalg.norm(func_result) / np.linalg.norm(first_result) * 100
+            #     if percentage > 0.001:
+            #         print(f"Function {i} contribution: {percentage:.2f} of the ergodic")
+        
+        # Clip the result to the limits
+        result = np.clip(result, self.limits[:, 0], self.limits[:, 1])
+
         return result
     
     def __iadd__(self, other):

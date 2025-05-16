@@ -100,6 +100,12 @@ class SingleIntegrator():
         self.reset(x0)  # Reset the model to the initial state after simulation
         return np.array(x_traj), np.array(u_traj), np.array(t_traj)
     
+    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
+    def convertForcesToInputs(self, F):
+        # F -> (Fx, Fy)
+        fx, fy = F
+
+        return np.array([fx, fy])
     
     @property
     def ergodic_state(self):
@@ -220,8 +226,13 @@ class DoubleIntegrator():
         self.reset(x0)  # Reset the model to the initial state after simulation
         return np.array(x_traj), np.array(u_traj), np.array(t_traj)
     
+    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
+    def convertForcesToInputs(self, F):
+        # F -> (Fx, Fy)
+        fx, fy = F
 
-    
+        return np.array([fx, fy])
+
     @property
     def ergodic_state(self):
         return self.state[:2].copy()
@@ -267,7 +278,7 @@ class Quadcopter():
         self.reset(x0)
 
         # Lets now set the motor limits
-        self.input_limits = self.convertMotorLimitsToInputLimits(motor_limits)
+        self.input_limits, self.motor_limits = self.convertMotorLimitsToInputLimits(motor_limits)
 
         # State Names for plotting purposes etc
         self.state_names = ["x", "y", "z", "ψ", "θ", "φ", "x'", "y'", "z'", "ψ'", "θ'", "φ'"]
@@ -383,6 +394,9 @@ class Quadcopter():
 
         # Lets clip the inputs to the limits
         u = np.asarray(u)
+        # m = self.convertInputToMotorCommands(u) # TODO: This leads to imbalance
+        # m = np.clip(m, self.motor_limits[:, 0], self.motor_limits[:, 1])
+        # u = self.convertMotorCommandsToInput(m)
         u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
         
         return self.rk4Step(self.f, x, dt, *(u,))
@@ -552,7 +566,32 @@ class Quadcopter():
         # print limits
         print("Motor Limits: \n", motor_limits)
         print("Input Limits: \n", u_limits)
-        return u_limits
+        return u_limits, motor_limits
+
+    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
+    def convertForcesToInputs(self, F):
+        # F -> (Fx, Fy)
+        fx, fy = F
+
+        psi = self.state[3]
+        s = np.sin(psi)
+        c = np.cos(psi)
+        
+        m1_pos = [-c+s, -c-s]
+        m2_pos = [-c-s, +c-s]
+        m3_pos = [+c-s, +c+s]
+        m4_pos = [+c+s, +c-s]
+
+        # Z = slope_x * x + slope_y * y
+        # Z = - fx * x - fy * y
+
+        m1 = - fx * m1_pos[0] - fy * m1_pos[1]
+        m2 = - fx * m2_pos[0] - fy * m2_pos[1]
+        m3 = - fx * m3_pos[0] - fy * m3_pos[1]
+        m4 = - fx * m4_pos[0] - fy * m4_pos[1]
+
+
+        return self.convertMotorCommandsToInput(np.array([m1, m2, m3, m4]))
 
 
     # Simulates default input and returns full state trajectory

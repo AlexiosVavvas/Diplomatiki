@@ -9,6 +9,9 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 
 *The animation shows a 12-DoF quadrotor model ergodically exploring a spatial distribution, demonstrating how the algorithm balances between visiting high-density regions while maintaining coverage of the entire domain.*
 
+![Quadrotor Ergodic Exploration](images/gifs/phi_obs_double_int_animation.gif)
+*The animation shows a simple double integrator model ergodically exploring the same spatial distribution in the presense of obstacles / forbidden regions of space*
+
 ## Repository Structure
 - `my_erg_lib/`: Custom implementation of the ergodic control library
   - Contains models, controllers, and utility functions for ergodic control

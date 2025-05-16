@@ -40,12 +40,13 @@ def phiExample(s, L1=1.0, L2=1.0):
 
 # Function to be used for phi with specific L1 and L2 values
 def phi_func(s):
-    return phiExample(s, L1=2.0, L2=2.0)
+    return phiExample(s, L1=1.0, L2=1.0)
 
 # -----------------------------------------------------------------------------------
 def main():
     from my_erg_lib.agent import Agent
-    from my_erg_lib.model_dynamics import DoubleIntegrator, SingleIntegrator, Quadcopter
+    from my_erg_lib.obstacles import Obstacle, ObstacleAvoidanceControllerGenerator
+    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
@@ -57,36 +58,63 @@ def main():
     # Set up the agent -----------------------------------------------------------------------------
     
     # ===== Dynamics Model =====
-    # Quadrotor model -----------
-    x0 = [0.6, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
-    UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
-    LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
-    mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
-    model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    u_limits = model.input_limits
-    u_nominal = model.calcLQRcontrol
-    Q_ = 7
-    PREDICTION_DT = model.dt * 100
-    RELAX_FACTOR = 0.3
-
     # Double integrator model ----
-    # x0 = [0.5, 0.4, 0, 0]
-    # u_limits = [[-10, 10], [-10, 10]]
-    # model = DoubleIntegrator(dt=0.005)
-    # u_nominal = None
-    # Q_ = 2
-    # PREDICTION_DT = model.dt * 1
-    # RELAX_FACTOR = 0.9
-    
+    x0 = [0.5, 0.4, 0, 0]
+    u_limits = [[-10, 10], [-10, 10]]
+    model = DoubleIntegrator(dt=0.001)
+    u_nominal = None
+    Q_ = 1
+    PREDICTION_DT = model.dt * 25
+    RELAX_FACTOR = 0.9
+    IMAX = 10e3
+    TS = 0.01; T_H = 0.2; deltaT_ERG = 0.25 * 10
+    BAR_WEIGHT = 0
+
+    # Quadrotor model -----------
+    # x0 = [0.6, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    # UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
+    # LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
+    # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
+    # model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
+    # TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 15
+    # Q_ = 3
+    # u_limits = model.input_limits
+    # u_nominal = model.calcLQRcontrol
+    # PREDICTION_DT = model.dt * 40
+    # RELAX_FACTOR = 0.3
+    # IMAX = 10e3
+    # BAR_WEIGHT = 50
+
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=2.0, L2=2.0, Kmax=5, 
+    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
                   dynamics_model=model, phi=phi_func, x0=x0)
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
-                                                 T_sampling=0.1, T_horizon=0.25*5, deltaT_erg=0.25 * 30,
-                                                 barrier_weight=50, barrier_eps=0.3, barrier_pow=2)
+                                                 T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
+                                                 barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
     
+    # Avoiding Obstacles -------------------
+    # Add obstacles and another controller to take them into account
+    FMIN = 0.9; FMAX = 10; min_dist = 0.1; e_max = 4
+    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,  f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 1"), 
+            Obstacle(pos=[0.66, 0.77], dimensions=0.12, f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 2"), 
+            Obstacle(pos=[0.6, 0.5],   dimensions=0.08, f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 3"),]
+
+    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs)
+
+
+    # Avoiding Walls ----------------------
+    FMIN = 0.1; FMAX = 10; min_dist = 0.05; e_max = agent.L1
+    bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Bottom Wall"),
+            Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Top Wall"   ),
+            Obstacle(pos=[0,        0],   dimensions=[+1, 0], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Left Wall"  ),
+            Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Right Wall" )]
+    
+    # Add the obstacle avoidance controller to the ergodic controller
+    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=bar)
+
+    input("Enter to continue...")
     # --------------------------------------------------------------------------------------------------
     
     # Lists to store for plotting
@@ -104,7 +132,7 @@ def main():
     last_iter_time = time.time()
     delta_time = 1
     
-    i = 0; IMAX = 50e3
+    i = 0
     phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
@@ -112,15 +140,20 @@ def main():
             ti = time_list[i]; ti_indx = i
             # Calculate ergodic control for the sample step
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(time_list[i], prediction_dt=PREDICTION_DT)
+
+            # change lamda dur only if not quadcopter
+            if not isinstance(agent.model, Quadcopter):
+                lamda_dur = agent.erg_c.Ts
             erg_cost_list.append(erg_cost)
 
             if i % 160 == 0:
                 print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
                 print(f"x = {agent.model.state[:3]} \t u = {us} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
-                # Debug print if agent inside boundaries
-                agent.withinBounds(agent.model.state[:2])
+            
+            # Debug print if agent inside boundaries
+            agent.withinBounds(agent.model.state[:2])
 
-            if np.any(np.abs(agent.model.state[:2]) > 200):
+            if np.any(np.abs(agent.model.state[:2]) > 50):
                 print("--> Agent WAYY out of bounds! Stopping simulation.")
                 break
             
@@ -130,13 +163,14 @@ def main():
 
             
             # Simulation saving file
-            # x_traj, u_traj, t_traj = agent.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T)
-            # erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
-            # ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
-            # phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-            # plotPhi2(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
-            # plt.savefig(f"images/phi_{ti:.2f}.png")
-            # plt.close()
+            # if i % 4 == 0:
+            #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+            #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
+            #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
+            #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+            #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
+            #     plt.savefig(f"images/phi_{ti:.2f}.png")
+            #     plt.close()
         
         # Continue with simulation of agent
         us_ = agent.erg_c.ustar_mask[i - ti_indx]

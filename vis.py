@@ -1,4 +1,6 @@
 import numpy as np
+from my_erg_lib.agent import Agent
+from my_erg_lib.obstacles import Obstacle
 
 
 def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None):
@@ -47,6 +49,28 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None):
     ax3.set_ylabel('x2')
     ax3.set_aspect('auto')
     plt.colorbar(im3, ax=ax3, label='Function Value')
+    
+    # Plot obstacles as circles if they exist
+    if hasattr(agent, 'obstacle_list') and agent.obstacle_list:
+        for obstacle in agent.obstacle_list:
+            if isinstance(obstacle, Obstacle):
+                if obstacle.type == 'circle':
+                    # Draw circle representing the obstacle
+                    circle = plt.Circle((obstacle.pos[0], obstacle.pos[1]), 
+                                    obstacle.r, 
+                                    color='black', fill=False, linestyle='--', linewidth=1)
+                    ax3.add_patch(circle)
+                elif obstacle.type == 'rectangle':
+                    # Draw rectangle representing the obstacle
+                    rect = plt.Rectangle((obstacle.bottom_left[0], obstacle.bottom_left[1]), 
+                                        obstacle.width, obstacle.height, 
+                                        color='black', fill=False, linestyle='--', linewidth=1)
+                    ax3.add_patch(rect)
+    # Lets also visualise the barrier, a box 0.05 away from the border limits l1, l2
+    W = 0
+    ax3.add_patch(plt.Rectangle((0, 0), agent.L1, agent.L2, color='black', fill=False, linestyle='--', linewidth=1))
+    ax3.add_patch(plt.Rectangle((W, W), agent.L1-2*W, agent.L2-2*W, color='black', fill=False, linestyle='--', linewidth=1))
+
 
     if all_traj is not None:
         all_traj = np.array(all_traj)

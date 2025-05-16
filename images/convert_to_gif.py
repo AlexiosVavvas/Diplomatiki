@@ -86,7 +86,8 @@ def create_gif_for_group(image_paths, output_filename, duration=100):
         try:
             if i % 20 == 0:  # Print progress every 20 frames
                 print(f"[INFO] Loading image {i+1}/{len(image_paths)}: {os.path.basename(image_path)}")
-            frames.append(Image.open(image_path))
+            if i % 1 == 0:  # Skip every other image for faster loading
+                frames.append(Image.open(image_path))
         except Exception as e:
             print(f"[ERROR] Failed to open {image_path}: {e}")
     
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     
     # Duration of each frame in milliseconds (increased for slower animation)
     # Higher values make the animation slower
-    duration = 300  # Changed from 100ms to 300ms
+    duration = 200  # Changed from 100ms to 300ms
     print(f"[INFO] Setting frame duration to {duration}ms (higher = slower animation)")
     
     # Identify different image groups
