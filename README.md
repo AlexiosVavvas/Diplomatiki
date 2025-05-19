@@ -59,6 +59,8 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - Customizable repulsive forces and influence regions
   - Boundary enforcement to keep agents within exploration space
 
+![Potential field visualization](images/images/potential_field_4.png)
+
 ### Integration
 - `agent.py`: Agent implementation that combines models and controllers
   - Boundary checking and safety mechanisms
