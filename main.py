@@ -53,37 +53,36 @@ def main():
     import vis
     import time
 
-    # TODO: Seperate actual simulation dt from trajectory prediciton dt. This way we can speed up prediction without affecting actual simulation time.
     # TODO: Something is wrong with the effect of the mass. Check it out (Double Integrator etc)
     # Set up the agent -----------------------------------------------------------------------------
     
     # ===== Dynamics Model =====
     # Double integrator model ----
-    x0 = [0.5, 0.4, 0, 0]
-    u_limits = [[-10, 10], [-10, 10]]
-    model = DoubleIntegrator(dt=0.001)
-    u_nominal = None
-    Q_ = 1
-    PREDICTION_DT = model.dt * 25
-    RELAX_FACTOR = 0.9
-    IMAX = 10e3
-    TS = 0.01; T_H = 0.2; deltaT_ERG = 0.25 * 10
-    BAR_WEIGHT = 0
+    # x0 = [0.4, 0.6, 0, 0]
+    # u_limits = [[-10, 10], [-10, 10]]
+    # model = DoubleIntegrator(dt=0.001)
+    # u_nominal = None
+    # Q_ = 1
+    # PREDICTION_DT = model.dt * 25
+    # RELAX_FACTOR = 0.9
+    # IMAX = 10e3
+    # TS = 0.01; T_H = 0.2; deltaT_ERG = 0.25 * 10
+    # BAR_WEIGHT = 0
 
     # Quadrotor model -----------
-    # x0 = [0.6, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
-    # UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
-    # LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
-    # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
-    # model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    # TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 15
-    # Q_ = 3
-    # u_limits = model.input_limits
-    # u_nominal = model.calcLQRcontrol
-    # PREDICTION_DT = model.dt * 40
-    # RELAX_FACTOR = 0.3
-    # IMAX = 10e3
-    # BAR_WEIGHT = 50
+    x0 = [0.3, 0.5, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
+    LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
+    mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
+    model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
+    TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 40
+    Q_ = 1
+    u_limits = model.input_limits
+    u_nominal = model.calcLQRcontrol
+    PREDICTION_DT = model.dt * 40
+    RELAX_FACTOR = 0.3
+    IMAX = 50e3
+    BAR_WEIGHT = 0 # 50
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
@@ -96,23 +95,29 @@ def main():
     
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
-    FMIN = 0.9; FMAX = 10; min_dist = 0.1; e_max = 4
-    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,  f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 1"), 
-            Obstacle(pos=[0.66, 0.77], dimensions=0.12, f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 2"), 
-            Obstacle(pos=[0.6, 0.5],   dimensions=0.08, f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max, obs_type='circle', obs_name="Obstacle 3"),]
+    FMAX = 0.25; EPS_M = 0.2
+    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
+            Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
+            Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
+            Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
 
-    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs)
+    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
 
 
     # Avoiding Walls ----------------------
-    FMIN = 0.1; FMAX = 10; min_dist = 0.05; e_max = agent.L1
-    bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Bottom Wall"),
-            Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Top Wall"   ),
-            Obstacle(pos=[0,        0],   dimensions=[+1, 0], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Left Wall"  ),
-            Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], f_min=FMIN, f_max=FMAX, min_dist=min_dist, e_max=e_max,  obs_type='wall', obs_name="Right Wall" )]
+    FMAX = 1; min_dist = 1e-2; EPS_M = 0.49; e_max = agent.L1
+    bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Bottom Wall"),
+            Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Top Wall"   ),
+            Obstacle(pos=[0,        0],   dimensions=[+1, 0], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Left Wall"  ),
+            Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Right Wall" )]
     
     # Add the obstacle avoidance controller to the ergodic controller
-    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=bar)
+    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=bar, func_name="Walls")
+    # Print uNominal Status
+    print(agent.erg_c.uNominal)
+
+    if input("Visualise Potential Fields? (y/n): ") == "y":
+        vis.visPotentialFields(agent)
 
     input("Enter to continue...")
     # --------------------------------------------------------------------------------------------------
@@ -123,6 +128,8 @@ def main():
     u_list = [np.zeros((agent.model.num_of_inputs,))]  # Control action list
     u_before = np.zeros((agent.model.num_of_inputs,))  # Previous control action
     erg_cost_list = []
+    state_target_list = [agent.model._state_target.copy()] if isinstance(agent.model, Quadcopter) else []  # State target list (only for quads with LQR)
+    delta_t_Ts = []
 
     ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
@@ -145,10 +152,16 @@ def main():
             if not isinstance(agent.model, Quadcopter):
                 lamda_dur = agent.erg_c.Ts
             erg_cost_list.append(erg_cost)
+            delta_t_Ts.append([ti, delta_time / agent.erg_c.Ts])
 
             if i % 160 == 0:
+                def u_str(u):
+                    res = "["
+                    for j in range(len(u)):
+                        res += f"{u[j]:.2f}, "
+                    return res[:-2] + "]"
                 print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
-                print(f"x = {agent.model.state[:3]} \t u = {us} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
+                print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
             
             # Debug print if agent inside boundaries
             agent.withinBounds(agent.model.state[:2])
@@ -163,13 +176,13 @@ def main():
 
             
             # Simulation saving file
-            # if i % 4 == 0:
+            # if i % 160 == 0:
             #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
             #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
             #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
             #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
             #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
-            #     plt.savefig(f"images/phi_{ti:.2f}.png")
+            #     plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
             #     plt.close()
         
         # Continue with simulation of agent
@@ -192,9 +205,9 @@ def main():
 
         u_list.append(u.copy())
         states_list.append(agent.model.state.copy())
+        state_target_list.append(agent.model._state_target_history_for_plotting.copy() if isinstance(agent.model, Quadcopter) else [])
 
         time_list.append(time_list[i] + agent.model.dt)
-        delta_erg_cost = abs(erg_cost_list[-1] - erg_cost_list[-2]) if len(erg_cost_list) > 1 else 10
         
         # Calculate delta time for this iteration
         current_time = time.time()
@@ -206,7 +219,12 @@ def main():
 
     states_list = np.array(states_list)
     u_list = np.array(u_list)
+    time_list = np.array(time_list)
+    state_target_list = np.array(state_target_list)
+    delta_t_Ts = np.array(delta_t_Ts)
 
+
+    # ---------------- PLOTTING ----------------------------------------------------
     # Visualize the trajectory
     plt.figure(figsize=(8, 6))
     for i in range(agent.model.num_of_states):
@@ -226,9 +244,41 @@ def main():
     plt.legend()
     plt.grid()
 
-    # vis traj
+    # state target
+    if isinstance(agent.model, Quadcopter):
+        i_to_plot = [6, 7]
+        fig, axes = plt.subplots(len(i_to_plot), 1, figsize=(8, 3*len(i_to_plot)))
+        c_ = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
+        
+        for idx, i in enumerate(i_to_plot):
+            ax = axes[idx] if len(i_to_plot) > 1 else axes
+            ax.plot(time_list[2:], state_target_list[:, i][2:], 
+                   label=f"{agent.model.state_names[i]} (target)", 
+                   linestyle="--", color=c_[idx])
+            ax.plot(time_list[2:], states_list[:, i][2:], 
+                   label=f"{agent.model.state_names[i]} (actual)", 
+                   linestyle="-", color=c_[idx])
+            ax.legend()
+            ax.grid(True)
+            ax.set_ylabel(agent.model.state_names[i])
+            
+        axes[-1].set_xlabel("Time [s]")
+        fig.suptitle("State Targets vs Actual")
+        plt.tight_layout()
+
+    # Plot the time it took as a percentage of the sampling time
+    plt.figure(figsize=(8, 5))
+    plt.plot(delta_t_Ts[1:, 0], delta_t_Ts[1:, 1], 'k-', label='Δt/Ts', linewidth=0.7)
+    plt.legend()
+    plt.grid()
+    plt.xlabel("Time [s]")
+    plt.ylabel("Δt/Ts")
+    plt.title("Δt/Ts")
+    plt.ylim([0, np.max(delta_t_Ts[1:, 1]) * 1.3])
+    plt.axhline(y=1, color='r', linestyle='--', label='Ts')
+
+
     ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)
-    # ck_ = agent.basis.calcCkCoeff(agent.erg_c.past_states_buffer.get(), x_buffer=None, ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_rec, all_traj=states_list)
@@ -262,4 +312,4 @@ if __name__ == "__main__":
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats(SortKey.CUMULATIVE)
     # Filter to only show functions from the current file
-    stats.print_stats("agent.py|basis.py|model_dynamics.py|ergodic_controllers.py|barrier.py|replay_buffer.py")  # Show only your modules
+    stats.print_stats("agent.py|basis.py|model_dynamics.py|ergodic_controllers.py|barrier.py|replay_buffer.py|obstacles.py")  # Show only your modules

@@ -3,7 +3,7 @@ from my_erg_lib.replay_buffer import ReplayBufferFIFO
 from my_erg_lib.barrier import Barrier
 from my_erg_lib.agent import Agent
 from my_erg_lib.obstacles import Obstacle
-import vis
+from my_erg_lib.model_dynamics import Quadcopter
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
@@ -240,38 +240,45 @@ class NominalFunction():
         else:
             # Set infinite limits if not provided
             self.limits = np.array([[-np.inf, np.inf] for _ in range(num_of_inputs)])
+        
+        print("ATTENTION: If model = Quad: Make sure to set LQR as the first function in the list")
 
     def __call__(self, x, t):
-        # Initialize with the first function
-        first_result = self.additional_functions[0](x, t)
-        result = first_result.copy()
+        # Initialize to zero
+        result = np.zeros((self.num_of_inputs,))
         
-        # Apply remaining functions and track their percentage contribution
-        for i in range(1, len(self.additional_functions)):
-            func_result = self.additional_functions[i](x, t)
-            result += func_result
+        # First run all non-LQR functions
+        for func in self.additional_functions:
+            # Get function name safely
+            func_name = getattr(func, "__name__", "").lower()
             
-            # Print percentage contribution relative to the first function
-            # if np.any(first_result != 0):
-            #     percentage = np.linalg.norm(func_result) / np.linalg.norm(first_result) * 100
-            #     if percentage > 0.001:
-            #         print(f"Function {i} contribution: {percentage:.2f} of the ergodic")
-        
+            # Skip LQR functions for now, they'll be processed later
+            if "lqr" not in func_name:
+                result += func(x, t)
+
+        # Apply LQR functions last
+        for func in self.additional_functions:
+            if "lqr" in getattr(func, "__name__", "").lower():
+                result += func(x, t)
+
         # Clip the result to the limits
         result = np.clip(result, self.limits[:, 0], self.limits[:, 1])
 
         return result
     
-    def __iadd__(self, other):
-        # Add the new function to the list of additional functions
+    # Add the new function to the list of additional functions
+    def __iadd__(self, other_func):
         # Lets make sure proper function form
-        assert callable(other), "Functions appended to nominal control must be callable."
+        assert callable(other_func), "Functions appended to nominal control must be callable."
         x0 = np.zeros((self.num_of_states,))
-        u0 = other(x0, 0)
+        u0 = other_func(x0, 0)
         assert u0.shape[0] == self.num_of_inputs, f"Functions appended to nominal control must return a vector of size ({self.num_of_inputs},)"
 
         # Finally lets append the function to the list
-        self.additional_functions.append(other)
+        self.additional_functions.append(other_func)
+
+        # Lets add the name of the function
+        self.additional_functions[-1].__name__ = other_func.__name__
 
         # If the original uNominal was None, we need to remove the zero control from the list. No need for it anymore.
         if self.uNom_was_None_at_the_beg and not self.have_already_removed_the_zero_control:
@@ -282,3 +289,22 @@ class NominalFunction():
         # Return self
         return self
     
+    def __str__(self):
+        """Returns a string representation of the NominalFunction object with details about its functions."""
+        report = "\n\nNominalFunction Report\n"
+        report += "=" * 25 + "\n"
+        report += f"Number of inputs: {self.num_of_inputs}\n"
+        report += f"Number of states: {self.num_of_states}\n"
+        report += f"Control limits: \n{self.limits}\n"
+        report += f"Number of functions: {len(self.additional_functions)}\n\n"
+        report += "Functions (in order): \t (if LQR it gets executed last)\n"
+        
+        for i, func in enumerate(self.additional_functions):
+            name = getattr(func, "__name__", f"Function_{i}")
+            report += f"  {i+1}. {name}\n"
+        
+        return report
+
+    def __repr__(self):
+        """Returns the same as __str__ for consistency."""
+        return self.__str__()

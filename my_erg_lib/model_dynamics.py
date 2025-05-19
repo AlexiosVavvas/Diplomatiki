@@ -111,6 +111,10 @@ class SingleIntegrator():
     def ergodic_state(self):
         return self.state.copy()
     
+    @property
+    def state_string(self):
+        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}"
+    
 
 
 class DoubleIntegrator():
@@ -236,6 +240,10 @@ class DoubleIntegrator():
     @property
     def ergodic_state(self):
         return self.state[:2].copy()
+    
+    @property
+    def state_string(self):
+        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, x': {self.state[2]:.2f}, y': {self.state[3]:.2f}"
 
 
 from scipy.linalg import solve_continuous_are
@@ -274,6 +282,13 @@ class Quadcopter():
         self.A = np.zeros((self.num_of_states, self.num_of_states)) +  np.diag([1.0]*6, 6)
         self.B = np.zeros((self.num_of_states, self.num_of_inputs))
         self.z_target = z_target
+        
+        # Default state target
+        self.state_target = np.array([0, 0, z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)
+        self._state_target = self.state_target.copy() # Temporary: Needed for obstacle controllers to have one to append velocity commands
+        self._state_target_history_for_plotting = self.state_target.copy()
+        self.state_target_modified = False
+        self.f_command_to_controller = None
 
         self.reset(x0)
 
@@ -292,9 +307,11 @@ class Quadcopter():
             assert all(state in self.state_names for state in zero_out_states), f"zero_out_states must be a list of state names from: {self.state_names}."
         self.zero_out_states = zero_out_states
         #                                                    [x,    y,    z,   psi,  theta, phi,  x',   y',   z',  psidot, thetadot, phidot]
-        self.Q = np.asarray(Q) if Q is not None else np.diag([0.01, 0.01, 100, 0.01, 0.1,   0.1,  0.1,  0.1,  10,  0.1,    0.1,      0.1])
+        self.Q = np.asarray(Q) if Q is not None else np.diag([0.01, 0.01, 100, 0.01, 0.1,   0.1,  0.1,  0.1,  1,  0.1,    0.1,      0.1])
         self.R = np.asarray(R) if R is not None else np.diag([1, 1, 1, 1]) # TODO: Maybe change R, since it doesnt refer to motor inputs, but to input_u. But with which mapping...?
         self.k_lqr = self._calculateLqrControlGain(self.Q, self.R)
+        # Lets have also a Q for obstacle avoidance if nesessary [x,    y,    z,   psi,  theta, phi,  x',   y',   z',  psidot, thetadot, phidot]
+        self.Q_obs = np.asarray(Q) if Q is not None else np.diag([0.01, 0.01, 100, 0.01, 0.1,   0.1,  150,  150,  1,  0.1,    0.1,      0.1])
 
 
     def reset(self, state=None):
@@ -431,10 +448,14 @@ class Quadcopter():
         return K
 
     # This is the Nominal Input we use to the ergodic controller
-    def calcLQRcontrol(self, x, t):
+    def calcLQRcontrol(self, x, t, state_target=None):
         
-        # Define the target state
-        state_target = np.array([0, 0, self.z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        state_target = self._state_target.copy() if state_target is None else state_target
+
+        # Reset the state target flag to let future controllers change it if nesessary
+        self.state_target_modified = False
+        self._state_target = self.state_target.copy()
+        self._state_target_history_for_plotting = state_target.copy()
 
         # Calculate the control input
         u = -self.k_lqr @ (x - state_target)
@@ -627,3 +648,7 @@ class Quadcopter():
     @property
     def ergodic_state(self):
         return self.state[:2].copy()
+    
+    @property
+    def state_string(self):
+        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, z: {self.state[2]:.2f}, ψ: {self.state[3]*180/np.pi:.2f}, θ: {self.state[4]*180/np.pi:.2f}, φ: {self.state[5]*180/np.pi:.2f}, x': {self.state[6]:.2f}, y': {self.state[7]:.2f}, z': {self.state[8]:.2f}, ψ': {self.state[9]*180/np.pi:.2f}, θ': {self.state[10]*180/np.pi:.2f}, φ': {self.state[11]*180/np.pi:.2f} [angles -> DEG]"

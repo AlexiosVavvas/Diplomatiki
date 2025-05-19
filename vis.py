@@ -388,3 +388,337 @@ def visualiseCoefficients(agent, ck):
     
     plt.tight_layout()
     plt.show()
+
+from my_erg_lib.model_dynamics import Quadcopter
+def visPotentialFields(agent: Agent):
+    # Filter the obstacle list to only keep circle obstacles
+    obs_list = [obs for obs in agent.obstacle_list if (obs.type == 'circle' or obs.type == "rectangle")] if hasattr(agent, 'obstacle_list') else []
+
+    x = np.linspace(0, agent.L1, 100)
+    y = np.linspace(0, agent.L2, 100)
+    X, Y = np.meshgrid(x, y)
+    skip = 2  # Skip points for better visualization
+
+    # Check if obstacle and wall controllers exist
+    has_obstacle_controller = False
+    has_wall_controller = False
+    obstacle_idx = -1
+    wall_idx = -1
+    
+    if hasattr(agent.erg_c.uNominal, 'additional_functions'):
+        for i, controller in enumerate(agent.erg_c.uNominal.additional_functions):
+            if hasattr(controller, '__name__'):
+                if controller.__name__ == "Obstacles":
+                    has_obstacle_controller = True
+                    obstacle_idx = i
+                elif controller.__name__ == "Walls":
+                    has_wall_controller = True
+                    wall_idx = i
+
+    # Initialize fields only if needed
+    f_obs = None
+    f_bar = None
+    
+    # Calculate obstacle field if it exists
+    if has_obstacle_controller:
+        f_obs = np.zeros((len(x), len(y), 2))
+        for i in range(len(x)):
+            for j in range(len(y)):
+                if isinstance(agent.model, Quadcopter):
+                    _ = agent.erg_c.uNominal.additional_functions[obstacle_idx]([x[i], y[j]], 0)
+                    f_obs[j, i, :] = agent.model.f_command_to_controller
+                else:
+                    f_obs[j, i, :] = agent.erg_c.uNominal.additional_functions[obstacle_idx]([x[i], y[j]], 0)
+    
+    # Calculate wall/barrier field if it exists
+    if has_wall_controller:
+        f_bar = np.zeros((len(x), len(y), 2))
+        for i in range(len(x)):
+            for j in range(len(y)):
+                if isinstance(agent.model, Quadcopter):
+                    _ = agent.erg_c.uNominal.additional_functions[wall_idx]([x[i], y[j]], 0)
+                    f_bar[j, i, :] = agent.model.f_command_to_controller
+                else:
+                    f_bar[j, i, :] = agent.erg_c.uNominal.additional_functions[wall_idx]([x[i], y[j]], 0)
+
+    # Only proceed with plotting if at least one field exists
+    if not (has_obstacle_controller or has_wall_controller):
+        print("No obstacle or wall controllers found. Nothing to plot.")
+        print("The keywords for the controllers are 'Obstacles' and 'Walls'.")
+        return
+
+    # Helper function to draw obstacles based on their type
+    def draw_obstacles(ax, obstacles):
+        for obstacle in obstacles:
+            if obstacle.type == 'circle':
+                circle = plt.Circle((obstacle.pos[0], obstacle.pos[1]), obstacle.r, 
+                                   color='red', fill=True, alpha=0.5)
+                ax.add_patch(circle)
+            elif obstacle.type == 'rectangle':
+                rect = plt.Rectangle((obstacle.bottom_left[0], obstacle.bottom_left[1]), 
+                                    obstacle.width, obstacle.height, 
+                                    color='red', fill=True, alpha=0.5)
+                ax.add_patch(rect)
+    
+    # Determine the plot layout based on which fields exist
+    if has_obstacle_controller and has_wall_controller:
+        # Plot both obstacle and wall fields
+        plt.figure(figsize=(15, 8))
+        
+        # Setup 2x3 grid for X and Y components
+        plt.subplot(2, 3, 1)
+        # f_obs x-direction
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_obs[::skip, ::skip, 0], np.zeros_like(f_obs[::skip, ::skip, 0]),
+                scale=5, color='blue', width=0.003)
+        field_magnitude = np.abs(f_obs[:,:,0])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+
+        plt.title('Obstacle Avoidance Field (X-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+
+        plt.subplot(2, 3, 2)
+        # f_bar x-direction
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_bar[::skip, ::skip, 0], np.zeros_like(f_bar[::skip, ::skip, 0]),
+                scale=25, color='green', width=0.003)
+        field_magnitude = np.abs(f_bar[:,:,0])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (X-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        
+        plt.subplot(2, 3, 3)
+        # Combined x-direction (obstacle + barrier)
+        combined_x = f_obs[:,:,0] + f_bar[:,:,0]
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                combined_x[::skip, ::skip], np.zeros_like(combined_x[::skip, ::skip]),
+                scale=25, color='magenta', width=0.003)
+        field_magnitude = np.abs(combined_x)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+        
+        plt.title('Combined Field (X-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+
+        plt.subplot(2, 3, 4)
+        # f_obs y-direction
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                np.zeros_like(f_obs[::skip, ::skip, 1]), f_obs[::skip, ::skip, 1],
+                scale=5, color='red', width=0.003)
+        field_magnitude = np.abs(f_obs[:,:,1])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+
+        plt.title('Obstacle Avoidance Field (Y-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+
+        plt.subplot(2, 3, 5)
+        # f_bar y-direction
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                np.zeros_like(f_bar[::skip, ::skip, 1]), f_bar[::skip, ::skip, 1],
+                scale=25, color='purple', width=0.003)
+        field_magnitude = np.abs(f_bar[:,:,1])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (Y-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        
+        plt.subplot(2, 3, 6)
+        # Combined y-direction (obstacle + barrier)
+        combined_y = f_obs[:,:,1] + f_bar[:,:,1]
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                np.zeros_like(combined_y[::skip, ::skip]), combined_y[::skip, ::skip],
+                scale=25, color='cyan', width=0.003)
+        field_magnitude = np.abs(combined_y)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+        
+        plt.title('Combined Field (Y-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+
+        # Combined vector fields figure
+        plt.figure(figsize=(6, 9))
+        
+        # 2x1 grid setup
+        plt.subplot(2, 1, 1)
+        # Combined obstacle field (both x and y directions)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_obs[::skip, ::skip, 0], f_obs[::skip, ::skip, 1],
+                scale=14, color='blue', width=0.003)
+        field_magnitude = np.sqrt(f_obs[:,:,0]**2 + f_obs[:,:,1]**2)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+
+        plt.title('Obstacle Avoidance Field (Combined X-Y directions)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+
+        plt.subplot(2, 1, 2)
+        # Combined barrier field (both x and y directions)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_bar[::skip, ::skip, 0], f_bar[::skip, ::skip, 1],
+                scale=25, color='green', width=0.003)
+        field_magnitude = np.sqrt(f_bar[:,:,0]**2 + f_bar[:,:,1]**2)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (Combined X-Y directions)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+
+        # Total combined field figure
+        plt.figure(figsize=(6, 5))
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+            f_obs[::skip, ::skip, 0] + f_bar[::skip, ::skip, 0], 
+            f_obs[::skip, ::skip, 1] + f_bar[::skip, ::skip, 1],
+            scale=25, color='magenta', width=0.003)
+        field_magnitude = np.sqrt((f_obs[:,:,0] + f_bar[:,:,0])**2 + (f_obs[:,:,1] + f_bar[:,:,1])**2)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+
+        plt.title('Total Combined Field (Obstacle + Barrier)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+        
+    elif has_obstacle_controller:
+        # Only plot obstacle field
+        plt.figure(figsize=(10, 5))
+        
+        # X component
+        plt.subplot(1, 2, 1)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_obs[::skip, ::skip, 0], np.zeros_like(f_obs[::skip, ::skip, 0]),
+                scale=5, color='blue', width=0.003)
+        field_magnitude = np.abs(f_obs[:,:,0])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+        
+        plt.title('Obstacle Avoidance Field (X-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        
+        # Y component
+        plt.subplot(1, 2, 2)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                np.zeros_like(f_obs[::skip, ::skip, 1]), f_obs[::skip, ::skip, 1],
+                scale=5, color='red', width=0.003)
+        field_magnitude = np.abs(f_obs[:,:,1])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+        
+        plt.title('Obstacle Avoidance Field (Y-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+        
+        # Combined vector field
+        plt.figure(figsize=(6, 5))
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_obs[::skip, ::skip, 0], f_obs[::skip, ::skip, 1],
+                scale=14, color='blue', width=0.003)
+        field_magnitude = np.sqrt(f_obs[:,:,0]**2 + f_obs[:,:,1]**2)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        
+        # Draw the obstacles
+        draw_obstacles(plt.gca(), obs_list)
+        
+        plt.title('Obstacle Avoidance Field (Combined X-Y directions)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+        
+    elif has_wall_controller:
+        # Only plot wall/barrier field
+        plt.figure(figsize=(10, 5))
+        
+        # X component
+        plt.subplot(1, 2, 1)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_bar[::skip, ::skip, 0], np.zeros_like(f_bar[::skip, ::skip, 0]),
+                scale=25, color='green', width=0.003)
+        field_magnitude = np.abs(f_bar[:,:,0])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (X-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        
+        # Y component
+        plt.subplot(1, 2, 2)
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                np.zeros_like(f_bar[::skip, ::skip, 1]), f_bar[::skip, ::skip, 1],
+                scale=25, color='purple', width=0.003)
+        field_magnitude = np.abs(f_bar[:,:,1])
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (Y-direction)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+        
+        # Combined vector field
+        plt.figure(figsize=(6, 5))
+        plt.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+                f_bar[::skip, ::skip, 0], f_bar[::skip, ::skip, 1],
+                scale=25, color='green', width=0.003)
+        field_magnitude = np.sqrt(f_bar[:,:,0]**2 + f_bar[:,:,1]**2)
+        plt.contourf(X, Y, field_magnitude, cmap='viridis', alpha=0.3)
+        plt.colorbar(label='Field Magnitude')
+        plt.title('Barrier Field (Combined X-Y directions)')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.grid(True)
+        plt.tight_layout()
+
+    plt.show()
+
+
