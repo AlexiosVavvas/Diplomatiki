@@ -133,7 +133,7 @@ class Obstacle():
             print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: {self.eps:.2f}[m] \t- type: {self.type} \t- Pos: {self.pos} \t\t- Normal: {dimensions} \t f_min: {f_min:.2e} ")
         elif self.type == 'rectangle':
             e_ = np.array([self.eps_x, self.eps_y])
-            print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: ({e_[0]:.2e}[m], {e_[1]:.2e}[m]) \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t f_min: {f_min:.2e} ")
+            print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: ({e_[0]:.2f}[m], {e_[1]:.2f}[m]) \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t f_min: {f_min:.2e} ")
 
     def distanceToTheWall(self, x):
         """

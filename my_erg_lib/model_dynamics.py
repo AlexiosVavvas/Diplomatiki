@@ -243,7 +243,7 @@ class DoubleIntegrator():
     
     @property
     def state_string(self):
-        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, x': {self.state[2]:.2f}, y': {self.state[3]:.2f}"
+        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, | x': {self.state[2]:.2f}, y': {self.state[3]:.2f}"
 
 
 from scipy.linalg import solve_continuous_are
@@ -651,4 +651,4 @@ class Quadcopter():
     
     @property
     def state_string(self):
-        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, z: {self.state[2]:.2f}, ψ: {self.state[3]*180/np.pi:.2f}, θ: {self.state[4]*180/np.pi:.2f}, φ: {self.state[5]*180/np.pi:.2f}, x': {self.state[6]:.2f}, y': {self.state[7]:.2f}, z': {self.state[8]:.2f}, ψ': {self.state[9]*180/np.pi:.2f}, θ': {self.state[10]*180/np.pi:.2f}, φ': {self.state[11]*180/np.pi:.2f} [angles -> DEG]"
+        return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, z: {self.state[2]:.2f}, | ψ: {self.state[3]*180/np.pi:.2f}, θ: {self.state[4]*180/np.pi:.2f}, φ: {self.state[5]*180/np.pi:.2f}, | x': {self.state[6]:.2f}, y': {self.state[7]:.2f}, z': {self.state[8]:.2f}, | ψ': {self.state[9]*180/np.pi:.2f}, θ': {self.state[10]*180/np.pi:.2f}, φ': {self.state[11]*180/np.pi:.2f} [angles -> DEG]"

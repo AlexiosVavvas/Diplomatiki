@@ -4,6 +4,7 @@ from my_erg_lib.barrier import Barrier
 from my_erg_lib.agent import Agent
 from my_erg_lib.obstacles import Obstacle
 from my_erg_lib.model_dynamics import Quadcopter
+import vis
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
@@ -241,7 +242,6 @@ class NominalFunction():
             # Set infinite limits if not provided
             self.limits = np.array([[-np.inf, np.inf] for _ in range(num_of_inputs)])
         
-        print("ATTENTION: If model = Quad: Make sure to set LQR as the first function in the list")
 
     def __call__(self, x, t):
         # Initialize to zero
