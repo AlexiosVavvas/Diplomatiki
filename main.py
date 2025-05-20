@@ -81,7 +81,7 @@ def main():
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
     RELAX_FACTOR = 0.3
-    IMAX = 50e3
+    IMAX = 10e3
     BAR_WEIGHT = 0 # 50
 
     # Agent - Ergodic Controller -------------
@@ -116,10 +116,14 @@ def main():
     # Print uNominal Status
     print(agent.erg_c.uNominal)
 
-    if input("Visualise Potential Fields? (y/n): ") == "y":
+    # Lets now update the phi_function to take into account the obstacles
+    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude=["Obstacle 2", "Obstacle 3"])
+    agent.basis.precalcAllPhiK()
+
+    if input("\nVisualise Potential Fields? (y/n): ") == "y":
         vis.visPotentialFields(agent)
 
-    input("Enter to continue...")
+    input("Press Enter to continue...")
     # --------------------------------------------------------------------------------------------------
     
     # Lists to store for plotting

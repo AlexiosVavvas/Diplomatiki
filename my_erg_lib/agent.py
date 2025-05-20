@@ -15,18 +15,32 @@ class Agent():
         self.model = dynamics_model
         self.model.reset(x0)
 
-        # Initialize the basis object
-        self.basis = Basis(L1, L2, Kmax, phi)
-
         # Initialise obstacle list
         self.obstacle_list = []
 
+        # Initialize the basis object
+        self.basis = Basis(L1, L2, Kmax, phi_=phi, precalc_phik_coeff=False)
 
-    def setPhi(self, phi=None):
-        """Set the target distribution."""
-        self._phi = phi if phi is not None else lambda s: 2  # Default to constant 0 function if not provided
-        self.basis.phi = self._phi
+    def modifedPhiForObstacles(self, phi, obs_to_exclude=None):
+        '''
+        Wrapper function modifying the original phi function to take into account the obstacles
+        Zeros out the phi function in the obstacle area
+        '''
+        assert callable(phi), "phi must be a callable function."
 
+        obs_list = [obs for obs in self.obstacle_list if obs.name_id not in obs_to_exclude] if obs_to_exclude != None else self.obstacle_list
+        def phi_w_obs(x):
+            # If we are inside an obstacle, return 0, we dont want to explore ergodically there
+            # TODO: If obstacles change position, we need to update the phi coefficients
+            for obs in obs_list:
+                if obs.withinReach(x):
+                    return 0
+            return phi(x)
+        
+        # Attach the obstacle list to the phi function
+        phi_w_obs.obs_list = obs_list
+
+        return phi_w_obs
 
     def withinBounds(self, x):
         '''

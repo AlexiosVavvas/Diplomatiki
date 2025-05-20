@@ -27,8 +27,8 @@ class Basis():
             self.phi = phi_
         else:
             # Default to constant 1 function if not provided
-            # self.phi = lambda s: 1
-            pass # TODO: Check, something is wrong here
+            self.phi = lambda s: 1
+            # pass # TODO: Check, something is wrong here
 
         # Precalculate hk for all k1, k2 pairs
         if precalc_hk_coeff:
@@ -42,6 +42,42 @@ class Basis():
             self.precalcAllPhiK()
 
 
+    # Basis Functions ---------------------------------------------------------
+    # xv: [x1, x2] (2D point) - Ergodic dimensions
+    def Fk(self, xv, k1, k2, hk):
+        Fk = np.cos(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk
+        return Fk
+    
+    def dFk_dx(self, xv, k1, k2, hk):
+        Fk_x = np.zeros((2,))
+        Fk_x[0] = -np.sin(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk * (k1*np.pi/self.L1)
+        Fk_x[1] = -np.cos(k1*np.pi/self.L1*xv[0]) * np.sin(k2*np.pi/self.L2*xv[1]) / hk * (k2*np.pi/self.L2)
+        return Fk_x
+
+    # Precalculations ---------------------------------------------------------
+    # Precompute hk for all k1, k2 pairs
+    def precalcAllHk(self):
+        for k1 in range(self.Kmax+1):
+            for k2 in range(self.Kmax+1):
+                self.calcHk(k1, k2)
+
+    # Precompute LamdaK for all k1, k2 pairs
+    # LamdaK = (1 + |k|^2)^(-(v+1)/2) where v = 2 (Num of Ergodic Dimensions)
+    def precalcAllLamdaK(self):
+        v_ = 2 # Num of Ergodic Dimensions
+        for k1 in range(self.Kmax+1):
+            for k2 in range(self.Kmax+1):
+                abs_k_sq = k1**2 + k2**2
+                lamda_k_ = (1 + abs_k_sq) ** (-(v_+1)/2)
+                self.LamdaK_cache[(k1, k2)] = lamda_k_
+
+    # Precompute PhiK
+    def precalcAllPhiK(self):
+        for k1 in range(self.Kmax+1):
+            for k2 in range(self.Kmax+1):
+                self.calcPhikCoeff(k1, k2)
+    
+    # Main Coefficients Calculation ---------------------------------------------
     def calcHk(self, k1, k2):
         # Check if the value is already computed
         if (k1, k2) in self.hk_cache:
@@ -64,41 +100,7 @@ class Basis():
         self.hk_cache[(k1, k2)] = hk
 
         return hk
-    
 
-    # Precompute hk for all k1, k2 pairs
-    def precalcAllHk(self):
-        for k1 in range(self.Kmax+1):
-            for k2 in range(self.Kmax+1):
-                self.calcHk(k1, k2)
-
-    # Precompute LamdaK for all k1, k2 pairs
-    # LamdaK = (1 + |k|^2)^(-(v+1)/2) where v = 2 (Num of Ergodic Dimensions)
-    def precalcAllLamdaK(self):
-        v_ = 2 # Num of Ergodic Dimensions
-        for k1 in range(self.Kmax+1):
-            for k2 in range(self.Kmax+1):
-                abs_k_sq = k1**2 + k2**2
-                lamda_k_ = (1 + abs_k_sq) ** (-(v_+1)/2)
-                self.LamdaK_cache[(k1, k2)] = lamda_k_
-
-    # Precompute PhiK
-    def precalcAllPhiK(self):
-        for k1 in range(self.Kmax+1):
-            for k2 in range(self.Kmax+1):
-                self.calcPhikCoeff(k1, k2)
-
-    # xv: [x1, x2] (2D point) - Ergodic dimensions
-    def Fk(self, xv, k1, k2, hk):
-        Fk = np.cos(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk
-        return Fk
-    
-    def dFk_dx(self, xv, k1, k2, hk):
-        Fk_x = np.zeros((2,))
-        Fk_x[0] = -np.sin(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk * (k1*np.pi/self.L1)
-        Fk_x[1] = -np.cos(k1*np.pi/self.L1*xv[0]) * np.sin(k2*np.pi/self.L2*xv[1]) / hk * (k2*np.pi/self.L2)
-        return Fk_x
-        
     def calcPhikCoeff(self, k1, k2, save_to_cache=True):
         
         assert self._phi != None, "Target distribution phi is not set."
@@ -188,6 +190,7 @@ class Basis():
         return ck
 
 
+    # Other Properties and Functions -----------------------------------------
     @property
     def phi(self):
         return self._phi
@@ -200,7 +203,7 @@ class Basis():
         assert callable(new_phi), "phi must be a callable function."
         # Change Phi Target Distribution
         self._phi = new_phi
-        print("Setting new PHI")
+        # print("Setting new PHI")
         # Clear the cache for phi coefficients since the target distribution has changed
         self.phi_coeff_cache.clear()
 
@@ -213,7 +216,7 @@ class Basis():
         
         new_basis.hk_cache = self.hk_cache.copy()
         new_basis.phi_coeff_cache = self.phi_coeff_cache.copy()
-        print("Coefficients copied.")
+        # print("Coefficients copied.")
         
         return new_basis
     

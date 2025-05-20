@@ -147,6 +147,25 @@ class Obstacle():
         else:
             raise ValueError("Distance to wall is only available for wall obstacles")
         
+    def withinReach(self, x):
+        """
+        Check if the agent is within reach of the obstacle
+        """
+        assert len(x) == 2, f"{self.name_id}.withinReach(x): Obstacle avoidance is only available for 2D systems. Please provide a 2D state vector x"
+
+        if self.type == 'circle':
+            return np.linalg.norm(x[:2] - self.pos) <= self.r
+
+        elif self.type == 'rectangle':
+            # Check if the agent is within the rectangle
+            return (np.abs(x[0] - self.pos[0]) <= self.width/2) and (np.abs(x[1] - self.pos[1]) <= self.height/2)
+
+        elif self.type == 'wall':
+            # Check if the agent is within the wall distance
+            return self.distanceToTheWall(x[:2]) <= 0
+
+        else:
+            raise ValueError("Obstacle type must be either 'circle', 'rectangle' or 'wall'")
 
 def ObstacleAvoidanceControllerGenerator(agent: Agent, obs_list, func_name=None):
     # Make sure the list is not empty
