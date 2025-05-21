@@ -120,7 +120,7 @@ if __name__ == "__main__":
     
     # Duration of each frame in milliseconds (increased for slower animation)
     # Higher values make the animation slower
-    duration = 350  # Changed from 100ms to 300ms
+    duration = 600  # Changed from 100ms to 300ms
     print(f"[INFO] Setting frame duration to {duration}ms (higher = slower animation)")
     
     # Identify different image groups

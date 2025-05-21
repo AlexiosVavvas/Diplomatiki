@@ -3,7 +3,7 @@ from my_erg_lib.agent import Agent
 from my_erg_lib.obstacles import Obstacle
 
 
-def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50):
+def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False):
     phi_original = agent.basis.phi
 
     x1 = np.linspace(0, agent.L1, grid_res)
@@ -42,12 +42,25 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     ax2.set_aspect('auto')
     plt.colorbar(im2, ax=ax2, label='Function Value')
 
+    # min and max of Z_agent_fourier_rec
+    if clip_to_min_max:
+        min_val = np.min(Z_agent_fourier_rec)
+        max_val = np.max(Z_agent_fourier_rec)
+
     ax3 = fig.add_subplot(133)
-    im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
+    if clip_to_min_max:
+        im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), 
+                        origin='lower', cmap=cm.viridis, vmin=min_val, vmax=max_val)
+    else:
+        im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), 
+                        origin='lower', cmap=cm.viridis)
     ax3.set_title('Reconstructed from Ck')
     ax3.set_xlabel('x1')
     ax3.set_ylabel('x2')
     ax3.set_aspect('auto')
+    # x and y lims to 0 -> agent.L1 and 0 -> agent.L2
+    ax3.set_xlim(0, agent.L1)
+    ax3.set_ylim(0, agent.L2)
     plt.colorbar(im3, ax=ax3, label='Function Value')
     
     # Plot obstacles as circles if they exist
@@ -57,21 +70,51 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
                 if isinstance(obstacle, Obstacle):
                     if obstacle.type == 'circle':
                         # Draw circle representing the obstacle
-                        circle = plt.Circle((obstacle.pos[0], obstacle.pos[1]), 
+                        circle = plt.Circle((obstacle.pos[0]+agent.L1/(grid_res+1)/2, obstacle.pos[1]), 
                                         obstacle.r, 
                                         color='black', fill=False, linestyle='--', linewidth=1)
                         ax.add_patch(circle)
                     elif obstacle.type == 'rectangle':
                         # Draw rectangle representing the obstacle
-                        rect = plt.Rectangle((obstacle.bottom_left[0], obstacle.bottom_left[1]), 
+                        rect = plt.Rectangle((obstacle.bottom_left[0]+agent.L1/(grid_res+1)/2, obstacle.bottom_left[1]), 
                                             obstacle.width, obstacle.height, 
                                             color='black', fill=False, linestyle='--', linewidth=1)
                         ax.add_patch(rect)
 
-        # Lets also visualise the barrier, a box 0.05 away from the border limits l1, l2
+        # Lets also visualise the barrier
         W = 0
         ax.add_patch(plt.Rectangle((0, 0), agent.L1, agent.L2, color='black', fill=False, linestyle='--', linewidth=1))
         ax.add_patch(plt.Rectangle((W, W), agent.L1-2*W, agent.L2-2*W, color='black', fill=False, linestyle='--', linewidth=1))
+
+    # In ax3 i want to plot the ellipse of the target pos estimate, with center at agent.a, and sigma = agent.ekf.sigma_k_1
+    if hasattr(agent, 'ekf') and hasattr(agent.ekf, 'sigma_k_1'):
+        sigma = agent.ekf.sigma_k_1
+        center = agent.ekf.a_k_1[:2]
+        # Get the eigenvalues and eigenvectors of the covariance matrix
+        eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
+        # Calculate the angle of rotation
+        angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+        # Calculate the width and height of the ellipse
+        width = 2 * np.sqrt(eigvals[0])
+        height = 2 * np.sqrt(eigvals[1])
+        # Create the ellipse
+        from matplotlib.patches import Ellipse
+        ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color='blue', fill=False, linestyle='--', linewidth=1)
+        ax3.add_patch(ellipse)
+        # Plot the estimated target position
+        ax3.plot(agent.ekf.a_k_1[0], agent.ekf.a_k_1[1], 'bx', markersize=5, label='Estimated Target Position')
+        # Plot the real target position
+        ax3.plot(agent.real_target_position[0], agent.real_target_position[1], 'rx', markersize=5, label='Ground Truth')
+
+    # Lets also draw the agent.sensor.sensor_range circle around the current agent position
+    if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
+        sensor_range = agent.sensor.sensor_range
+        # Draw circle representing the sensor range
+        sensor_circle = plt.Circle((agent.model.state[0], agent.model.state[1]), 
+                                   sensor_range, color='red', fill=False, linestyle='--', linewidth=1)
+        ax3.add_patch(sensor_circle)
+        # Plot the agent position
+        ax3.plot(agent.model.state[0], agent.model.state[1], 'go', markersize=5, label='Agent Position')
 
 
     if all_traj is not None:

@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.integrate import nquad
+import time
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=8):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -75,7 +76,11 @@ class Basis():
     def precalcAllPhiK(self):
         for k1 in range(self.Kmax+1):
             for k2 in range(self.Kmax+1):
+                t_ = time.time()
                 self.calcPhikCoeff(k1, k2)
+                # If it takes longer than 0.3 of a second, i would like to know it for debugging purposes
+                if time.time()-t_ > 0.3:
+                    print(f"Precalculated PhiK for k1={k1}, k2={k2} in {time.time()-t_:.4f} seconds.\n")
     
     # Main Coefficients Calculation ---------------------------------------------
     def calcHk(self, k1, k2):

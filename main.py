@@ -70,13 +70,13 @@ def main():
     # BAR_WEIGHT = 0
 
     # Quadrotor model -----------
-    x0 = [0.3, 0.5, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    x0 = [0.8, 0.2, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
     UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
     LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
     TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 40
-    Q_ = 1
+    Q_ = 2 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
@@ -86,8 +86,8 @@ def main():
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
-                  dynamics_model=model, phi=phi_func, x0=x0)
+    agent = Agent(L1=1.0, L2=1.0, Kmax=4, 
+                  dynamics_model=model, phi=None, x0=x0) # phi=phi_func
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
@@ -117,7 +117,7 @@ def main():
     print(agent.erg_c.uNominal)
 
     # Lets now update the phi_function to take into account the obstacles
-    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude=["Obstacle 2", "Obstacle 3"])
+    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude=None)
     agent.basis.precalcAllPhiK()
 
     if input("\nVisualise Potential Fields? (y/n): ") == "y":
@@ -134,6 +134,8 @@ def main():
     erg_cost_list = []
     state_target_list = [agent.model._state_target.copy()] if isinstance(agent.model, Quadcopter) else []  # State target list (only for quads with LQR)
     delta_t_Ts = []
+    target_t_pos_list = [] # Contains [ti, x_est, y_est, z_est]
+    target_sigma_list = [] # Contains 3x3 sigma matrix for every time step
 
     ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
@@ -178,15 +180,26 @@ def main():
             if lamda_dur > 0:
                 agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
 
-            
-            # Simulation saving file
+            # EKF - Lets update target position estimate -------
+            # Make a measurement using the sensor
+            z = agent.sensor.getMeasurement(agent.real_target_position, agent.model.state[:3])
+            # Update estimate using the EKF
+            agent.ekf.update(xk=agent.model.state[:3], zk=z)
+            agent.a = agent.ekf.a_k_1
+            # Lets update our lists for plotting later
+            target_t_pos_list.append([time_list[i], *agent.ekf.a_k_1])
+            target_sigma_list.append(agent.ekf.sigma_k_1.copy())
+                
+            # Simulation saving file ----------------------------
             # if i % 160 == 0:
             #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
             #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
             #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
             #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+            #     print("Plotting phi")
             #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
             #     plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
+            #     print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
             #     plt.close()
         
         # Continue with simulation of agent
@@ -207,6 +220,10 @@ def main():
         agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
+
+
+
+        # Store states for plotting later etc --------------------
         u_list.append(u.copy())
         states_list.append(agent.model.state.copy())
         state_target_list.append(agent.model._state_target_history_for_plotting.copy() if isinstance(agent.model, Quadcopter) else [])
@@ -226,6 +243,8 @@ def main():
     time_list = np.array(time_list)
     state_target_list = np.array(state_target_list)
     delta_t_Ts = np.array(delta_t_Ts)
+    target_t_pos_list = np.array(target_t_pos_list)
+    target_sigma_list = np.array(target_sigma_list)
 
 
     # ---------------- PLOTTING ----------------------------------------------------
@@ -248,7 +267,7 @@ def main():
     plt.legend()
     plt.grid()
 
-    # state target
+    # State target vs actual [Obstacle Forces (velocities) for Quadcopter]
     if isinstance(agent.model, Quadcopter):
         i_to_plot = [6, 7]
         fig, axes = plt.subplots(len(i_to_plot), 1, figsize=(8, 3*len(i_to_plot)))
@@ -281,7 +300,62 @@ def main():
     plt.ylim([0, np.max(delta_t_Ts[1:, 1]) * 1.3])
     plt.axhline(y=1, color='r', linestyle='--', label='Ts')
 
+    # Lets plot the target position estimate and the sigma band around it
+    # if target_pos_list is 2 dimensional and not empty:    
+    if len(target_t_pos_list) > 1:
+        fig, axes = plt.subplots(3, 1, figsize=(8, 7), sharex=True)
+        sx = []
+        sy = []
+        sz = []
+        for i in range(len(target_sigma_list)):
+            # TODO: Sigmas are probably not correct, how are they calculated?
+            sx.append(np.sqrt(target_sigma_list[i, :2, :2][0, 0]))
+            sy.append(np.sqrt(target_sigma_list[i, :2, :2][1, 1]))
+            sz.append(np.sqrt(target_sigma_list[i, :3, :3][2, 2]))
+        sx = np.array(sx)
+        sy = np.array(sy)
+        sz = np.array(sz)
+        # X position plot
+        axes[0].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 1], label="X Position Estimate", color='r')
+        axes[0].fill_between(target_t_pos_list[:, 0], 
+                            target_t_pos_list[:, 1] - 3 * sx, 
+                            target_t_pos_list[:, 1] + 3 * sx, 
+                            color='r', alpha=0.2, label="3σ band")
+        axes[0].axhline(y=agent.real_target_position[0], color='r', linestyle='--', label="Actual X")
+        axes[0].set_ylabel("X Position")
+        axes[0].set_ylim([0, 1])
+        axes[0].grid(True)
+        axes[0].legend()
 
+        # Y position plot
+        axes[1].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 2], label="Y Position Estimate", color='g')
+        axes[1].fill_between(target_t_pos_list[:, 0], 
+                            target_t_pos_list[:, 2] - 3 * sy, 
+                            target_t_pos_list[:, 2] + 3 * sy, 
+                            color='g', alpha=0.2, label="3σ band")
+        axes[1].axhline(y=agent.real_target_position[1], color='g', linestyle='--', label="Actual Y")
+        axes[1].set_xlabel("Time [s]")
+        axes[1].set_ylabel("Y Position")
+        axes[1].set_ylim([0, 1])
+        axes[1].grid(True)
+        axes[1].legend()
+
+        # Z position plot
+        axes[2].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 3], label="Z Position Estimate", color='b')
+        axes[2].fill_between(target_t_pos_list[:, 0], 
+                            target_t_pos_list[:, 3] - 3 * sz, 
+                            target_t_pos_list[:, 3] + 3 * sz, 
+                            color='b', alpha=0.2, label="3σ band")
+        axes[2].axhline(y=agent.real_target_position[2], color='b', linestyle='--', label="Actual Z")
+        axes[2].set_xlabel("Time [s]")
+        axes[2].set_ylabel("Z Position")
+        axes[2].grid(True)
+        axes[2].legend()
+
+        plt.suptitle("Target Position Estimate with 3σ Confidence Bands")
+        plt.tight_layout()
+
+    # Ergodic Trajectory Plot
     ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
