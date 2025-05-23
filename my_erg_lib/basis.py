@@ -4,7 +4,7 @@ import time
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=8):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=20):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax

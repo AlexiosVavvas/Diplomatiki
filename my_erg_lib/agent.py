@@ -17,11 +17,14 @@ class Agent():
         self.model.reset(x0)
 
         # Lets connect a sensor to track the target position 
-        self.sensor = Sensor(sensor_range=0.2)                  # TODO: Be able to adjust those parameters from outside
-        self.real_target_position = np.array([0.5, 0.5, 0])     # Real target position (Ground Truth) # TODO: Maybe take it from an env?
-        self.a = np.array([0.7, 0.4, 0])                        # Current target position estimate # TODO: When to update it?
+        self.sensor = Sensor(sensor_range=0.2,
+                             R=np.diag([0.035, 0.035]))         # TODO: Be able to adjust those parameters from outside
+        self.real_target_position = np.array([0.5, 0.5, 0])     # Real target position (Ground Truth)   # TODO: Maybe take it from an env?
+        self.a = np.array([0.7, 0.4, 0])                        # Current target position estimate      # TODO: When to update it?
         self.ekf = EKF(a_init = self.a,
-                       sigma_init = np.eye(3)*1)                # TODO: Why does it look like an ellipse and not a circle at first?
+                       sigma_init = np.eye(3)*1,
+                       R = np.diag([0.035, 0.035]),
+                       a_limits=[[0, L1], [0, L2], [0, 10]])    # TODO: Why does it look like an ellipse and not a circle at first?
 
         # Initialise obstacle list
         self.obstacle_list = []
@@ -72,7 +75,7 @@ class Agent():
 
             # Fisher Information Matrix (I)
             M = 3 # Number of target estimation states
-            mu = self.ekf.measurement_model.num_of_measurements # Number of measurements
+            mu = self.ekf.measurement_model.mu # Number of measurements
             def I(a):
                 H = self.ekf.measurement_model.H(a, x) # Jacobian Y_a | x
                 sigma = self.sensor.R # Sensor noise covariance matrix

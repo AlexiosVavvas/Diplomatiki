@@ -97,6 +97,8 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
         # Calculate the width and height of the ellipse
         width = 2 * np.sqrt(eigvals[0])
         height = 2 * np.sqrt(eigvals[1])
+        width *= 3  # Scale to show 3 sigma case
+        height *= 3  # Scale to show 3 sigma case
         # Create the ellipse
         from matplotlib.patches import Ellipse
         ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color='blue', fill=False, linestyle='--', linewidth=1)

@@ -3,7 +3,8 @@ import numpy as np
 class MeasurementModel:
     # TODO: Make it actually modular. Have one measuring both beta, phi and one only beta for speed etc.
     def __init__(self):
-        self.num_of_measurements = 2  # Number of measurements (beta, phi)
+        self.mu = 2  # μ: Number of measurements (beta, phi)
+        self.M = 3   # M: Number of estimated states (xt, yt, zt)
 
     def Y(self, a, x):
         """	
@@ -13,8 +14,8 @@ class MeasurementModel:
             beta = atan2(yt - yq, xt - xq)                          # Azimuth angle         
             phi = atan2(zt - zq, sqrt((xt - xq)^2 + (yt - yq)^2))   # Elevation angle
         """
-        assert len(a) == 3, "'a' must be a 3D vector [xt, yt, zt]"
-        assert len(x) == 3, "'x' must be a 3D vector [xq, yq, zq]"
+        assert len(a) == self.M, "'a' must be a 3D vector [xt, yt, zt]"
+        assert len(x) == self.M, "'x' must be a 3D vector [xq, yq, zq]"
 
         xt, yt, zt = a
         xq, yq, zq = x
@@ -38,7 +39,7 @@ class MeasurementModel:
             # We view it from the same height
             phi = 0
         else:
-            phi = np.arctan2(zt - zq, np.sqrt((xt - xq) ** 2 + (yt - yq) ** 2))  # Elevation angle
+            phi = np.arctan2(zq-zt, np.sqrt((xt - xq) ** 2 + (yt - yq) ** 2))  # Elevation angle
 
         return np.array([beta, phi])
 
@@ -46,8 +47,8 @@ class MeasurementModel:
         """
         Jacobian of the measurement function
         """
-        assert len(a) == 3, "'a' must be a 3D vector [xt, yt, zt]"
-        assert len(x) == 3, "'x' must be a 3D vector [xq, yq, zq]"
+        assert len(a) == self.M, "'a' must be a 3D vector [xt, yt, zt]"
+        assert len(x) == self.M, "'x' must be a 3D vector [xq, yq, zq]"
 
         xt, yt, zt = a
         xq, yq, zq = x
@@ -55,8 +56,8 @@ class MeasurementModel:
         Y1_a1 = (yt - yq)/((xq-xt)**2 + (yq-yt)**2)
         Y1_a2 = (xq - xt)/((xq-xt)**2 + (yq-yt)**2)
         Y1_a3 = 0
-        Y2_a1 = ((xq-xt)*(zq-zt))/(np.sqrt((xq-xt)**2 + (yq-yt)**2) * ((xq-xt)**2 + (yq-yt)**2 + zq**2 - 2*zq*zt + zt**2))
-        Y2_a2 = ((yq-yt)*(zq-zt))/(np.sqrt((xq-xt)**2 + (yq-yt)**2) * ((xq-xt)**2 + (yq-yt)**2 + zq**2 - 2*zq*zt + zt**2))    
+        Y2_a1 = ((xq-xt)*(zq-zt))/(np.sqrt((xq-xt)**2 + (yq-yt)**2) * ((xq-xt)**2 + (yq-yt)**2 + (zq-zt)**2))
+        Y2_a2 = ((yq-yt)*(zq-zt))/(np.sqrt((xq-xt)**2 + (yq-yt)**2) * ((xq-xt)**2 + (yq-yt)**2 + (zq-zt)**2))    
         Y2_a3 = - 1 / (np.sqrt((xq-xt)**2 + (yq-yt)**2) * (1 + ((zq-zt)**2)/((xq-xt)**2 + (yq-yt)**2)))
 
         return np.array([[Y1_a1, Y1_a2, Y1_a3],
@@ -79,12 +80,13 @@ class Sensor:
         assert sensor_range > 0, "'sensor_range' must be a positive number."
         self.sensor_range = sensor_range
         
-        # Actual Sensor noise covariance matrix
-        assert R is None or (R.shape[0] == 2 and R.shape[1] == 2), "R must be a μxμ=(2x2) matrix."
-        self.R = np.eye(2) * 0.035 if R is None else R
-
         # Lets connect and a measurement model
         self.measurement_model = MeasurementModel()
+        self.mu = self.measurement_model.mu  # Number of measurements
+
+        # Actual Sensor noise covariance matrix
+        assert R is None or (R.shape[0] == self.mu and R.shape[1] == self.mu), f"R must be a μxμ=({self.mu}x{self.mu}) matrix."
+        self.R = np.eye(self.mu) * 0.035 if R is None else R
 
     def getMeasurement(self, real_target_position, agent_position):
         """
@@ -93,8 +95,7 @@ class Sensor:
             - agent_position: The position of the agent
         Returns: A simulated measurement (None if out of range)
         """
-        assert len(real_target_position) == 3, "'real_target_position' must be a 3D vector [xt, yt, zt]"
-        assert len(agent_position) == 3, "'agent_position' must be a 3D vector [xq, yq, zq]"
+        assert len(real_target_position) == len(agent_position), "'real_target_position' and 'agent_position' must be the same length."
 
         # Check if the target is within range
         distance = np.sqrt((real_target_position[0] - agent_position[0]) ** 2 + (real_target_position[1] - agent_position[1]) ** 2)
@@ -103,7 +104,7 @@ class Sensor:
         
         # z = Y(a, x) + δ where δ is N(0, R)
         # Simulate noise
-        noise = np.random.multivariate_normal(mean=np.zeros(2), cov=self.R)
+        noise = np.random.multivariate_normal(mean=np.zeros(self.mu), cov=self.R)
         
         # Get the measurement
         measurement = self.measurement_model.Y(real_target_position, agent_position) + noise
@@ -112,35 +113,43 @@ class Sensor:
 
 
 class EKF:
+    """
+    Extended Kalman Filter (EKF) for target state estimation
+        - a_init: Initial target state estimate
+        - sigma_init: Initial covariance matrix
+        - R: Sensor noise covariance matrix
+        - Q: Process noise covariance matrix
+        - a_limits: Limits for the target state estimate
+    """
     def __init__(self, a_init, sigma_init=None, R=None, Q=None, a_limits=None):
         # Target State Estimate
-        assert len(a_init) == 3, "'a_init' must be a 3D vector [xt, yt, zt]"
+        self.M = len(a_init)  # Number of estimated states
         self.a_k_1 = np.asarray(a_init)
         # Lets set the limits if exist as well
         if a_limits is not None:
             # a_limits should be in the form [[a1_min, a1_max], [a2_min, a2_max], [a3_min, a3_max], ...]
-            assert len(a_limits) == 3, "'a_limits' must be a 3x2 matrix [[a1_min, a1_max], [a2_min, a2_max], [a3_min, a3_max]]"
-            for i in range(3):
-                assert len(a_limits[i]) == 2, "'a_limits' must be a 3x2 matrix [[a1_min, a1_max], [a2_min, a2_max], [a3_min, a3_max]]"
+            for i in range(self.M):
+                assert len(a_limits[i]) == 2, "'a_limits' must be a matrix in the form [[a1_min, a1_max], [a2_min, a2_max], ...]"
                 assert a_limits[i][0] < a_limits[i][1], "'a_limits' low value must be less than high values."
             self.a_limits = np.asarray(a_limits)
         else:
-            self.a_limits = np.array([[-np.inf, np.inf], [-np.inf, np.inf], [-np.inf, np.inf]])  # No limits
+            self.a_limits = np.array([[-np.inf, np.inf] for i in range(self.M)])  # No limits
 
 
         # Initial Covariance Matrix Sigma (Σ)
-        self.sigma_k_1 = np.eye(3) * 1  if sigma_init is None else sigma_init
+        self.sigma_k_1 = np.eye(self.M) * 1  if sigma_init is None else sigma_init
 
         # Measurement Model
         self.measurement_model = MeasurementModel()
+        self.mu = self.measurement_model.mu  # Number of measurements
 
         # Estimated Sensor Noise covariance
-        assert R is None or (R.shape[0] == 2 and R.shape[1] == 2), "R must be a μxμ=(2x2) matrix."
-        self.R = np.eye(2) * 0.035 if R is None else R
+        assert R is None or (R.shape[0] == self.mu and R.shape[1] == self.mu), f"R must be a μxμ=({self.mu}x{self.mu}) matrix."
+        self.R = np.eye(self.mu) * 0.035 if R is None else R
 
         # Process Noise covariance (Not used in the paper, but makes the uncertainty grow especially when no measurements are available)
-        assert Q is None or (Q.shape[0] == 3 and Q.shape[1] == 3), "Q must be a MxM=(3x3) matrix."
-        self.Q = np.eye(3) * 1e-4 if Q is None else Q
+        assert Q is None or (Q.shape[0] == self.M and Q.shape[1] == self.M), f"Q must be a MxM=({self.M}x{self.M}) matrix."
+        self.Q = np.eye(self.M) * 1e-4 if Q is None else Q
 
 
     def predict(self):
@@ -164,6 +173,7 @@ class EKF:
         """
         # Predict target state
         ak_k_1, sigmaK_k_1 = self.predict()
+        sigmaK_k_1 += self.Q  if zk is None else 0  # TODO: Maybe ask about it. It seems logical though
 
         # Compute expected measurement
         zk_hat = self.measurement_model.Y(ak_k_1, xk)  # Y(a_k|k-1)
@@ -173,7 +183,8 @@ class EKF:
 
         # Compute Kalman Gain
         S = Hk @ sigmaK_k_1 @ Hk.T + self.R
-        Kk = sigmaK_k_1 @ Hk.T @ np.linalg.solve(S, np.eye(S.shape[0]))
+        S_inv = np.linalg.solve(S, np.eye(S.shape[0]))
+        Kk = sigmaK_k_1 @ Hk.T @ S_inv
 
         # Update state 
         ak = ak_k_1 + Kk @ (zk - zk_hat) if zk is not None else ak_k_1
@@ -181,7 +192,6 @@ class EKF:
 
         # Update covariance matrix
         sigmaK = (np.eye(len(sigmaK_k_1)) - Kk @ Hk) @ sigmaK_k_1
-        sigmaK += self.Q  if zk is None else 0  # TODO: Maybe as about it. It seems logical though
 
         # Update internal state
         if update_internal_state:
@@ -202,6 +212,5 @@ class EKF:
 
         """
         # Probability density function of the target state
-        mu = 2 # Number of measurements # TODO: Check this number. Maybe should be actually M=3 instead of μ=2
-        return 1 / ((2 * np.pi)**(mu/2) * np.linalg.det(self.sigma_k_1) ** 0.5) * np.exp(-0.5 * (a - self.a_k_1).T @ np.linalg.inv(self.sigma_k_1) @ (a - self.a_k_1))
+        return 1 / ((2 * np.pi)**(self.M/2) * np.linalg.det(self.sigma_k_1) ** 0.5) * np.exp(-0.5 * (a - self.a_k_1).T @ np.linalg.inv(self.sigma_k_1) @ (a - self.a_k_1))
 

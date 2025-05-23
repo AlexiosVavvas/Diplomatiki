@@ -14,10 +14,11 @@ def phiExample(s, L1=1.0, L2=1.0):
         (0.2 * L1, 0.3 * L2), 
         (0.7 * L1, 0.8 * L2), 
         (0.5 * L1, 0.1 * L2), 
-        (0.9 * L1, 0.5 * L2)
+        (0.9 * L1, 0.5 * L2),
+        (0.5 * L1, 0.5 * L2)
     ]
-    bump_heights = [3, 4, 2, 5]
-    bump_widths = [30, 40, 25, 35]
+    bump_heights = [3, 4, 2, 5, 8]
+    bump_widths = [30, 40, 25, 35, 20]
     
     bumps = 0
     for i in range(len(bump_positions)):
@@ -36,7 +37,7 @@ def phiExample(s, L1=1.0, L2=1.0):
     # ridge = 3 * np.exp(-100 * (x - y)**2)
     
     # Combine all components
-    return bumps + 2 #+ waves + trend + ridge
+    return bumps + 0 #+ waves + trend + ridge
 
 # Function to be used for phi with specific L1 and L2 values
 def phi_func(s):
@@ -76,18 +77,18 @@ def main():
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
     TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 40
-    Q_ = 2 # 1 with phiFunc
+    Q_ = 1 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
     RELAX_FACTOR = 0.3
-    IMAX = 10e3
+    IMAX = 20e3
     BAR_WEIGHT = 0 # 50
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=4, 
-                  dynamics_model=model, phi=None, x0=x0) # phi=phi_func
+    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
+                  dynamics_model=model, phi=phi_func, x0=x0) # phi=phi_func
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
@@ -117,7 +118,7 @@ def main():
     print(agent.erg_c.uNominal)
 
     # Lets now update the phi_function to take into account the obstacles
-    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude=None)
+    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="All")
     agent.basis.precalcAllPhiK()
 
     if input("\nVisualise Potential Fields? (y/n): ") == "y":
