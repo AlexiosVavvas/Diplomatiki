@@ -4,7 +4,7 @@ import time
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=20):
+    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
@@ -78,9 +78,6 @@ class Basis():
             for k2 in range(self.Kmax+1):
                 t_ = time.time()
                 self.calcPhikCoeff(k1, k2)
-                # If it takes longer than 0.3 of a second, i would like to know it for debugging purposes
-                if time.time()-t_ > 0.3:
-                    print(f"Precalculated PhiK for k1={k1}, k2={k2} in {time.time()-t_:.4f} seconds.\n")
     
     # Main Coefficients Calculation ---------------------------------------------
     def calcHk(self, k1, k2):
@@ -107,12 +104,13 @@ class Basis():
         return hk
 
     def calcPhikCoeff(self, k1, k2, save_to_cache=True):
-        
+
         assert self._phi != None, "Target distribution phi is not set."
 
         # Check if the value is already computed
         if (k1, k2) in self.phi_coeff_cache:
             return self.phi_coeff_cache[(k1, k2)]
+        print(f"Calculating Phi Coefficient for k1={k1}, k2={k2}..."); t_ = time.time()
 
         hk = self.calcHk(k1, k2)
 
@@ -148,7 +146,7 @@ class Basis():
             # Save the computed value to the cache
             self.phi_coeff_cache[(k1, k2)] = phi_k
 
-        print(f"Phi Coefficient calculated for k1={k1}, k2={k2}.")
+        print(f"Phi Coefficient calculated for k1={k1}, k2={k2}." + (f" \t [{time.time()-t_:.2f} s]" if time.time()-t_ > 0.1 else ""))
         return phi_k
     
     # TODO: Recursively calculate the coefficients Ck
@@ -217,7 +215,7 @@ class Basis():
         '''
         Create a copy of the current object with the same parameters and target distribution.
         '''
-        new_basis = Basis(self.L1, self.L2, self.Kmax, precalc_hk_coeff=False, phi_=self._phi, precalc_phik_coeff=False)
+        new_basis = Basis(self.L1, self.L2, self.Kmax, precalc_hk_coeff=False, phi_=self._phi, precalc_phik_coeff=False, num_gauss_points=self.num_gauss_points, integration_method=self.integration_method)
         
         new_basis.hk_cache = self.hk_cache.copy()
         new_basis.phi_coeff_cache = self.phi_coeff_cache.copy()

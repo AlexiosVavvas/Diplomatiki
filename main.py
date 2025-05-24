@@ -15,7 +15,7 @@ def phiExample(s, L1=1.0, L2=1.0):
         (0.7 * L1, 0.8 * L2), 
         (0.5 * L1, 0.1 * L2), 
         (0.9 * L1, 0.5 * L2),
-        (0.5 * L1, 0.5 * L2)
+        (0.5 * L1, 0.1 * L2)
     ]
     bump_heights = [3, 4, 2, 5, 8]
     bump_widths = [30, 40, 25, 35, 20]
@@ -71,24 +71,24 @@ def main():
     # BAR_WEIGHT = 0
 
     # Quadrotor model -----------
-    x0 = [0.8, 0.2, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    x0 = [0.4, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
     UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
     LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
     TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 40
-    Q_ = 1 # 1 with phiFunc
+    Q_ = 3 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
     RELAX_FACTOR = 0.3
-    IMAX = 20e3
+    IMAX = 100e3
     BAR_WEIGHT = 0 # 50
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
-                  dynamics_model=model, phi=phi_func, x0=x0) # phi=phi_func
+    agent = Agent(L1=1.0, L2=1.0, Kmax=2, 
+                  dynamics_model=model, phi=None, x0=x0) # phi=phi_func
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
@@ -96,13 +96,13 @@ def main():
     
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
-    FMAX = 0.25; EPS_M = 0.2
-    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
-            Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
-            Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
-            Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
+    # FMAX = 0.25; EPS_M = 0.2
+    # obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
+    #         Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
+    #         Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
+    #         Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
 
-    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
+    # agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
 
 
     # Avoiding Walls ----------------------
@@ -137,6 +137,7 @@ def main():
     delta_t_Ts = []
     target_t_pos_list = [] # Contains [ti, x_est, y_est, z_est]
     target_sigma_list = [] # Contains 3x3 sigma matrix for every time step
+    draw_plot_flag = False  # Flag that alternates when updating EID to plot
 
     ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
@@ -147,7 +148,6 @@ def main():
     delta_time = 1
     
     i = 0
-    phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
     while i < IMAX:
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
@@ -192,16 +192,19 @@ def main():
             target_sigma_list.append(agent.ekf.sigma_k_1.copy())
                 
             # Simulation saving file ----------------------------
+            if draw_plot_flag:
             # if i % 160 == 0:
-            #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
-            #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
-            #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
-            #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-            #     print("Plotting phi")
-            #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list)
-            #     plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
-            #     print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
-            #     plt.close()
+                x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+                erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
+                ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
+                phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+                print("Plotting phi")
+                phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
+                vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
+                plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
+                print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
+                plt.close()
+                draw_plot_flag = False
         
         # Continue with simulation of agent
         us_ = agent.erg_c.ustar_mask[i - ti_indx]
@@ -221,7 +224,13 @@ def main():
         agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
-
+        # Lets update phi(x) if needed
+        if i%(Ts_iter*60) == 0:
+            t_ = time.time()
+            print("Updating phi...")
+            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10)
+            print(f"Updated phi in {time.time()-t_:.2f} s")
+            draw_plot_flag = True
 
 
         # Store states for plotting later etc --------------------
