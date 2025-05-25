@@ -6,7 +6,6 @@ This repository contains an implementation of ergodic control algorithms for mul
 The core concept is to make the time-averaged statistics of an agent's trajectory match a desired spatial distribution, creating an efficient exploration pattern that focuses more time on high-importance regions while still covering the entire space.
 
 ![Quadrotor Ergodic Exploration](images/gifs/phi2_animation.gif)
-
 *The animation shows a 12-DoF quadrotor model ergodically exploring a spatial distribution, demonstrating how the algorithm balances between visiting high-density regions while maintaining coverage of the entire domain.*
 
 ![Double Integrator w/ Obstacles](images/gifs/phi_obs_double_int_animation.gif)
@@ -15,7 +14,7 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 ![Quadrotor Ergodic Exploration w/ Obstacles](images/gifs/phiQuadWithObs_animation.gif)
 *The animation shows a 12-DoF quadrotor model ergodically exploring the given spatial distribution in the presence of obstacles / forbidden regions of space*
 
-![Quadrotor Ergodic Exploration w/ Obstacles + EKF Target Localisation](images\gifs\phi_single_target_tracking_w_obstacles.gif)
+![Quadrotor Ergodic Exploration w/ Obstacles + EKF Target Localisation](images/gifs/phi_single_target_tracking_w_obstacles.gif)
 *The animation shows a 12-DoF quad model searching for a target using bearing only measurements and localising it using an EKF filter. The EID map updates using the Expected Information Matrix in each location.*
 
 ## Repository Structure
