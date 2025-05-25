@@ -1,5 +1,6 @@
 import numpy as np
 import time
+# TODO: A cool idea could be a measurement model measuring only distance R(x, y). This way we simultate the RF beacon giving us the signal intensity at each point and trying to find the exact location of the stolen property
 
 # class MeasurementModel:
 class MeasurementModel_NonVectorized:
@@ -409,7 +410,7 @@ class EKF:
         return ak, sigmaK
 
 
-    def p(self, a_array):
+    def p(self, a_array, upper_lim_to_normalise=None):
         """
         Vectorized probability density function of the target state
         Multivariate Gaussian distribution
@@ -447,94 +448,98 @@ class EKF:
         
         # Calculate exponentials
         exp_terms = np.exp(-0.5 * quadratic_forms)
-        
+
+        if upper_lim_to_normalise is not None:
+            if norm_const > upper_lim_to_normalise:
+                norm_const = upper_lim_to_normalise
+
         return norm_const * exp_terms
     
 
 
-# if __name__ == "__main__":
-#     # Example usage with environment configurations
-#     L1, L2 = 1.0, 1.0  # Environment dimensions
+if __name__ == "__main__":
+    # Example usage with environment configurations
+    L1, L2 = 1.0, 1.0  # Environment dimensions
     
-#     # Connect sensor to track target position
-#     sensor = Sensor(sensor_range=0.2,
-#                     R=np.diag([0.035, 0.035]))
+    # Connect sensor to track target position
+    sensor = Sensor(sensor_range=0.2,
+                    R=np.diag([0.035, 0.035]))
     
-#     # Real target position (Ground Truth)
-#     real_target_position = np.array([0.5, 0.5, 0])
+    # Real target position (Ground Truth)
+    real_target_position = np.array([0.5, 0.5, 0])
     
-#     # Initial target position estimate
-#     a = np.array([0.6, 0.4, 0])
+    # Initial target position estimate
+    a = np.array([0.6, 0.4, 0])
     
-#     # Initialize EKF
-#     ekf = EKF(a_init=a,
-#               sigma_init=np.eye(3)*0.01,
-#               R=np.diag([0.035, 0.035]),
-#               a_limits=[[0, L1], [0, L2], [0, 10]])
+    # Initialize EKF
+    ekf = EKF(a_init=a,
+              sigma_init=np.eye(3)*0.01,
+              R=np.diag([0.035, 0.035]),
+              a_limits=[[0, L1], [0, L2], [0, 10]])
     
-#     # Agent position
-#     agent_position = np.array([0.5, 0.1, 0.1])
+    # Agent position
+    agent_position = np.array([0.5, 0.1, 0.1])
     
-#     # Lets plot p(a) for a in 0->L1, 0->L2
-#     # Precompute probability values
-#     N_POINTS = 40
-#     p_values = np.zeros((N_POINTS, N_POINTS))
-#     # Calculate all probabilities at once
-#     all_probs = ekf.p(np.array([[a1, a2, 0] for a1 in np.linspace(0, L1, N_POINTS) for a2 in np.linspace(0, L2, N_POINTS)]))
-#     # Reshape the results back to a grid
-#     p_values = all_probs.reshape(N_POINTS, N_POINTS)
+    # Lets plot p(a) for a in 0->L1, 0->L2
+    # Precompute probability values
+    N_POINTS = 40
+    p_values = np.zeros((N_POINTS, N_POINTS))
+    # Calculate all probabilities at once
+    all_probs = ekf.p(np.array([[a1, a2, 0] for a1 in np.linspace(0, L1, N_POINTS) for a2 in np.linspace(0, L2, N_POINTS)]))
+    # Reshape the results back to a grid
+    p_values = all_probs.reshape(N_POINTS, N_POINTS)
 
-#     # print 1 / ((2 * π)^(M/2) * |Σ|^0.5)
-#     print(f"Normalization constant: {1 / ((2 * np.pi)**(ekf.M/2) * np.linalg.det(ekf.sigma_k_1) ** 0.5)}")
+    # print 1 / ((2 * π)^(M/2) * |Σ|^0.5)
+    print(f"Normalization constant: {1 / ((2 * np.pi)**(ekf.M/2) * np.linalg.det(ekf.sigma_k_1) ** 0.5)}")
 
 
-#     # Plotting
-#     import matplotlib.pyplot as plt
-#     from mpl_toolkits.mplot3d import Axes3D
+    # Plotting
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
-#     fig = plt.figure(figsize=(15, 6))
+    fig = plt.figure(figsize=(15, 6))
     
-#     # 2D plot
-#     ax1 = plt.subplot(121)
-#     im = ax1.imshow(p_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
-#     plt.colorbar(im, ax=ax1, label='Probability Density')
-#     ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
-#     ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
-#     ax1.set_title('2D Probability Density Function of Target Position')
-#     ax1.set_xlabel('X Position')
-#     ax1.set_ylabel('Y Position')
-#     ax1.legend()
+    # 2D plot
+    ax1 = plt.subplot(121)
+    im = ax1.imshow(p_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
+    plt.colorbar(im, ax=ax1, label='Probability Density')
+    ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
+    ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
+    ax1.set_title('2D Probability Density Function of Target Position')
+    ax1.set_xlabel('X Position')
+    ax1.set_ylabel('Y Position')
+    ax1.legend()
 
-#     # Add debug prints
-#     print(f"Real target position: {real_target_position}")
-#     print(f"Initial estimate (a): {a}")
-#     print(f"Current EKF estimate: {ekf.a_k_1}")
-#     print(f"EKF covariance diagonal: {np.diag(ekf.sigma_k_1)}")
+    # Add debug prints
+    print(f"Real target position: {real_target_position}")
+    print(f"Initial estimate (a): {a}")
+    print(f"Current EKF estimate: {ekf.a_k_1}")
+    print(f"EKF covariance diagonal: {np.diag(ekf.sigma_k_1)}")
     
-#     # Test the peak location
-#     peak_prob = ekf.p(ekf.a_k_1.reshape(1, -1))[0]
-#     print(f"Probability at EKF estimate: {peak_prob}")
+    # Test the peak location
+    peak_prob = ekf.p(ekf.a_k_1.reshape(1, -1))[0]
+    print(f"Probability at EKF estimate: {peak_prob}")
     
     
-#     # 3D plot
-#     ax2 = plt.subplot(122, projection='3d')
-#     X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
-#     surf = ax2.plot_surface(X, Y, p_values.T, cmap='viridis', alpha=0.8)
-#     ax2.scatter(real_target_position[0], real_target_position[1], 
-#                ekf.p(real_target_position.reshape(1, -1))[0], 
-#                c='red', s=100, label='Real Target Position')
-#     ax2.scatter(agent_position[0], agent_position[1], 0, c='blue', s=100, label='Agent Position')
-#     ax2.set_title('3D Probability Density Function of Target Position')
-#     ax2.set_xlabel('X Position')
-#     ax2.set_ylabel('Y Position')
-#     ax2.set_zlabel('Probability Density')
-#     ax2.legend()
+    # 3D plot
+    ax2 = plt.subplot(122, projection='3d')
+    X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
+    surf = ax2.plot_surface(X, Y, p_values.T, cmap='viridis', alpha=0.8)
+    ax2.scatter(real_target_position[0], real_target_position[1], 
+               ekf.p(real_target_position.reshape(1, -1))[0], 
+               c='red', s=100, label='Real Target Position')
+    ax2.scatter(agent_position[0], agent_position[1], 0, c='blue', s=100, label='Agent Position')
+    ax2.set_title('3D Probability Density Function of Target Position')
+    ax2.set_xlabel('X Position')
+    ax2.set_ylabel('Y Position')
+    ax2.set_zlabel('Probability Density')
+    ax2.legend()
 
-#     ax1.scatter(ekf.a_k_1[0], ekf.a_k_1[1], c='green', marker='x', s=100, label='EKF Estimate')
-#     ax2.scatter(ekf.a_k_1[0], ekf.a_k_1[1], peak_prob, c='green', marker='x', s=100, label='EKF Estimate')
+    ax1.scatter(ekf.a_k_1[0], ekf.a_k_1[1], c='green', marker='x', s=100, label='EKF Estimate')
+    ax2.scatter(ekf.a_k_1[0], ekf.a_k_1[1], peak_prob, c='green', marker='x', s=100, label='EKF Estimate')
     
-#     plt.tight_layout()
-#     plt.show()
+    plt.tight_layout()
+    plt.show()
 
 
 

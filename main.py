@@ -15,7 +15,7 @@ def phiExample(s, L1=1.0, L2=1.0):
         (0.7 * L1, 0.8 * L2), 
         (0.5 * L1, 0.1 * L2), 
         (0.9 * L1, 0.5 * L2),
-        (0.5 * L1, 0.1 * L2)
+        (0.5 * L1, 0.8 * L2)
     ]
     bump_heights = [3, 4, 2, 5, 8]
     bump_widths = [30, 40, 25, 35, 20]
@@ -87,8 +87,8 @@ def main():
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=2, 
-                  dynamics_model=model, phi=None, x0=x0) # phi=phi_func
+    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
+                  dynamics_model=model, phi=lambda s: 2, x0=x0) # phi=phi_func
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
@@ -96,13 +96,13 @@ def main():
     
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
-    # FMAX = 0.25; EPS_M = 0.2
-    # obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
-    #         Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
-    #         Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
-    #         Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
+    FMAX = 0.25; EPS_M = 0.2
+    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
+            Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
+            Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
+            Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
 
-    # agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
+    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
 
 
     # Avoiding Walls ----------------------
@@ -193,7 +193,7 @@ def main():
                 
             # Simulation saving file ----------------------------
             if draw_plot_flag:
-            # if i % 160 == 0:
+            # if draw_plot_flag or i % 160 == 0:
                 x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
                 erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
                 ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
@@ -228,9 +228,110 @@ def main():
         if i%(Ts_iter*60) == 0:
             t_ = time.time()
             print("Updating phi...")
-            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10)
+            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=20, HTA_SCALE=5e-3, FINAL_FI_CLIP=10)
             print(f"Updated phi in {time.time()-t_:.2f} s")
             draw_plot_flag = True
+
+            def plot():
+                # Precompute probability values
+                ekf = agent.ekf
+                L1 = agent.L1
+                L2 = agent.L2
+                real_target_position = agent.real_target_position
+                agent_position = agent.model.state[:2]
+                a = agent.ekf.a_k_1
+                
+                N_POINTS = 100
+                p_values = np.zeros((N_POINTS, N_POINTS))
+                # Calculate all probabilities at once
+                all_probs = ekf.p(np.array([[a1, a2, 0] for a1 in np.linspace(0, L1, N_POINTS) for a2 in np.linspace(0, L2, N_POINTS)]), 
+                                upper_lim_to_normalise=20)
+                # Reshape the results back to a grid
+                p_values = all_probs.reshape(N_POINTS, N_POINTS)
+
+                # print 1 / ((2 * π)^(M/2) * |Σ|^0.5)
+                print(f"Normalization constant: {1 / ((2 * np.pi)**(ekf.M/2) * np.linalg.det(ekf.sigma_k_1) ** 0.5)}")
+
+
+                # Plotting
+                import matplotlib.pyplot as plt
+                from mpl_toolkits.mplot3d import Axes3D
+
+                fig = plt.figure(figsize=(15, 6))
+                
+                # 2D plot
+                ax1 = plt.subplot(121)
+                im = ax1.imshow(p_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
+                plt.colorbar(im, ax=ax1, label='Probability Density')
+                ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
+                ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
+                ax1.set_title('2D Probability Density Function of Target Position')
+                ax1.set_xlabel('X Position')
+                ax1.set_ylabel('Y Position')
+                ax1.legend()
+
+                # Add debug prints
+                print(f"Real target position: {real_target_position}")
+                print(f"Initial estimate (a): {a}")
+                print(f"Current EKF estimate: {ekf.a_k_1}")
+                print(f"EKF covariance diagonal: {np.diag(ekf.sigma_k_1)}")
+                
+                # Test the peak location
+                peak_prob = ekf.p(ekf.a_k_1.reshape(1, -1))[0]
+                print(f"Probability at EKF estimate: {peak_prob}")
+                
+                
+                # 3D plot
+                ax2 = plt.subplot(122, projection='3d')
+                X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
+                surf = ax2.plot_surface(X, Y, p_values.T, cmap='viridis', alpha=0.8)
+                ax2.scatter(real_target_position[0], real_target_position[1], 
+                        ekf.p(real_target_position.reshape(1, -1))[0], 
+                        c='red', s=100, label='Real Target Position')
+                ax2.scatter(agent_position[0], agent_position[1], 0, c='blue', s=100, label='Agent Position')
+                ax2.set_title('3D Probability Density Function of Target Position')
+                ax2.set_xlabel('X Position')
+                ax2.set_ylabel('Y Position')
+                ax2.set_zlabel('Probability Density')
+                ax2.legend()
+
+                ax1.scatter(ekf.a_k_1[0], ekf.a_k_1[1], c='green', marker='x', s=100, label='EKF Estimate')
+                ax2.scatter(ekf.a_k_1[0], ekf.a_k_1[1], peak_prob, c='green', marker='x', s=100, label='EKF Estimate')
+                
+                plt.tight_layout()
+
+
+                # Lets calculate phi(x) as well and plot in the same manner
+                N_POINTS = int(N_POINTS/2)
+                phi_values = np.zeros((N_POINTS, N_POINTS))
+                # Calculate phi values at all positions
+                for ii in range(N_POINTS):
+                    for jj in range(N_POINTS):
+                        phi_values[ii, jj] = agent.basis.phi(np.array([np.linspace(0, L1, N_POINTS)[ii], np.linspace(0, L2, N_POINTS)[jj]]))
+                # Plotting phi values
+                fig = plt.figure(figsize=(15, 6))
+                ax1 = plt.subplot(121)
+                im = ax1.imshow(phi_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
+                plt.colorbar(im, ax=ax1, label='Phi Value')
+                ax1.set_title('Phi Function Values')
+                ax1.set_xlabel('X Position')
+                ax1.set_ylabel('Y Position')
+                ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
+                ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
+                ax1.legend()
+                # 3D plot of phi values
+                ax2 = plt.subplot(122, projection='3d')
+                X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
+                surf = ax2.plot_surface(X, Y, phi_values.T, cmap='viridis', alpha=0.8)
+                ax2.set_title('3D Phi Function Values')
+                ax2.set_xlabel('X Position')
+                ax2.set_ylabel('Y Position')
+                ax2.set_zlabel('Phi Value')
+                ax2.legend()
+                plt.tight_layout()
+                plt.show()
+
+            # plot()
 
 
         # Store states for plotting later etc --------------------

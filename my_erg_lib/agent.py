@@ -20,7 +20,7 @@ class Agent():
         # Lets connect a sensor to track the target position 
         self.sensor = Sensor(sensor_range=0.2,
                              R=np.diag([0.035, 0.01]))          # TODO: Be able to adjust those parameters from outside
-        self.real_target_position = np.array([0.5, 0.1, 0])     # Real target position (Ground Truth)   # TODO: Maybe take it from an env?
+        self.real_target_position = np.array([0.8, 0.4, 0])     # Real target position (Ground Truth)   # TODO: Maybe take it from an env?
         self.a = np.array([0.2, 0.6, 0])                        # Current target position estimate      # TODO: When to update it?
         self.ekf = EKF(a_init = self.a,
                        sigma_init = np.eye(3)*1e3,
@@ -71,7 +71,7 @@ class Agent():
 
         return phi_w_obs
 
-    def updateEIDphiFunction(self, NUM_GAUSS_POINTS=30):
+    def updateEIDphiFunction(self, NUM_GAUSS_POINTS=30, P_UPPER_LIM=20, HTA_SCALE=1, FINAL_FI_CLIP=10):
 
         def phi(x):
 
@@ -127,12 +127,12 @@ class Agent():
             # Precompute probability values
             p_values = np.zeros((NUM_GAUSS_POINTS, NUM_GAUSS_POINTS))
             # Calculate all probabilities at once
-            all_probs = self.ekf.p(np.array([[a1, a2, 0] for a1 in a1_points for a2 in a2_points]))
+            all_probs = self.ekf.p(np.array([[a1, a2, 0] for a1 in a1_points for a2 in a2_points]), upper_lim_to_normalise=P_UPPER_LIM)
             # Reshape the results back to a grid
             p_values = all_probs.reshape(NUM_GAUSS_POINTS, NUM_GAUSS_POINTS)
             # Normalize the probabilities
             # p_values *= 10/np.max(p_values) 
-            p_values = np.clip(p_values, 0, 20)  # Clip to [0, 20] range
+            # p_values = np.clip(p_values, 0, 20)  # Clip to [0, 20] range
 
             # -----------------------------------------------------------------------------
             
@@ -155,9 +155,9 @@ class Agent():
             # -----------------------------------------------------------------------------
             
             # Return the determinant of the Fisher Information matrix
-            det = np.linalg.det(FI)
+            det = np.linalg.det(FI) * HTA_SCALE
             # Clip to 0, 10
-            det = np.clip(det, 0, 10)
+            det = np.clip(det, 0, FINAL_FI_CLIP)
             
             return det
 

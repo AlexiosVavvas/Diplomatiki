@@ -131,6 +131,227 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     plt.tight_layout()
 
 
+def plotPhi3D(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False):
+    phi_original = agent.basis.phi
+
+    x1 = np.linspace(0, agent.L1, grid_res)
+    x2 = np.linspace(0, agent.L2, grid_res)
+    X1, X2 = np.meshgrid(x1, x2)
+
+    # Plot in a 1x3 matplotlib figure as 3D surface plots
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    from mpl_toolkits.mplot3d import Axes3D
+
+    Z_original = np.zeros((len(x1), len(x2)))
+    Z_agent_fourier_rec = np.zeros((len(x1), len(x2)))
+    Z_rec_from_ck = np.zeros((len(x1), len(x2)))
+
+    for i in range(len(x1)):
+        for j in range(len(x2)):
+            Z_original[j, i] = phi_original([x1[i], x2[j]])
+            Z_rec_from_ck[j, i] = phi_rec_from_ck([x1[i], x2[j]])
+            Z_agent_fourier_rec[j, i] = phi_rec_from_agent([x1[i], x2[j]])
+        
+    fig = plt.figure(figsize=(24, 8))
+    
+    # Original function plot
+    ax1 = fig.add_subplot(131, projection='3d')
+    surf1 = ax1.plot_surface(X1, X2, Z_original, cmap=cm.viridis, alpha=0.8)
+    ax1.set_title('True Target Distribution Φ', fontsize=12, fontweight='bold')
+    ax1.set_xlabel('X Position [m]')
+    ax1.set_ylabel('Y Position [m]')
+    ax1.set_zlabel('Probability Density')
+    ax1.set_zlim(0, 15)
+    fig.colorbar(surf1, ax=ax1, label='Probability Density', shrink=0.5)
+
+    # Fourier reconstruction plot
+    ax2 = fig.add_subplot(132, projection='3d')
+    surf2 = ax2.plot_surface(X1, X2, Z_agent_fourier_rec, cmap=cm.viridis, alpha=0.8)
+    ax2.set_title(f'Agent Fourier Estimate (K_max = {agent.Kmax})', fontsize=12, fontweight='bold')
+    ax2.set_xlabel('X Position [m]')
+    ax2.set_ylabel('Y Position [m]')
+    ax2.set_zlabel('Probability Density')
+    ax2.set_zlim(0, 15)
+    fig.colorbar(surf2, ax=ax2, label='Probability Density', shrink=0.5)
+
+    # Reconstruction from Ck plot
+    ax3 = fig.add_subplot(133, projection='3d')
+    max_z = np.max(Z_rec_from_ck)
+    Z_rec_from_ck = Z_rec_from_ck/max_z * 14 if max_z > 14 else Z_rec_from_ck
+    if clip_to_min_max:
+        min_val = np.min(Z_agent_fourier_rec)
+        max_val = np.max(Z_agent_fourier_rec)
+        surf3 = ax3.plot_surface(X1, X2, Z_rec_from_ck, cmap=cm.viridis, alpha=0.8, 
+                                vmin=min_val, vmax=max_val)
+    else:
+        surf3 = ax3.plot_surface(X1, X2, Z_rec_from_ck, cmap=cm.viridis, alpha=0.8)
+    ax3.set_title('Reconstructed Distribution from C_k', fontsize=12, fontweight='bold')
+    ax3.set_xlabel('X Position [m]')
+    ax3.set_ylabel('Y Position [m]')
+    ax3.set_zlabel('Probability Density')
+    ax3.set_xlim(0, agent.L1)
+    ax3.set_ylim(0, agent.L2)
+    ax3.set_zlim(0, 15)
+    fig.colorbar(surf3, ax=ax3, label='Probability Density', shrink=0.5)
+    
+    # Plot obstacles as 3D extruded shapes
+    for ax in [ax1, ax2, ax3]:
+        if hasattr(agent, 'obstacle_list') and agent.obstacle_list:
+            for obstacle in agent.obstacle_list:
+                if isinstance(obstacle, Obstacle):
+                    z_min = 0
+                    z_max = 15
+                    
+                    if obstacle.type == 'circle':
+                        # Create cylindrical obstacle with gray fill
+                        theta = np.linspace(0, 2*np.pi, 15)
+                        z_cyl = np.linspace(z_min, z_max, 10)
+                        theta_mesh, z_mesh = np.meshgrid(theta, z_cyl)
+                        
+                        x_cyl = obstacle.pos[0] + obstacle.r * np.cos(theta_mesh)
+                        y_cyl = obstacle.pos[1] + obstacle.r * np.sin(theta_mesh)
+                        
+                        ax.plot_surface(x_cyl, y_cyl, z_mesh, color='gray', alpha=0.6)
+                        
+                    elif obstacle.type == 'rectangle':
+                        # Create rectangular prism obstacle with gray fill
+                        x_coords = [obstacle.bottom_left[0], obstacle.bottom_left[0] + obstacle.width]
+                        y_coords = [obstacle.bottom_left[1], obstacle.bottom_left[1] + obstacle.height]
+                        z_coords = [z_min, z_max]
+                        
+                        # Create meshgrid for the 6 faces of the rectangular prism
+                        X_face, Z_face = np.meshgrid(x_coords, z_coords)
+                        Y_face, Z_face2 = np.meshgrid(y_coords, z_coords)
+                        X_face2, Y_face2 = np.meshgrid(x_coords, y_coords)
+                        
+                        # Plot all 6 faces
+                        # Front and back faces
+                        ax.plot_surface(X_face, np.full_like(X_face, y_coords[0]), Z_face, color='gray', alpha=0.6)
+                        ax.plot_surface(X_face, np.full_like(X_face, y_coords[1]), Z_face, color='gray', alpha=0.6)
+                        # Left and right faces
+                        ax.plot_surface(np.full_like(Y_face, x_coords[0]), Y_face, Z_face2, color='gray', alpha=0.6)
+                        ax.plot_surface(np.full_like(Y_face, x_coords[1]), Y_face, Z_face2, color='gray', alpha=0.6)
+                        # Top and bottom faces
+                        ax.plot_surface(X_face2, Y_face2, np.full_like(X_face2, z_coords[0]), color='gray', alpha=0.6)
+                        ax.plot_surface(X_face2, Y_face2, np.full_like(X_face2, z_coords[1]), color='gray', alpha=0.6)
+
+        # Visualize domain boundaries as wireframe
+        z_min = 0
+        z_max = 15
+        
+        # Draw domain boundary wireframe
+        boundary_x = [0, agent.L1, agent.L1, 0, 0]
+        boundary_y = [0, 0, agent.L2, agent.L2, 0]
+        
+        # Bottom and top boundaries
+        for z_level in [z_min, z_max]:
+            boundary_z = [z_level] * 5
+            ax.plot(boundary_x, boundary_y, boundary_z, 'k--', alpha=0.3, linewidth=1)
+        
+        # Vertical edges
+        for i in range(4):
+            ax.plot([boundary_x[i], boundary_x[i]], [boundary_y[i], boundary_y[i]], 
+                   [z_min, z_max], 'k--', alpha=0.3, linewidth=1)
+
+    # In ax3, plot estimation and tracking information
+    if hasattr(agent, 'ekf') and hasattr(agent.ekf, 'sigma_k_1'):
+        sigma = agent.ekf.sigma_k_1
+        center = agent.ekf.a_k_1[:2]
+        
+        # Get the eigenvalues and eigenvectors of the covariance matrix
+        eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
+        
+        # Create uncertainty ellipse at surface level
+        theta = np.linspace(0, 2*np.pi, 50)
+        width = 2 * np.sqrt(eigvals[0]) * 3  # 3 sigma
+        height = 2 * np.sqrt(eigvals[1]) * 3  # 3 sigma
+        angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+        
+        # Parametric ellipse
+        ellipse_x = center[0] + width/2 * np.cos(theta) * np.cos(angle) - height/2 * np.sin(theta) * np.sin(angle)
+        ellipse_y = center[1] + width/2 * np.cos(theta) * np.sin(angle) + height/2 * np.sin(theta) * np.cos(angle)
+        
+        # Project ellipse onto the surface
+        ellipse_z = np.zeros_like(ellipse_x)
+        for i in range(len(ellipse_x)):
+            try:
+                ellipse_z[i] = phi_rec_from_ck([ellipse_x[i], ellipse_y[i]]) + 0.5
+            except:
+                ellipse_z[i] = 2
+        
+        ax3.plot(ellipse_x, ellipse_y, ellipse_z, 'blue', linewidth=2, alpha=0.8, label='3σ Uncertainty Ellipse')
+        
+        # Plot estimated target position
+        est_z = phi_rec_from_ck([agent.ekf.a_k_1[0], agent.ekf.a_k_1[1]]) + 1 if callable(phi_rec_from_ck) else 3
+        ax3.scatter(agent.ekf.a_k_1[0], agent.ekf.a_k_1[1], est_z, 
+                   color='blue', s=100, marker='x', linewidth=3, label='Estimated Target Position')
+        
+        # Plot real target position
+        real_z = phi_rec_from_ck([agent.real_target_position[0], agent.real_target_position[1]]) + 1 if callable(phi_rec_from_ck) else 3
+        ax3.scatter(agent.real_target_position[0], agent.real_target_position[1], real_z, 
+                   color='red', s=100, marker='*', linewidth=2, label='True Target Position')
+
+    # Sensor range visualization
+    if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
+        sensor_range = agent.sensor.sensor_range
+        
+        # Create sensor range circle at surface level
+        theta = np.linspace(0, 2*np.pi, 50)
+        sensor_x = agent.model.state[0] + sensor_range * np.cos(theta)
+        sensor_y = agent.model.state[1] + sensor_range * np.sin(theta)
+        
+        # Project sensor range onto surface
+        sensor_z = np.zeros_like(sensor_x)
+        for i in range(len(sensor_x)):
+            try:
+                sensor_z[i] = phi_rec_from_ck([sensor_x[i], sensor_y[i]]) + 0.2
+            except:
+                sensor_z[i] = 1
+        
+        ax3.plot(sensor_x, sensor_y, sensor_z, 'orange', linewidth=2, alpha=0.7, 
+                linestyle='--', label='Sensor Range')
+        
+        # Plot agent position as a single prominent dot at the top
+        agent_z = 18  # Place near the top of the plot
+        ax3.scatter(agent.model.state[0], agent.model.state[1], agent_z, 
+                   color='green', s=150, marker='o', edgecolor='black', linewidth=2, 
+                   label='UAV Position', zorder=10)
+
+    # Plot trajectories
+    if all_traj is not None:
+        all_traj = np.array(all_traj)
+        
+        # Project trajectory onto surface
+        traj_z = np.zeros(len(all_traj))
+        for i, pos in enumerate(all_traj):
+            try:
+                traj_z[i] = phi_rec_from_ck(pos) + 0.2 if callable(phi_rec_from_ck) else 2
+            except:
+                traj_z[i] = 2
+        
+        ax3.plot(all_traj[:, 0], all_traj[:, 1], traj_z, 'black', linewidth=2, 
+                alpha=0.8, label='Flight Trajectory')
+        
+        # Plot buffer trajectory
+        if hasattr(agent.erg_c, 'past_states_buffer'):
+            buffer_traj = agent.erg_c.past_states_buffer.get()
+            buffer_z = np.zeros(len(buffer_traj))
+            for i, pos in enumerate(buffer_traj):
+                try:
+                    buffer_z[i] = phi_rec_from_ck(pos) + 0.2 if callable(phi_rec_from_ck) else 2
+                except:
+                    buffer_z[i] = 2
+            
+            ax3.plot(buffer_traj[:, 0], buffer_traj[:, 1], buffer_z, 'darkred', 
+                    linewidth=2, alpha=0.8, label='Recent Trajectory')
+
+    # Add legend outside the plot
+    if hasattr(agent, 'ekf') or (hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range')):
+        ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=10)
+
+    plt.subplots_adjust(left=0.05, right=0.85, bottom=0.1, top=0.9, wspace=0.3)
+
 # Visualise the quad using matplotlib 3D from collected data ----------------------
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D

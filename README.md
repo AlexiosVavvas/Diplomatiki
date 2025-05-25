@@ -15,6 +15,9 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 ![Quadrotor Ergodic Exploration w/ Obstacles](images/gifs/phiQuadWithObs_animation.gif)
 *The animation shows a 12-DoF quadrotor model ergodically exploring the given spatial distribution in the presence of obstacles / forbidden regions of space*
 
+![Quadrotor Ergodic Exploration w/ Obstacles + EKF Target Localisation](images\gifs\phi_single_target_tracking_w_obstacles.gif)
+*The animation shows a 12-DoF quad model searching for a target using bearing only measurements and localising it using an EKF filter. The EID map updates using the Expected Information Matrix in each location.*
+
 ## Repository Structure
 - `my_erg_lib/`: Custom implementation of the ergodic control library
   - Contains models, controllers, and utility functions for ergodic control

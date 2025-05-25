@@ -74,6 +74,7 @@ class Basis():
 
     # Precompute PhiK
     def precalcAllPhiK(self):
+        print("Precalculating PhiK coefficients...")
         for k1 in range(self.Kmax+1):
             for k2 in range(self.Kmax+1):
                 t_ = time.time()
@@ -110,7 +111,8 @@ class Basis():
         # Check if the value is already computed
         if (k1, k2) in self.phi_coeff_cache:
             return self.phi_coeff_cache[(k1, k2)]
-        print(f"Calculating Phi Coefficient for k1={k1}, k2={k2}..."); t_ = time.time()
+        # print(f"Calculating Phi Coefficient for k1={k1}, k2={k2}...") 
+        t_ = time.time()
 
         hk = self.calcHk(k1, k2)
 
@@ -146,7 +148,8 @@ class Basis():
             # Save the computed value to the cache
             self.phi_coeff_cache[(k1, k2)] = phi_k
 
-        print(f"Phi Coefficient calculated for k1={k1}, k2={k2}." + (f" \t [{time.time()-t_:.2f} s]" if time.time()-t_ > 0.1 else ""))
+        if time.time() - t_ > 0.1:
+            print(f"Phi Coefficient calculated for k1={k1}, k2={k2}." + (f" \t [{time.time()-t_:.2f} s]" if time.time()-t_ > 0.1 else ""))
         return phi_k
     
     # TODO: Recursively calculate the coefficients Ck
