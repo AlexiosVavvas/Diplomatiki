@@ -62,7 +62,7 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - Boundary enforcement to keep agents within exploration space
 
 <div align="center">
-<img src="images/images/potential_field_4.png" width="50%" alt="Potential field visualization">
+<img src="images/images/potential_field_4.png" width="90%" alt="Potential field visualization">
 </div>
 
 ### Target Localization and Tracking
@@ -79,7 +79,7 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - **Multi-Target Tracking**: Simultaneous estimation of multiple moving targets with covariance intersection
 
 <div align="center">
-<img src="images/gifs/measurementsEKF_animation_spawnTargets_Merge.gif" width="33%" alt="Multi-Target Tracking">
+<img src="images/gifs/measurementsEKF_animation_spawnTargets_Merge.gif" width="70%" alt="Multi-Target Tracking">
 </div>
 
 *The animation demonstrates multi-target localization using bearing-only measurements and EKF estimation. The system dynamically spawns new target estimates, associates measurements with existing targets, and merges or deletes estimates as needed.*
