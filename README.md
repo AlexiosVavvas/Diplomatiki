@@ -61,7 +61,28 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - Customizable repulsive forces and influence regions
   - Boundary enforcement to keep agents within exploration space
 
-![Potential field visualization](images/images/potential_field_4.png)
+<div align="center">
+<img src="images/images/potential_field_4.png" width="50%" alt="Potential field visualization">
+</div>
+
+### Target Localization and Tracking
+- `eid.py`: Comprehensive multi-target localization system:
+  - **Measurement Model**: Vectorized bearing-only sensor model computing azimuth and elevation angles
+  - **Extended Kalman Filter (EKF)**: Real-time state estimation with uncertainty quantification
+  - **Sensor Class**: Configurable range-limited sensor with realistic noise characteristics
+  - **Data Association**: Mahalanobis distance-based measurement-to-target association
+  - **Target Lifecycle Management**:
+    - *Spawning*: Creates new target estimates from unassociated measurements
+    - *Merging*: Combines nearby estimates using Bhattacharyya distance criteria
+    - *Deletion*: Removes stale estimates based on age and confidence metrics
+  - **Information-Driven Exploration**: EID (Expected Information Density) maps using Fisher Information Matrix
+  - **Multi-Target Tracking**: Simultaneous estimation of multiple moving targets with covariance intersection
+
+<div align="center">
+<img src="images/gifs/measurementsEKF_animation_spawnTargets_Merge.gif" width="33%" alt="Multi-Target Tracking">
+</div>
+
+*The animation demonstrates multi-target localization using bearing-only measurements and EKF estimation. The system dynamically spawns new target estimates, associates measurements with existing targets, and merges or deletes estimates as needed.*
 
 ### Integration
 - `agent.py`: Agent implementation that combines models and controllers
@@ -94,44 +115,98 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 This library is designed for multi-agent robotic control in various scenarios:
 
 ```python
-# Example usage with a quadrotor model and obstacle avoidance
+# Example usage with quadrotor model, obstacle avoidance, and multi-target tracking
+import numpy as np
 from my_erg_lib.agent import Agent
 from my_erg_lib.model_dynamics import Quadcopter
 from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
 from my_erg_lib.obstacles import Obstacle, ObstacleAvoidanceControllerGenerator
 
 # Create quadrotor model with specified parameters
-model = Quadcopter(dt=0.001, x0=[0.3, 0.5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                   z_target=2, motor_limits=[[-2, 2], [-2, 2], [-2, 2], [-2, 2]])
+x0 = [0.8, 0.8, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+model = Quadcopter(dt=0.001, x0=x0, z_target=2, 
+                   motor_limits=[[-2, 2], [-2, 2], [-2, 2], [-2, 2]])
 
 # Create target distribution function
 def phi_func(s):
-    # Gaussian bump distribution
     x, y = s[0], s[1]
     return 3 * np.exp(-30 * ((x-0.2)**2 + (y-0.3)**2)) + 2
 
 # Set up agent with ergodic controller
-agent = Agent(L1=1.0, L2=1.0, Kmax=5, dynamics_model=model, phi=phi_func)
+agent = Agent(L1=1.0, L2=1.0, Kmax=5, dynamics_model=model, phi=phi_func, x0=x0)
 agent.erg_c = DecentralisedErgodicController(agent, uNominal=model.calcLQRcontrol, 
                                             T_sampling=0.1, T_horizon=1.25)
 
 # Add obstacles to the environment
 obstacles = [
     Obstacle(pos=[0.2, 0.2], dimensions=0.1, f_max=0.25, min_dist=0.14, 
-             eps_meters=0.2, obs_type='circle', obs_name="Obstacle 1")
+             eps_meters=0.2, obs_type='circle', obs_name="Obstacle 1"),
     Obstacle(pos=[0.6, 0.3], dimensions=[0.2, 0.5], f_max=0.25, min_dist=0.52, 
-             eps_meters=0.2, obs_type='circle', obs_name="Obstacle 2")
+             eps_meters=0.2, obs_type='rectangle', obs_name="Obstacle 2")
 ]
-agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obstacles, 
-                                                            func_name="Obstacles")
+agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obstacles)
 
-# Run simulation
-for i in range(1000):
-    # Calculate ergodic control action
-    us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(time_list[i])
+# Initialize simulation variables
+time_list = [0]
+Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Iterations per sampling time
+u_previous = np.zeros(agent.model.num_of_inputs)
+
+# Main simulation loop
+for i in range(10000):
+    current_time = time_list[i]
     
-    # Apply control to model
-    agent.model.state = agent.model.step(agent.model.state, us)
+    # Calculate ergodic control every sampling period
+    if i % Ts_iter == 0:
+        # Multi-target tracking
+        measurements = agent.sensor.getMultipleMeasurements(
+            agent.real_target_positions, agent.model.state[:3])
+        
+        # Data association and EKF updates
+        if measurements and agent.num_of_targets == 0:
+            # Initialize targets if first measurements
+            for measurement in measurements:
+                agent.spawnNewTargetEstimate(measurement, current_time)
+        
+        associated_measurements = agent.associateTargetsWithMahalanobis(
+            measurements, agent.model.state[:3])
+        
+        # Update existing targets
+        for j, measurement in enumerate(associated_measurements):
+            if measurement is not None:
+                agent.ekfs[j].update(agent.model.state[:3], measurement, current_time)
+        
+        # Spawn new targets for unassociated measurements
+        for m in measurements or []:
+            if not any(np.array_equal(m, am) for am in associated_measurements if am is not None):
+                agent.spawnNewTargetEstimate(measurement=m, current_time=current_time)
+        
+        # Target management
+        agent.mergeTargetsIfNeeded()
+        agent.searchAndRemoveOldTargetEstimates(current_time)
+        
+        # Update exploration distribution periodically
+        if i % (Ts_iter * 30) == 0:  # Every 30 ergodic iterations
+            agent.updateEIDphiFunction()
+        
+        # Calculate ergodic control
+        us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(current_time)
+        agent.erg_c.updateActionMask(current_time, us, tau, lamda_dur)
+    
+    # Get current control action
+    us_current = agent.erg_c.ustar_mask[i % Ts_iter]
+    if not us_current.any():
+        us_current = agent.erg_c.uNominal(agent.model.state, current_time)
+    
+    # Smooth control action
+    u_smooth = 0.3 * us_current + 0.7 * u_previous
+    u_previous = u_smooth.copy()
+    
+    # Apply control and step model
+    agent.model.state = agent.model.step(agent.model.state, u_smooth)
+    agent.erg_c.past_states_buffer.push(agent.model.state[:2])
+    
+    # Update time
+    time_list.append(current_time + agent.model.dt)
 ```
 
 ## Key Features
@@ -141,6 +216,10 @@ for i in range(1000):
 - Multi-agent coordination through Fourier coefficient exchange
 - Advanced integration methods (Runge-Kutta 4) for accurate dynamics simulation
 - Obstacle avoidance with customizable potential fields
+- Multi-target localization with bearing-only measurements
+- Dynamic target management with spawning, merging, and deletion
+- Information-driven exploration using Fisher Information Matrix
+- Mahalanobis distance-based data association
 - Comprehensive visualization tools for analysis and debugging
 - Performance profiling for optimization
 - Support for complex spatial distribution functions
