@@ -71,13 +71,13 @@ def main():
     # BAR_WEIGHT = 0
 
     # Quadrotor model -----------
-    x0 = [0.4, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    x0 = [0.8, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
     UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
     LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 40
-    Q_ = 3 # 1 with phiFunc
+    TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 30  # TS = 0.1, T_H = 0.25*5, deltaT_ERG = 0.25*40
+    Q_ = 2 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
@@ -87,7 +87,7 @@ def main():
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=5, 
+    agent = Agent(L1=1.0, L2=1.0, Kmax=3, 
                   dynamics_model=model, phi=lambda s: 2, x0=x0) # phi=phi_func
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
@@ -124,6 +124,9 @@ def main():
     if input("\nVisualise Potential Fields? (y/n): ") == "y":
         vis.visPotentialFields(agent)
 
+    # More parameters
+    UPDATE_EID_FREQ = 30  # How often to update the EID phi function (30 means every 30 ergodic iterations)
+
     input("Press Enter to continue...")
     # --------------------------------------------------------------------------------------------------
     
@@ -135,9 +138,8 @@ def main():
     erg_cost_list = []
     state_target_list = [agent.model._state_target.copy()] if isinstance(agent.model, Quadcopter) else []  # State target list (only for quads with LQR)
     delta_t_Ts = []
-    target_t_pos_list = [] # Contains [ti, x_est, y_est, z_est]
-    target_sigma_list = [] # Contains 3x3 sigma matrix for every time step
     draw_plot_flag = False  # Flag that alternates when updating EID to plot
+    target_data = {i: {'times': [], 'positions': [], 'sigmas': []} for i in range(len(agent.ekfs))}
 
     ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
@@ -149,9 +151,15 @@ def main():
     
     i = 0
     while i < IMAX:
+        if i == 5000:
+            agent.real_target_positions.append(np.array([0.1, 0.1, 0]))
+            
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
             ti = time_list[i]; ti_indx = i
+            agent.time_since_start = ti
+
+            # Ergodic Control Calculation ---------------------------------------------
             # Calculate ergodic control for the sample step
             us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(time_list[i], prediction_dt=PREDICTION_DT)
 
@@ -161,18 +169,18 @@ def main():
             erg_cost_list.append(erg_cost)
             delta_t_Ts.append([ti, delta_time / agent.erg_c.Ts])
 
+            # Debug State Information Printing
             if i % 160 == 0:
                 def u_str(u):
                     res = "["
                     for j in range(len(u)):
                         res += f"{u[j]:.2f}, "
                     return res[:-2] + "]"
-                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s)")
+                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)")
                 print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
             
             # Debug print if agent inside boundaries
             agent.withinBounds(agent.model.state[:2])
-
             if np.any(np.abs(agent.model.state[:2]) > 50):
                 print("--> Agent WAYY out of bounds! Stopping simulation.")
                 break
@@ -181,19 +189,53 @@ def main():
             if lamda_dur > 0:
                 agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
 
-            # EKF - Lets update target position estimate -------
+
+            # Multi-Target EKF update -------------------------------------------------
             # Make a measurement using the sensor
-            z = agent.sensor.getMeasurement(agent.real_target_position, agent.model.state[:3])
+            z_raw = agent.sensor.getMultipleMeasurements(agent.real_target_positions, agent.model.state[:3])
+            agent.sensor.measurements_raw = z_raw.copy()  # Store raw measurements for later use
+            # If we have some measurements and zero targets, initialize them all
+            if z_raw is not None and agent.num_of_targets == 0:
+                for measurement in z_raw:
+                    agent.spawnNewTargetEstimate(measurement, current_time=ti)
+            z_associated = agent.associateTargetsWithMahalanobis(z_raw, agent.model.state[:3], ASSOCIATION_THRESHOLD=5)
             # Update estimate using the EKF
-            agent.ekf.update(xk=agent.model.state[:3], zk=z)
-            agent.a = agent.ekf.a_k_1
-            # Lets update our lists for plotting later
-            target_t_pos_list.append([time_list[i], *agent.ekf.a_k_1])
-            target_sigma_list.append(agent.ekf.sigma_k_1.copy())
+            for meas_id, measurement in enumerate(z_associated):
+                # Update the EKF with the measurement
+                agent.ekfs[meas_id].update(xk=agent.model.state[:3], zk=measurement, time_now=ti)
+                # Update target estimate
+                agent.target_estimates[meas_id] = agent.ekfs[meas_id].a_k_1.copy()
+            # If we have a measurement that has not been associated with any target, spawn a new target
+            z_without_none = np.array([z if z is not None else np.zeros((2,)) for z in z_associated])
+            for m in z_raw:
+                if m is not None and m not in z_without_none:
+                    # Spawn a new target with the measurement
+                    agent.spawnNewTargetEstimate(measurement=m, current_time=ti)
+                    # Add new target to target_data dictionary
+                    new_target_id = len(agent.ekfs) - 1  # Get the ID of the newly spawned target
+                    target_data[new_target_id] = {'times': [], 'positions': [], 'sigmas': []}
+
+            # Store data using dictionary structure
+            for meas_id in range(len(agent.ekfs)):
+                # Ensure the target exists in target_data
+                if meas_id not in target_data:
+                    target_data[meas_id] = {'times': [], 'positions': [], 'sigmas': []}
                 
+                target_data[meas_id]['times'].append(time_list[i])
+                target_data[meas_id]['positions'].append(agent.ekfs[meas_id].a_k_1.copy())
+                target_data[meas_id]['sigmas'].append(agent.ekfs[meas_id].sigma_k_1.copy())
+
+            # Check if we need to merge targets
+            if agent.num_of_targets > 1:
+                # Chack Bhattacharyya Distance between every pair and merge as needed
+                agent.mergeTargetsIfNeeded(MERGE_THRESHOLD=3, EUCL_DIST_THRESHOLD=0.15, SIMILAR_MEASUREMENTS_ANGLE_THRESHOLD_RAD=30* np.pi/180)
+
+            # Also, lets check and remove outdated target estimates
+            agent.searchAndRemoveOldTargetEstimates(current_time=ti, MAX_AGE_SEC=60)
+
             # Simulation saving file ----------------------------
-            if draw_plot_flag:
-            # if draw_plot_flag or i % 160 == 0:
+            # if draw_plot_flag:
+            if draw_plot_flag or i % 160 == 0:
                 x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
                 erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
                 ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
@@ -225,113 +267,13 @@ def main():
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
         # Lets update phi(x) if needed
-        if i%(Ts_iter*60) == 0:
+        if i%(Ts_iter * UPDATE_EID_FREQ) == 0:
             t_ = time.time()
             print("Updating phi...")
-            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=20, HTA_SCALE=5e-3, FINAL_FI_CLIP=10)
+            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-5, FINAL_FI_CLIP=10, ALWAYS_ADD=2)
             print(f"Updated phi in {time.time()-t_:.2f} s")
             draw_plot_flag = True
-
-            def plot():
-                # Precompute probability values
-                ekf = agent.ekf
-                L1 = agent.L1
-                L2 = agent.L2
-                real_target_position = agent.real_target_position
-                agent_position = agent.model.state[:2]
-                a = agent.ekf.a_k_1
-                
-                N_POINTS = 100
-                p_values = np.zeros((N_POINTS, N_POINTS))
-                # Calculate all probabilities at once
-                all_probs = ekf.p(np.array([[a1, a2, 0] for a1 in np.linspace(0, L1, N_POINTS) for a2 in np.linspace(0, L2, N_POINTS)]), 
-                                upper_lim_to_normalise=20)
-                # Reshape the results back to a grid
-                p_values = all_probs.reshape(N_POINTS, N_POINTS)
-
-                # print 1 / ((2 * π)^(M/2) * |Σ|^0.5)
-                print(f"Normalization constant: {1 / ((2 * np.pi)**(ekf.M/2) * np.linalg.det(ekf.sigma_k_1) ** 0.5)}")
-
-
-                # Plotting
-                import matplotlib.pyplot as plt
-                from mpl_toolkits.mplot3d import Axes3D
-
-                fig = plt.figure(figsize=(15, 6))
-                
-                # 2D plot
-                ax1 = plt.subplot(121)
-                im = ax1.imshow(p_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
-                plt.colorbar(im, ax=ax1, label='Probability Density')
-                ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
-                ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
-                ax1.set_title('2D Probability Density Function of Target Position')
-                ax1.set_xlabel('X Position')
-                ax1.set_ylabel('Y Position')
-                ax1.legend()
-
-                # Add debug prints
-                print(f"Real target position: {real_target_position}")
-                print(f"Initial estimate (a): {a}")
-                print(f"Current EKF estimate: {ekf.a_k_1}")
-                print(f"EKF covariance diagonal: {np.diag(ekf.sigma_k_1)}")
-                
-                # Test the peak location
-                peak_prob = ekf.p(ekf.a_k_1.reshape(1, -1))[0]
-                print(f"Probability at EKF estimate: {peak_prob}")
-                
-                
-                # 3D plot
-                ax2 = plt.subplot(122, projection='3d')
-                X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
-                surf = ax2.plot_surface(X, Y, p_values.T, cmap='viridis', alpha=0.8)
-                ax2.scatter(real_target_position[0], real_target_position[1], 
-                        ekf.p(real_target_position.reshape(1, -1))[0], 
-                        c='red', s=100, label='Real Target Position')
-                ax2.scatter(agent_position[0], agent_position[1], 0, c='blue', s=100, label='Agent Position')
-                ax2.set_title('3D Probability Density Function of Target Position')
-                ax2.set_xlabel('X Position')
-                ax2.set_ylabel('Y Position')
-                ax2.set_zlabel('Probability Density')
-                ax2.legend()
-
-                ax1.scatter(ekf.a_k_1[0], ekf.a_k_1[1], c='green', marker='x', s=100, label='EKF Estimate')
-                ax2.scatter(ekf.a_k_1[0], ekf.a_k_1[1], peak_prob, c='green', marker='x', s=100, label='EKF Estimate')
-                
-                plt.tight_layout()
-
-
-                # Lets calculate phi(x) as well and plot in the same manner
-                N_POINTS = int(N_POINTS/2)
-                phi_values = np.zeros((N_POINTS, N_POINTS))
-                # Calculate phi values at all positions
-                for ii in range(N_POINTS):
-                    for jj in range(N_POINTS):
-                        phi_values[ii, jj] = agent.basis.phi(np.array([np.linspace(0, L1, N_POINTS)[ii], np.linspace(0, L2, N_POINTS)[jj]]))
-                # Plotting phi values
-                fig = plt.figure(figsize=(15, 6))
-                ax1 = plt.subplot(121)
-                im = ax1.imshow(phi_values.T, extent=(0, L1, 0, L2), origin='lower', aspect='auto')
-                plt.colorbar(im, ax=ax1, label='Phi Value')
-                ax1.set_title('Phi Function Values')
-                ax1.set_xlabel('X Position')
-                ax1.set_ylabel('Y Position')
-                ax1.scatter(real_target_position[0], real_target_position[1], c='red', label='Real Target Position')
-                ax1.scatter(agent_position[0], agent_position[1], c='blue', label='Agent Position')
-                ax1.legend()
-                # 3D plot of phi values
-                ax2 = plt.subplot(122, projection='3d')
-                X, Y = np.meshgrid(np.linspace(0, L1, N_POINTS), np.linspace(0, L2, N_POINTS))
-                surf = ax2.plot_surface(X, Y, phi_values.T, cmap='viridis', alpha=0.8)
-                ax2.set_title('3D Phi Function Values')
-                ax2.set_xlabel('X Position')
-                ax2.set_ylabel('Y Position')
-                ax2.set_zlabel('Phi Value')
-                ax2.legend()
-                plt.tight_layout()
-                plt.show()
-
-            # plot()
+            
 
 
         # Store states for plotting later etc --------------------
@@ -354,8 +296,6 @@ def main():
     time_list = np.array(time_list)
     state_target_list = np.array(state_target_list)
     delta_t_Ts = np.array(delta_t_Ts)
-    target_t_pos_list = np.array(target_t_pos_list)
-    target_sigma_list = np.array(target_sigma_list)
 
 
     # ---------------- PLOTTING ----------------------------------------------------
@@ -412,58 +352,72 @@ def main():
     plt.axhline(y=1, color='r', linestyle='--', label='Ts')
 
     # Lets plot the target position estimate and the sigma band around it
-    # if target_pos_list is 2 dimensional and not empty:    
-    if len(target_t_pos_list) > 1:
-        fig, axes = plt.subplots(3, 1, figsize=(8, 7), sharex=True)
-        sx = []
-        sy = []
-        sz = []
-        for i in range(len(target_sigma_list)):
-            # TODO: Sigmas are probably not correct, how are they calculated?
-            sx.append(np.sqrt(target_sigma_list[i, :2, :2][0, 0]))
-            sy.append(np.sqrt(target_sigma_list[i, :2, :2][1, 1]))
-            sz.append(np.sqrt(target_sigma_list[i, :3, :3][2, 2]))
-        sx = np.array(sx)
-        sy = np.array(sy)
-        sz = np.array(sz)
-        # X position plot
-        axes[0].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 1], label="X Position Estimate", color='r')
-        axes[0].fill_between(target_t_pos_list[:, 0], 
-                            target_t_pos_list[:, 1] - 3 * sx, 
-                            target_t_pos_list[:, 1] + 3 * sx, 
-                            color='r', alpha=0.2, label="3σ band")
-        axes[0].axhline(y=agent.real_target_position[0], color='r', linestyle='--', label="Actual X")
+    if len(target_data[0]['times']) > 1:  # Check if we have data
+        # Create a single figure with 3 subplots for all targets
+        fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
+        colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
+        
+        for meas_id in range(len(agent.ekfs)):
+            # Get data for this target from dictionary
+            times = np.array(target_data[meas_id]['times'])
+            positions = np.array(target_data[meas_id]['positions'])
+            sigmas = np.array(target_data[meas_id]['sigmas'])
+            
+            if len(times) == 0:
+                continue
+                
+            color = colors[meas_id % len(colors)]
+            
+            # Extract standard deviations
+            sx = np.sqrt(sigmas[:, 0, 0])  # X variance
+            sy = np.sqrt(sigmas[:, 1, 1])  # Y variance  
+            sz = np.sqrt(sigmas[:, 2, 2])  # Z variance
+            
+            # X position plot
+            axes[0].plot(times, positions[:, 0], color=color, label=f'Target {meas_id}')
+            axes[0].fill_between(times, 
+                                positions[:, 0] - 3 * sx, 
+                                positions[:, 0] + 3 * sx, 
+                                color=color, alpha=0.2)
+            # Only plot real target position if it exists
+            if meas_id < len(agent.real_target_positions):
+                axes[0].axhline(y=agent.real_target_positions[meas_id][0], color=color, linestyle='--', alpha=0.8, label=f'Real Target {meas_id}')
+
+            # Y position plot
+            axes[1].plot(times, positions[:, 1], color=color)
+            axes[1].fill_between(times, 
+                                positions[:, 1] - 3 * sy, 
+                                positions[:, 1] + 3 * sy, 
+                                color=color, alpha=0.2)
+            # Only plot real target position if it exists
+            if meas_id < len(agent.real_target_positions):
+                axes[1].axhline(y=agent.real_target_positions[meas_id][1], color=color, linestyle='--', alpha=0.8)
+
+            # Z position plot
+            axes[2].plot(times, positions[:, 2], color=color)
+            axes[2].fill_between(times, 
+                                positions[:, 2] - 3 * sz, 
+                                positions[:, 2] + 3 * sz, 
+                                color=color, alpha=0.2)
+            # Only plot real target position if it exists
+            if meas_id < len(agent.real_target_positions):
+                axes[2].axhline(y=agent.real_target_positions[meas_id][2], color=color, linestyle='--', alpha=0.8)
+
+        # Configure axes
         axes[0].set_ylabel("X Position")
         axes[0].set_ylim([0, 1])
         axes[0].grid(True)
         axes[0].legend()
-
-        # Y position plot
-        axes[1].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 2], label="Y Position Estimate", color='g')
-        axes[1].fill_between(target_t_pos_list[:, 0], 
-                            target_t_pos_list[:, 2] - 3 * sy, 
-                            target_t_pos_list[:, 2] + 3 * sy, 
-                            color='g', alpha=0.2, label="3σ band")
-        axes[1].axhline(y=agent.real_target_position[1], color='g', linestyle='--', label="Actual Y")
-        axes[1].set_xlabel("Time [s]")
+        
         axes[1].set_ylabel("Y Position")
         axes[1].set_ylim([0, 1])
         axes[1].grid(True)
-        axes[1].legend()
 
-        # Z position plot
-        axes[2].plot(target_t_pos_list[:, 0], target_t_pos_list[:, 3], label="Z Position Estimate", color='b')
-        axes[2].fill_between(target_t_pos_list[:, 0], 
-                            target_t_pos_list[:, 3] - 3 * sz, 
-                            target_t_pos_list[:, 3] + 3 * sz, 
-                            color='b', alpha=0.2, label="3σ band")
-        axes[2].axhline(y=agent.real_target_position[2], color='b', linestyle='--', label="Actual Z")
         axes[2].set_xlabel("Time [s]")
         axes[2].set_ylabel("Z Position")
         axes[2].grid(True)
-        axes[2].legend()
 
-        plt.suptitle("Target Position Estimate with 3σ Confidence Bands")
+        plt.suptitle("All Targets Position Estimates with 3σ Confidence Bands")
         plt.tight_layout()
 
     # Ergodic Trajectory Plot

@@ -1,5 +1,4 @@
 import numpy as np
-from my_erg_lib.agent import Agent
 from my_erg_lib.obstacles import Obstacle
 
 
@@ -87,26 +86,37 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
         ax.add_patch(plt.Rectangle((W, W), agent.L1-2*W, agent.L2-2*W, color='black', fill=False, linestyle='--', linewidth=1))
 
     # In ax3 i want to plot the ellipse of the target pos estimate, with center at agent.a, and sigma = agent.ekf.sigma_k_1
-    if hasattr(agent, 'ekf') and hasattr(agent.ekf, 'sigma_k_1'):
-        sigma = agent.ekf.sigma_k_1
-        center = agent.ekf.a_k_1[:2]
-        # Get the eigenvalues and eigenvectors of the covariance matrix
-        eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
-        # Calculate the angle of rotation
-        angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
-        # Calculate the width and height of the ellipse
-        width = 2 * np.sqrt(eigvals[0])
-        height = 2 * np.sqrt(eigvals[1])
-        width *= 3  # Scale to show 3 sigma case
-        height *= 3  # Scale to show 3 sigma case
-        # Create the ellipse
-        from matplotlib.patches import Ellipse
-        ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color='blue', fill=False, linestyle='--', linewidth=1)
-        ax3.add_patch(ellipse)
-        # Plot the estimated target position
-        ax3.plot(agent.ekf.a_k_1[0], agent.ekf.a_k_1[1], 'bx', markersize=5, label='Estimated Target Position')
-        # Plot the real target position
-        ax3.plot(agent.real_target_position[0], agent.real_target_position[1], 'rx', markersize=5, label='Ground Truth')
+    if hasattr(agent, 'ekfs'):
+        for i_ in range(len(agent.ekfs)):
+            sigma = agent.ekfs[i_].sigma_k_1
+            center = agent.ekfs[i_].a_k_1[:2]
+            # Get the eigenvalues and eigenvectors of the covariance matrix
+            eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
+            # Calculate the angle of rotation
+            angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+            # Calculate the width and height of the ellipse
+            width = 2 * np.sqrt(eigvals[0])
+            height = 2 * np.sqrt(eigvals[1])
+            width *= 3  # Scale to show 3 sigma case
+            height *= 3  # Scale to show 3 sigma case
+            # Create the ellipse
+            from matplotlib.patches import Ellipse
+            ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color='blue', fill=False, linestyle='--', linewidth=1)
+            ax3.add_patch(ellipse)
+            # Plot the estimated target position
+            ax3.plot(agent.ekfs[i_].a_k_1[0], agent.ekfs[i_].a_k_1[1], 'bx', markersize=5, label='Estimated Target Position')
+            
+            # Find the closest real target to the current EKF estimate
+            if hasattr(agent, 'real_target_positions') and len(agent.real_target_positions) > 0:
+                estimated_pos = agent.ekfs[i_].a_k_1[:2]
+                distances = [np.linalg.norm(estimated_pos - np.array(real_target[:2])) 
+                           for real_target in agent.real_target_positions]
+                closest_target_idx = np.argmin(distances)
+                closest_target = agent.real_target_positions[closest_target_idx]
+                
+                # Plot the closest real target position
+                ax3.plot(closest_target[0], closest_target[1], 
+                        'rx', markersize=5, label=f'Closest Ground Truth (T{closest_target_idx})')
 
     # Lets also draw the agent.sensor.sensor_range circle around the current agent position
     if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
@@ -658,7 +668,7 @@ def visualiseCoefficients(agent, ck):
     plt.show()
 
 from my_erg_lib.model_dynamics import Quadcopter
-def visPotentialFields(agent: Agent):
+def visPotentialFields(agent):
     # Filter the obstacle list to only keep circle obstacles
     obs_list = [obs for obs in agent.obstacle_list if (obs.type == 'circle' or obs.type == "rectangle")] if hasattr(agent, 'obstacle_list') else []
 
@@ -990,3 +1000,229 @@ def visPotentialFields(agent: Agent):
     plt.show()
 
 
+def plotMeasurementsAndTargets(agent, measurements, associated_measurements=None, T_SHOW=None, fig_num=None, save_fig_filename=None):
+    """
+    Visualize the agent position, real target positions, and measurement vectors.
+    
+    Parameters:
+    - agent: Agent object containing position and target information
+    - measurements: Array of measurements (beta angles in radians)
+    - associated_measurements: List of associated measurements for each target (optional)
+    - T_SHOW: time in seconds to pause the plot before continuing execution (optional)
+    - fig_num: figure number to reuse an existing figure (optional)
+    """
+    import matplotlib.pyplot as plt
+    
+    # Use interactive mode to prevent blocking
+    plt.ion()
+    
+    # Clear and reuse figure if fig_num is provided
+    if fig_num is not None:
+        fig = plt.figure(fig_num, figsize=(8, 6))
+        plt.clf()  # Clear the figure
+    else:
+        fig = plt.figure(figsize=(8, 6))
+    
+    # Convert to numpy arrays for easier handling
+    agent_real_targets = np.array(agent.real_target_positions) if hasattr(agent, 'real_target_positions') else None
+    measurements = np.array(measurements) if measurements is not None else None
+    
+    # Plot real target positions if available
+    if agent_real_targets is not None and len(agent_real_targets) > 0:
+        plt.scatter(agent_real_targets[:, 0], agent_real_targets[:, 1], 
+                   c='red', s=100, marker='*', label='Real Targets', zorder=5)
+        
+        # Add numbers to targets
+        for i, target in enumerate(agent_real_targets):
+            plt.annotate(f'T{i}', (target[0], target[1]), 
+                        xytext=(8, 8), textcoords='offset points', 
+                        fontsize=12, color='red', fontweight='bold')
+    
+    # Plot target estimates if available
+    if hasattr(agent, 'target_estimates') and len(agent.target_estimates) > 0:
+        target_estimates = np.array(agent.target_estimates)
+        plt.scatter(target_estimates[:, 0], target_estimates[:, 1], 
+                   c='blue', s=80, marker='x', label='Target Estimates', zorder=5, linewidth=3)
+        
+        # Add numbers to target estimates
+        for i, estimate in enumerate(target_estimates):
+            plt.annotate(f'E{i}', (estimate[0], estimate[1]), 
+                        xytext=(-15, -15), textcoords='offset points', 
+                        fontsize=10, color='blue', fontweight='bold')
+        
+        # Plot uncertainty ellipses for each target estimate
+        if hasattr(agent, 'ekfs'):
+            for i, ekf in enumerate(agent.ekfs):
+                if hasattr(ekf, 'sigma_k_1'):
+                    sigma = ekf.sigma_k_1[:2, :2]  # 2x2 covariance matrix for x,y
+                    center = target_estimates[i][:2]
+                    
+                    # Get the eigenvalues and eigenvectors of the covariance matrix
+                    eigvals, eigvecs = np.linalg.eig(sigma)
+                    # Calculate the angle of rotation
+                    angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+                    # Calculate the width and height of the ellipse (3 sigma)
+                    width = 2 * np.sqrt(eigvals[0]) * 3
+                    height = 2 * np.sqrt(eigvals[1]) * 3
+                    
+                    # Create the ellipse
+                    from matplotlib.patches import Ellipse
+                    ellipse = Ellipse(center, width=width, height=height, 
+                                    angle=angle*180/np.pi, color='blue', 
+                                    fill=False, linestyle=':', linewidth=1.5, alpha=0.7)
+                    plt.gca().add_patch(ellipse)
+    
+    # Plot agent position
+    plt.scatter(agent.model.state[0], agent.model.state[1], 
+               c='green', s=150, marker='o', label='Agent Position', 
+               edgecolor='black', linewidth=2, zorder=6)
+    
+    # Plot sensor range circle if available
+    if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
+        sensor_range = agent.sensor.sensor_range
+        sensor_circle = plt.Circle((agent.model.state[0], agent.model.state[1]), 
+                                  sensor_range, color='green', fill=False, 
+                                  linestyle='--', linewidth=2, alpha=0.7, 
+                                  label='Sensor Range')
+        plt.gca().add_patch(sensor_circle)
+    
+    # Plot measurement vectors if available
+    if measurements is not None and len(measurements) > 0:
+        # Create arrays of starting positions for each vector
+        agent_x = np.full(len(measurements), agent.model.state[0])
+        agent_y = np.full(len(measurements), agent.model.state[1])
+        
+        # Calculate measurement vector endpoints
+        # Beta angle is measured from +y axis (north), positive clockwise
+        measurement_range = agent.sensor.sensor_range if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range') else 1.0
+        
+        # Create a mapping from measurement to target association
+        measurement_to_target = {}
+        if associated_measurements is not None:
+            for target_idx, assoc_meas in enumerate(associated_measurements):
+                if assoc_meas is not None:
+                    # Find which measurement index this corresponds to
+                    for meas_idx, meas in enumerate(measurements):
+                        if np.array_equal(assoc_meas, meas):
+                            measurement_to_target[meas_idx] = target_idx
+                            break
+        
+        # Plot measurement vectors with different colors for associated/unassociated
+        for i, measurement in enumerate(measurements):
+            if i in measurement_to_target:
+                # Associated measurement - use a distinct color
+                color = 'orange'
+                alpha = 0.9
+                width = 0.008
+            else:
+                # Unassociated measurement - use blue
+                color = 'lightblue'
+                alpha = 0.7
+                width = 0.005
+            
+            plt.quiver(agent_x[i], agent_y[i], 
+                      measurement_range * np.cos(np.pi/2 - measurement[0]), 
+                      measurement_range * np.sin(np.pi/2 - measurement[0]), 
+                      angles='xy', scale_units='xy', scale=1, color=color, 
+                      alpha=alpha, width=width)
+        
+        # Add labels to measurement arrows showing association
+        for i, measurement in enumerate(measurements):
+            arrow_end_x = agent.model.state[0] + measurement_range * np.cos(np.pi/2 - measurement[0])
+            arrow_end_y = agent.model.state[1] + measurement_range * np.sin(np.pi/2 - measurement[0])
+            
+            if i in measurement_to_target:
+                # Associated measurement - show M{i}/T{target_idx}
+                target_idx = measurement_to_target[i]
+                label = f'M{i}/T{target_idx}'
+                color = 'orange'
+            else:
+                # Unassociated measurement - show M{i}
+                label = f'M{i}'
+                color = 'lightblue'
+            
+            plt.annotate(label, (arrow_end_x, arrow_end_y), 
+                        xytext=(5, 5), textcoords='offset points', 
+                        fontsize=10, color=color, fontweight='bold')
+    
+    # Plot vectors from agent to real targets for comparison
+    if agent_real_targets is not None and len(agent_real_targets) > 0:
+        agent_x_targets = np.full(len(agent_real_targets), agent.model.state[0])
+        agent_y_targets = np.full(len(agent_real_targets), agent.model.state[1])
+        
+        plt.quiver(agent_x_targets, agent_y_targets,
+                  agent_real_targets[:, 0] - agent.model.state[0], 
+                  agent_real_targets[:, 1] - agent.model.state[1], 
+                  angles='xy', scale_units='xy', scale=1, color='red', 
+                  alpha=0.5, width=0.003, 
+                  label='True Target Vectors')
+    
+    # Create custom legend entries
+    legend_elements = []
+    if agent_real_targets is not None and len(agent_real_targets) > 0:
+        legend_elements.append(plt.scatter([], [], c='red', s=100, marker='*', label='Real Targets'))
+        legend_elements.append(plt.Line2D([0], [0], color='red', alpha=0.5, linewidth=2, label='True Target Vectors'))
+    
+    if hasattr(agent, 'target_estimates') and len(agent.target_estimates) > 0:
+        legend_elements.append(plt.scatter([], [], c='blue', s=80, marker='x', linewidth=3, label='Target Estimates'))
+        legend_elements.append(plt.Line2D([0], [0], color='blue', linestyle=':', linewidth=1.5, alpha=0.7, label='3σ Uncertainty'))
+    
+    legend_elements.append(plt.scatter([], [], c='green', s=150, marker='o', 
+                                      edgecolor='black', linewidth=2, label='Agent Position'))
+    
+    if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
+        legend_elements.append(plt.Line2D([0], [0], color='green', linestyle='--', 
+                                         linewidth=2, alpha=0.7, label='Sensor Range'))
+    
+    if measurements is not None and len(measurements) > 0:
+        legend_elements.append(plt.Line2D([0], [0], color='orange', linewidth=3, 
+                                         alpha=0.9, label='Associated Measurements'))
+        legend_elements.append(plt.Line2D([0], [0], color='lightblue', linewidth=2, 
+                                         alpha=0.7, label='Unassociated Measurements'))
+    
+    # Set plot limits and formatting
+    plt.xlabel('X Position [m]')
+    plt.ylabel('Y Position [m]')
+    plt.title(f'Agent Position, Real Targets, Target Estimates, and Measurements\n{agent.time_since_start:.2f} [s]')
+    plt.grid(True, alpha=0.3)
+    plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.axis('equal')
+    
+    # Add domain boundaries
+    plt.axhline(0, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axvline(0, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axhline(agent.L2, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axvline(agent.L1, color='black', lw=1, ls='-', alpha=0.5)
+    
+    plt.tight_layout()
+    
+    # Draw and display the figure
+    plt.draw()
+    plt.xlim(0, agent.L1)
+    plt.ylim(0, agent.L2)
+    
+    # Pause for T_SHOW seconds if specified
+    if T_SHOW is not None:
+        plt.pause(T_SHOW)
+    else:
+        plt.pause(0.1)  # Small pause to update the figure
+    
+    # Save the figure if a filename is provided
+    if save_fig_filename is not None:
+        import os
+        import time
+        # Extract the base filename and extension
+        base_name, ext = os.path.splitext(save_fig_filename)
+        
+        # Add iteration number if it doesn't already exist in the filename
+        if hasattr(agent, 'current_iteration'):
+            filename = f"{base_name}_iter_{int(agent.time_since_start/agent.model.dt):06d}{ext}"
+        else:
+            # Fallback: use a timestamp if no iteration number available
+            timestamp = int(time.time() * 1000) % 100000  # Last 5 digits of timestamp
+            filename = f"{base_name}_t_{timestamp}{ext}"
+        
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+    
+    # Return the figure number for reuse
+    return fig.number

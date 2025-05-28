@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import random
 # TODO: A cool idea could be a measurement model measuring only distance R(x, y). This way we simultate the RF beacon giving us the signal intensity at each point and trying to find the exact location of the stolen property
 
 # class MeasurementModel:
@@ -309,6 +310,22 @@ class Sensor:
 
         return measurement
 
+    def getMultipleMeasurements(self, real_target_positions, agent_position):
+        """
+        Simulate multiple sensor measurements for multiple targets
+            - real_target_positions: List of real positions of the targets
+            - agent_position: The position of the agent
+        Returns: A list of simulated measurements (None if out of range)
+        """
+        assert isinstance(real_target_positions, (list, np.ndarray)), "'real_target_positions' must be a list or numpy array."
+        measurements = []
+        for target_position in real_target_positions:
+            measurement = self.getMeasurement(target_position, agent_position)
+            if measurement is not None:
+                measurements.append(measurement)
+        
+        return measurements
+    
 
 class EKF:
     """
@@ -319,9 +336,16 @@ class EKF:
         - Q: Process noise covariance matrix
         - a_limits: Limits for the target state estimate
     """
-    def __init__(self, a_init, sigma_init=None, R=None, Q=None, a_limits=None):
+    def __init__(self, a_init, sigma_init=None, R=None, Q=None, a_limits=None, ekf_id=0, time_now=time.time()):
+        self.id = ekf_id      # Unique ID for the EKF instance
+
+        # Connect to a Measurement Model
+        self.measurement_model = MeasurementModel()
+        self.mu = self.measurement_model.mu  # Number of measurements
+        self.M = self.measurement_model.M    # Number of estimated states
+        assert len(a_init) == self.M, f"EKF ID {ekf_id}: 'a_init' must be a vector of length {self.M} (as provided by the measurement model connected to the ekf)."
+        
         # Target State Estimate
-        self.M = len(a_init)  # Number of estimated states
         self.a_k_1 = np.asarray(a_init)
         # Lets set the limits if exist as well
         if a_limits is not None:
@@ -337,10 +361,6 @@ class EKF:
         # Initial Covariance Matrix Sigma (Σ)
         self.sigma_k_1 = np.eye(self.M) * 1  if sigma_init is None else np.asarray(sigma_init)
 
-        # Measurement Model
-        self.measurement_model = MeasurementModel()
-        self.mu = self.measurement_model.mu  # Number of measurements
-
         # Estimated Sensor Noise covariance
         assert R is None or (R.shape[0] == self.mu and R.shape[1] == self.mu), f"R must be a μxμ=({self.mu}x{self.mu}) matrix."
         self.R = np.eye(self.mu) * 0.035 if R is None else np.asarray(R)
@@ -349,6 +369,8 @@ class EKF:
         assert Q is None or (Q.shape[0] == self.M and Q.shape[1] == self.M), f"Q must be a MxM=({self.M}x{self.M}) matrix."
         self.Q = np.eye(self.M) * 1e-4 if Q is None else np.asarray(Q)
 
+        # Track the last time the EKF was updated
+        self.last_time_updated = time_now   # Used to terminate old-unused EKF instances later
 
     def predict(self):
         """
@@ -363,7 +385,7 @@ class EKF:
 
 
     # zk: New sensor measurement
-    def update(self, xk, zk, update_internal_state=True):
+    def update(self, xk, zk, update_internal_state=True, time_now=time.time()):
         """
         Updates the belief "a" based on the new measurement "zk"
             - ak_k_1: Previous state estimate (a_k|k-1)
@@ -386,7 +408,7 @@ class EKF:
             Kk = sigmaK_k_1 @ Hk.T @ S_inv
 
             # Update state 
-            zk_minus_zk_hat = (zk - zk_hat + np.pi) % (2 * np.pi) - np.pi  # Normalise angle diff to [-pi, pi] 
+            zk_minus_zk_hat = (zk - zk_hat + np.pi) % (2 * np.pi) - np.pi  # Normalise angle diff to [-pi, pi] # TODO: Measurements need to be angles, its not modular enough
 
             ak = ak_k_1 + Kk @ zk_minus_zk_hat
             ak = np.clip(ak, self.a_limits[:, 0], self.a_limits[:, 1])
@@ -395,22 +417,28 @@ class EKF:
             sigmaK = (np.eye(len(sigmaK_k_1)) - Kk @ Hk) @ sigmaK_k_1
 
             # Track NIS: Normalized Innovation Squared -> High when new measurement is far from the predicted one
-            # NIS = zk_minus_zk_hat.T @ S_inv @ zk_minus_zk_hat
+            NIS = zk_minus_zk_hat.T @ S_inv @ zk_minus_zk_hat
+
+            # Update the last time the EKF was updated
+            self.last_time_updated = time_now
         else:
             # No measurement available - no correction step
-            ak = ak_k_1  # State remains the same
-            sigmaK = sigmaK_k_1  # Covariance only grows due to Q (already added above)
-            # NIS = 0
+            ak = ak_k_1            # State remains the same
+            sigmaK = sigmaK_k_1     # Covariance only grows due to Q (already added above)
+            NIS = 0
 
         # Update internal state
         if update_internal_state:
             self.a_k_1 = ak
             self.sigma_k_1 = sigmaK
+            # open and write the ekf NIS
+            # with open(f"ekf_nis_{self.id}.txt", "a") as f:
+                # f.write(f"{NIS}\n")
 
         return ak, sigmaK
 
 
-    def p(self, a_array, upper_lim_to_normalise=None):
+    def p(self, a_array, upper_lim_to_normalise=None, self_a_k_1=None, self_sigma_k_1=None):
         """
         Vectorized probability density function of the target state
         Multivariate Gaussian distribution
@@ -433,14 +461,15 @@ class EKF:
             a_array = a_array.reshape(1, -1)
         
         # Calculate differences: (a_array - self.a_k_1)
-        a_t = self.a_k_1.copy(); a_t[2] = 0  # Set zt to 0
+        a_t = self.a_k_1.copy() if self_a_k_1 is None else self_a_k_1.copy(); a_t[2] = 0  # Set zt to 0
         diff = a_array - a_t  # Shape: (N, M)
+        sigma_k_1 = self.sigma_k_1.copy() if self_sigma_k_1 is None else self_sigma_k_1.copy()
         
         # Calculate normalization constant
-        norm_const = 1 / ((2 * np.pi)**(self.M/2) * np.linalg.det(self.sigma_k_1) ** 0.5)
+        norm_const = 1 / ((2 * np.pi)**(self.M/2) * np.linalg.det(sigma_k_1) ** 0.5)
         
         # Calculate inverse of covariance matrix once
-        sigma_inv = np.linalg.inv(self.sigma_k_1)
+        sigma_inv = np.linalg.inv(sigma_k_1)
         
         # Vectorized quadratic form calculation
         # For each point: (a_i - self.a_k_1).T @ sigma_inv @ (a_i - self.a_k_1)
