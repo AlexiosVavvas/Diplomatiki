@@ -8,6 +8,7 @@ class Basis():
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
+        self.ck_bar_old = np.zeros((Kmax+1, Kmax+1)) # Cumulative Ck values from previous iterations (used for infinite buffer + avoiding infinite integration)
         assert Kmax >= 1, "Kmax must be greater than or equal to 1."
         
         # Dictionary to store precomputed values
@@ -153,7 +154,21 @@ class Basis():
         return phi_k
     
     # TODO: Recursively calculate the coefficients Ck
-    def calcCkCoeff(self, x_traj, ti, T, x_buffer=None):
+    def calcCkCoeffRecursive(self, x_traj, ti, T, ts, t0_erg, x_buffer):
+        # Calculate integral from ti -> ti + T
+        ck_int_forward  = self.calcCkCoeff(x_traj, ti, T, do_not_divide_integral_flag=True)
+        # Calculate integral from ti-ts -> ti
+        ck_int_backward = self.calcCkCoeff(x_buffer, ti-ts, ts, do_not_divide_integral_flag=True)
+
+        ck_bar_new = (ti - ts + T - t0_erg) / (ti + T - t0_erg) * self.ck_bar_old + 1/(ti + T - t0_erg) * ck_int_backward
+        self.ck_bar_old = ck_bar_new
+
+        # Calculate final ck
+        ck = ck_bar_new + 1/(ti + T - t0_erg) * ck_int_forward
+
+        return ck
+
+    def calcCkCoeff(self, x_traj, ti, T, x_buffer=None, do_not_divide_integral_flag=False):
         '''
         Calculate the coefficients Ck for the trajectory x_traj from time ti to T.
             x_traj: Ergodic states trajectory only (x1, x2)
@@ -191,7 +206,11 @@ class Basis():
                 fk_values = cos_k1 * cos_k2 / hk
                 
                 # Perform trapezoidal integration
-                ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
+                if do_not_divide_integral_flag:
+                    ck[k1, k2] = np.trapz(fk_values, x=t_points)
+                else:
+                    ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
+
         
         return ck
 

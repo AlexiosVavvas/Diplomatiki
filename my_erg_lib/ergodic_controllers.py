@@ -9,7 +9,7 @@ import vis
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
                  uNominal=None, uLimits=None, R=None, Q = 1,
-                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9,
+                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9, use_inf_buffer=False,
                  barrier_weight=100, barrier_eps=0.01, barrier_pow=2):
 
         # Connect the agent
@@ -23,7 +23,9 @@ class DecentralisedErgodicController():
         self.T = T_horizon
         self.Ts = T_sampling
         self.deltaT_erg = deltaT_erg
-        
+        self.t0_erg = 0
+        self.use_inf_buffer = use_inf_buffer
+
         # Control Parameters
         self.R = R if R is not None else np.eye(agent.model.num_of_inputs)
         self.Rinv = np.linalg.inv(self.R)
@@ -52,8 +54,12 @@ class DecentralisedErgodicController():
         # Variable to store action if available (!None if calculated and within sample space)
         self.action_mask = ActionMask(T=T_horizon, ts=T_sampling, ACTION_SIZE=agent.model.num_of_inputs)
         # Variable to store past states for better Ck calculation (using Δte)
-        self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
-        # self.past_states_buffer = ReplayBufferFIFO(capacity=np.inf, element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+        if use_inf_buffer:
+            self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.Ts/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+            self.past_erg_history_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+        else:
+            self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+
 
     # Default Control Function
     def uDef(self, x, t):
@@ -128,7 +134,11 @@ class DecentralisedErgodicController():
         erg_traj = x_traj[:, :2] # Save seperately the ergodic dimensions
         
         # Calc Ck Coefficients
-        ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
+        if self.use_inf_buffer:
+            ck = self.agent.basis.calcCkCoeffRecursive(erg_traj, ti, self.T, self.Ts, self.t0_erg, x_buffer=self.past_states_buffer.get())
+        else:
+            ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
+
         erg_cost = self.calcErgodicCost(ck) 
 
         # Simulate Adjoint Backward to get rho(t)

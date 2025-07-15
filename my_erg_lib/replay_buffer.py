@@ -24,9 +24,22 @@ class ReplayBufferFIFO:
             for i in range(init_content.shape[0]):
                 self.push(init_content[i])
 
-    def reset(self):
-        self.buffer = np.zeros((0, *self.element_size))
-        self.current_size = 0
+    def reset(self, last_perc_to_keep=0):
+        if last_perc_to_keep == 0:
+            self.buffer = np.zeros((0, *self.element_size))
+            self.current_size = 0
+        else:
+            if not (0 < last_perc_to_keep <= 1):
+                raise ValueError("last_perc_to_keep must be between 0 and 1.")
+            
+            # Calculate the number of elements to keep
+            num_to_keep = int(self.current_size * last_perc_to_keep)
+            if num_to_keep > 0:
+                self.buffer = self.buffer[-num_to_keep:]
+                self.current_size = num_to_keep
+            else:
+                self.buffer = np.zeros((0, *self.element_size))
+                self.current_size = 0
 
     def push(self, state):
         # Validate input state has the expected shape

@@ -76,14 +76,17 @@ def main():
     LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    TS = 0.1; T_H = 0.1*15; deltaT_ERG = 0.1*300  # TS = 0.1, T_H = 0.25*5, deltaT_ERG = 0.25*40
+    INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
+    TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
+    deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
     Q_ = 1 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
     RELAX_FACTOR = 0.3
-    IMAX = 15e3
+    IMAX = 30e3
     BAR_WEIGHT = 0 # 50
+    UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
 
     # Agent - Ergodic Controller -------------
     # Generate Agent and connect to an ergodic controller object
@@ -92,6 +95,7 @@ def main():
     
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
+                                                 use_inf_buffer=INF_BUF_FLAG,
                                                  barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
     
     # Avoiding Obstacles -------------------
@@ -125,11 +129,15 @@ def main():
         vis.visPotentialFields(agent)
 
     # More parameters
-    UPDATE_EID_FREQ = 30  # How often to update the EID phi function (30 means every 30 ergodic iterations)
     if input("Update EID phi function? (y/n): ") == "y":
         UPDATE_EID_FLAG = True
     else:
         UPDATE_EID_FLAG = False
+
+    if input("Save images to file? (y/n): ") == "y":
+        SAVE_IMAGES_FLAG = True
+    else:
+        SAVE_IMAGES_FLAG = False
 
     input("Press Enter to continue...")
     # --------------------------------------------------------------------------------------------------
@@ -239,18 +247,21 @@ def main():
 
             # Simulation saving file ----------------------------
             # if draw_plot_flag:
-            # if draw_plot_flag or i % 160 == 0:
-            #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
-            #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
-            #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
-            #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-            #     print("Plotting phi")
-            #     phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
-            #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
-            #     plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
-            #     print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
-            #     plt.close()
-            #     draw_plot_flag = False
+            if (draw_plot_flag or i % 160 == 0) and SAVE_IMAGES_FLAG:
+                x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+                erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
+                if INF_BUF_FLAG:
+                    ck_ = agent.basis.calcCkCoeffRecursive(erg_traj, ti, agent.erg_c.T, agent.erg_c.Ts, agent.erg_c.t0_erg, x_buffer=agent.erg_c.past_states_buffer.get())
+                else:
+                    ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
+                phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+                print("Plotting phi")
+                phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
+                vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
+                plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
+                print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
+                plt.close()
+                draw_plot_flag = False
         
         # Continue with simulation of agent
         us_ = agent.erg_c.action_mask.readAction(t_now=time_list[i])
@@ -269,6 +280,10 @@ def main():
         # TODO: Here we should simulate forware for simulation_dt with a dt, instead of stepping. Implemend model simulation function
         agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
+        if INF_BUF_FLAG:
+            # In inf buffer case, we have 2 buffers: one for past "ts" states and one for past "t0_erg" states. 
+            # We could use one being the bigger of the two, but that complicates things. No need since past "ts" states are not much.
+            agent.erg_c.past_erg_history_buffer.push(agent.model.state.copy()[:2])
 
         # Lets update phi(x) if needed
         if i%(Ts_iter * UPDATE_EID_FREQ) == 0 and UPDATE_EID_FLAG:
@@ -277,6 +292,16 @@ def main():
             agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-5, FINAL_FI_CLIP=10, ALWAYS_ADD=2)
             print(f"Updated phi in {time.time()-t_:.2f} s")
             draw_plot_flag = True
+            # Restart ergodic memory buffer
+            if INF_BUF_FLAG:
+                agent.erg_c.t0_erg = max(time_list[i] - agent.erg_c.deltaT_erg, 0)  # Reset the t0_erg to the current time minus the deltaT_erg
+                
+                agent.basis.ck_bar_old = agent.basis.calcCkCoeff(agent.erg_c.past_erg_history_buffer.get(), agent.erg_c.t0_erg, agent.erg_c.deltaT_erg, do_not_divide_integral_flag=True)
+                agent.basis.ck_bar_old /= (time_list[i] + agent.erg_c.T - agent.erg_c.t0_erg)
+            else:
+                # Here we need to reset the buffer since it can contain a lot of outdated past state information # TODO: Check if needed
+                agent.erg_c.past_states_buffer.reset(last_perc_to_keep=0.1)  # Reset the past states buffer
+
             
 
 

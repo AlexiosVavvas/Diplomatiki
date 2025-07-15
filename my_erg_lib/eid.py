@@ -367,7 +367,7 @@ class EKF:
 
         # Process Noise covariance (Not used in the paper, but makes the uncertainty grow especially when no measurements are available)
         assert Q is None or (Q.shape[0] == self.M and Q.shape[1] == self.M), f"Q must be a MxM=({self.M}x{self.M}) matrix."
-        self.Q = np.eye(self.M) * 1e-4 if Q is None else np.asarray(Q)
+        self.Q = np.eye(self.M) * 1e-5 if Q is None else np.asarray(Q) # 1e-4
 
         # Track the last time the EKF was updated
         self.last_time_updated = time_now   # Used to terminate old-unused EKF instances later
