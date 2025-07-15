@@ -48,5 +48,61 @@ class ReplayBufferFIFO:
         # Return the buffer
         return self.buffer.copy()
 
+    def getElement(self, index):
+        """Get an element at a specific index"""
+        if index < 0 or index >= self.current_size:
+            raise IndexError(f"Index {index} out of bounds for buffer of size {self.current_size}.")
+        return self.buffer[index]
+
     def __len__(self):
         return self.current_size
+
+
+class ActionMask():
+    """
+    Manages time-based action sequences using FIFO buffers to store action intervals 
+    and retrieve the active action for any given time within a sliding window.
+    """
+    def __init__(self, T, ts, ACTION_SIZE=3):
+        self.T = T; self.ts = ts
+        self.ti = 0  # Initial time
+        self.action_size = ACTION_SIZE
+        # Create two parallel fifo buffers, one to store times (tstart, tend) and another to store the actions
+        self.buffer_times   = ReplayBufferFIFO(capacity=T//ts, element_size=(2,))
+        self.buffer_actions = ReplayBufferFIFO(capacity=T//ts, element_size=(ACTION_SIZE,))
+
+    def pushAction(self, ti, tau, lamda_dur, us):
+        # Attention: tau is measured from the beginning of time 0, not from ti!
+        self.ti = ti
+        self.buffer_times.push(np.array([tau, tau + lamda_dur]))
+        self.buffer_actions.push(np.array(us))
+
+    def readAction(self, t_now):
+        if len(self.buffer_times) == 0:
+            return None
+        if t_now < self.ti or t_now > self.ti + self.T:
+            raise ValueError(f"Time {t_now} is out of the valid range [{self.ti}, {self.ti + self.T}]")
+        
+        # Search them in a priority order from the most recent to the oldest
+        for i in range(len(self.buffer_times)-1, -1, -1):
+            t_start, t_end = self.buffer_times.getElement(i)
+            if t_start <= t_now and t_now <= t_end:
+                return self.buffer_actions.getElement(i)
+
+        # If no action found return None meaning Nominal Control
+        return None
+    
+    def returnActionMaskArray(self, dt):
+        # Make sure dt is positive and smaller than ti
+        if dt <= 0 or dt > self.ts:
+            raise ValueError(f"dt must be positive and less than ts ({self.ts}), got {dt}.")
+        
+        t_list = np.arange(self.ti, self.ti + self.T, dt)
+        action_mask = np.zeros((len(t_list), self.action_size))  # Assuming 3
+        for i, t in enumerate(t_list):
+            action = self.readAction(t)
+            if action is not None:
+                action_mask[i] = action
+
+        return action_mask, t_list
+    

@@ -76,13 +76,13 @@ def main():
     LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    TS = 0.1; T_H = 0.25*5; deltaT_ERG = 0.25 * 30  # TS = 0.1, T_H = 0.25*5, deltaT_ERG = 0.25*40
+    TS = 0.1; T_H = 0.1*15; deltaT_ERG = 0.1*300  # TS = 0.1, T_H = 0.25*5, deltaT_ERG = 0.25*40
     Q_ = 2 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
     RELAX_FACTOR = 0.3
-    IMAX = 100e3
+    IMAX = 15e3
     BAR_WEIGHT = 0 # 50
 
     # Agent - Ergodic Controller -------------
@@ -126,6 +126,10 @@ def main():
 
     # More parameters
     UPDATE_EID_FREQ = 30  # How often to update the EID phi function (30 means every 30 ergodic iterations)
+    if input("Update EID phi function? (y/n): ") == "y":
+        UPDATE_EID_FLAG = True
+    else:
+        UPDATE_EID_FLAG = False
 
     input("Press Enter to continue...")
     # --------------------------------------------------------------------------------------------------
@@ -139,8 +143,8 @@ def main():
     state_target_list = [agent.model._state_target.copy()] if isinstance(agent.model, Quadcopter) else []  # State target list (only for quads with LQR)
     delta_t_Ts = []
     draw_plot_flag = False  # Flag that alternates when updating EID to plot
-    target_data = {i: {'times': [], 'positions': [], 'sigmas': []} for i in range(len(agent.ekfs))}
-
+    target_data = {i: {'times': [], 'positions': [], 'sigmas': []} for i in range(max(1, len(agent.ekfs)))}
+    
     ti = time_list[0]; ti_indx = 0
     Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Number of iterations per sampling time
     
@@ -177,7 +181,7 @@ def main():
                         res += f"{u[j]:.2f}, "
                     return res[:-2] + "]"
                 print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)")
-                print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/dt = {(tau - ti)/agent.model.dt:.2f} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
+                print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/T = {(tau - ti)/agent.erg_c.T:.1%} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
             
             # Debug print if agent inside boundaries
             agent.withinBounds(agent.model.state[:2])
@@ -187,7 +191,7 @@ def main():
             
             # Update the action mask
             if lamda_dur > 0:
-                agent.erg_c.updateActionMask(ti, us, tau, lamda_dur)
+                agent.erg_c.action_mask.pushAction(ti, tau, lamda_dur, us)
 
 
             # Multi-Target EKF update -------------------------------------------------
@@ -235,23 +239,23 @@ def main():
 
             # Simulation saving file ----------------------------
             # if draw_plot_flag:
-            if draw_plot_flag or i % 160 == 0:
-                x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
-                erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
-                ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
-                phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
-                print("Plotting phi")
-                phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
-                vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
-                plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
-                print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
-                plt.close()
-                draw_plot_flag = False
+            # if draw_plot_flag or i % 160 == 0:
+            #     x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+            #     erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
+            #     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
+            #     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
+            #     print("Plotting phi")
+            #     phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
+            #     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
+            #     plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
+            #     print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
+            #     plt.close()
+            #     draw_plot_flag = False
         
         # Continue with simulation of agent
-        us_ = agent.erg_c.ustar_mask[i - ti_indx]
+        us_ = agent.erg_c.action_mask.readAction(t_now=time_list[i])
         
-        if us_.all() != 0:
+        if us_ is not None:
             # Apply the control action to the agent's model
             u = us_
         else:
@@ -267,7 +271,7 @@ def main():
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
 
         # Lets update phi(x) if needed
-        if i%(Ts_iter * UPDATE_EID_FREQ) == 0:
+        if i%(Ts_iter * UPDATE_EID_FREQ) == 0 and UPDATE_EID_FLAG:
             t_ = time.time()
             print("Updating phi...")
             agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-5, FINAL_FI_CLIP=10, ALWAYS_ADD=2)

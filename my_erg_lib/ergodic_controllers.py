@@ -1,5 +1,5 @@
 import numpy as np
-from my_erg_lib.replay_buffer import ReplayBufferFIFO
+from my_erg_lib.replay_buffer import ReplayBufferFIFO, ActionMask
 from my_erg_lib.barrier import Barrier
 from my_erg_lib.agent import Agent
 from my_erg_lib.obstacles import Obstacle
@@ -49,8 +49,8 @@ class DecentralisedErgodicController():
             assert callable(uNominal), "uNominal must be a callable function."
             assert uNominal(agent.model.state, 0).shape[0] == agent.model.num_of_inputs, "uNominal must return a vector of size (num_of_inputs,)"
 
-        # Variable to store action if available (non zero if calculated and within sample space)
-        self.ustar_mask = np.zeros((int(self.Ts/self.agent.model.dt), agent.model.num_of_inputs))
+        # Variable to store action if available (!None if calculated and within sample space)
+        self.action_mask = ActionMask(T=T_horizon, ts=T_sampling, ACTION_SIZE=agent.model.num_of_inputs)
         # Variable to store past states for better Ck calculation (using Δte)
         self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
 
@@ -180,36 +180,21 @@ class DecentralisedErgodicController():
 
         # Find time that minimizes Jt (argmin Jt)
         min_idx = np.argmin(Jt_values)
+        # min_idx = int(0.45*len(t_traj))
         optimal_tau = t_traj[min_idx]
         optimal_Jt = Jt(t_traj[min_idx], x_traj[min_idx], ustar[min_idx], rho[min_idx])
         
         return optimal_tau, optimal_Jt
         
     def calcLambdaDuration(self):
-        # TODO: Implement a better way to determine the control duration
         """
         Je(x(u*)) - Je(x(unom)) = ΔJe ~= pJe_pλ|τ * λ 
         Also ΔJe < Ce 
         We need to find the max value of λ that satisfies this condition
         We start with a big value and halve it until the condition is met.
         """
-        lamda = self.Ts * 0.2
+        lamda = self.Ts * 0.3  #TODO: Hmm, maybe have a better way to calculate this without instability?
         return lamda
-
-    def updateActionMask(self, ti, us, tau, lamda_duration):
-        # Reset previous calculations
-        self.ustar_mask[:] = 0
-        # Calculate starting index
-        i_start = int((tau - ti) / self.agent.model.dt)
-        # Check wether tau is within the current timestep (τ ε [ti, ti + Ts])
-        if i_start >= 0 and i_start < len(self.ustar_mask):
-            # Calculate end index based on duration
-            i_end = int((tau + lamda_duration - ti) / self.agent.model.dt) + 1
-            i_end = min(i_end, len(self.ustar_mask))
-            # Save control to variable mask            
-            for j in range(i_start, i_end):
-                self.ustar_mask[j] = us
-
 
         
     def calcErgodicCost(self, ck):
