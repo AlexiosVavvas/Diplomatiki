@@ -53,7 +53,15 @@ class DecentralisedErgodicController():
         self.action_mask = ActionMask(T=T_horizon, ts=T_sampling, ACTION_SIZE=agent.model.num_of_inputs)
         # Variable to store past states for better Ck calculation (using Δte)
         self.past_states_buffer = ReplayBufferFIFO(capacity=int(self.deltaT_erg/self.agent.model.dt), element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
+        # self.past_states_buffer = ReplayBufferFIFO(capacity=np.inf, element_size=(2,), init_content=[self.agent.model.state[:2]]) # size = 2, cause we only care about 2 ergodic dimensions
 
+    # Default Control Function
+    def uDef(self, x, t):
+        a_mask = self.action_mask.readAction(t)
+        if a_mask is not None:
+            return a_mask
+        else:
+            return self.uNominal(x, t)
 
     def simulateAdjointBackward(self, x_traj, u_traj, t_traj, ck, T=1.0, Q=1, num_of_agents=1):
         '''
@@ -116,7 +124,7 @@ class DecentralisedErgodicController():
         prediction_dt = self.agent.model.dt if prediction_dt is None else prediction_dt
 
         # Simulate Trajectory Forward using prediction dt
-        x_traj, u_traj, t_traj = self.agent.model.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uNominal, T=self.T, dt=prediction_dt)
+        x_traj, u_traj, t_traj = self.agent.model.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uDef, T=self.T, dt=prediction_dt)
         erg_traj = x_traj[:, :2] # Save seperately the ergodic dimensions
         
         # Calc Ck Coefficients
@@ -162,12 +170,7 @@ class DecentralisedErgodicController():
 
         # Calculate the cost function Jt for a given tau
         def Jt(t, x, us, rho):
-            # udef = self.uNominal(x, t)
-            a_mask = self.action_mask.readAction(t)
-            if a_mask is not None:
-                udef = a_mask
-            else:
-                udef = self.uNominal(x, t)
+            udef = self.uDef(x, t)
             
             Jt_value = rho.T @ (self.agent.model.f(x, us) - self.agent.model.f(x, udef))
             

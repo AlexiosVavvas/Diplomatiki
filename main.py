@@ -17,7 +17,7 @@ def phiExample(s, L1=1.0, L2=1.0):
         (0.9 * L1, 0.5 * L2),
         (0.5 * L1, 0.8 * L2)
     ]
-    bump_heights = [3, 4, 2, 5, 8]
+    bump_heights = [5, 4, 2, 5, 8]
     bump_widths = [30, 40, 25, 35, 20]
     
     bumps = 0
@@ -77,7 +77,7 @@ def main():
     mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
     model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
     TS = 0.1; T_H = 0.1*15; deltaT_ERG = 0.1*300  # TS = 0.1, T_H = 0.25*5, deltaT_ERG = 0.25*40
-    Q_ = 2 # 1 with phiFunc
+    Q_ = 1 # 1 with phiFunc
     u_limits = model.input_limits
     u_nominal = model.calcLQRcontrol
     PREDICTION_DT = model.dt * 40
