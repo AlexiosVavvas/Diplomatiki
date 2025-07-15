@@ -80,8 +80,12 @@ class ActionMask():
     def readAction(self, t_now):
         if len(self.buffer_times) == 0:
             return None
-        if t_now < self.ti or t_now > self.ti + self.T:
+        if t_now < self.ti:
             raise ValueError(f"Time {t_now} is out of the valid range [{self.ti}, {self.ti + self.T}]")
+        if t_now > self.ti + self.T:
+            # print(f"Warning: Time {t_now} is beyond the valid range [{self.ti}, {self.ti + self.T}]. t_now-(ti+T)/T = {(t_now - self.ti - self.T)/self.T:.1%}.")
+            # Return for Nominal Control
+            return None
         
         # Search them in a priority order from the most recent to the oldest
         for i in range(len(self.buffer_times)-1, -1, -1):

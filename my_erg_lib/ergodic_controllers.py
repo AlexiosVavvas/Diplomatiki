@@ -162,7 +162,12 @@ class DecentralisedErgodicController():
 
         # Calculate the cost function Jt for a given tau
         def Jt(t, x, us, rho):
-            udef = self.uNominal(x, t)
+            # udef = self.uNominal(x, t)
+            a_mask = self.action_mask.readAction(t)
+            if a_mask is not None:
+                udef = a_mask
+            else:
+                udef = self.uNominal(x, t)
             
             Jt_value = rho.T @ (self.agent.model.f(x, us) - self.agent.model.f(x, udef))
             
