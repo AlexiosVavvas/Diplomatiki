@@ -41,10 +41,14 @@ def phiExample(s, L1=1.0, L2=1.0):
     # return 13 #+ waves + trend + ridge
     return bumps + 0.01 #+ waves + trend + ridge
 
+# Calculate the integral of phiExample over the domain once
+from scipy.integrate import dblquad
+_phi_integral, _ = dblquad(lambda x, y: phiExample((x, y), L1=10.0, L2=10.0), 0, 10, lambda _: 0, lambda _: 10)
+
 # Function to be used for phi with specific L1 and L2 values
 def phi_func(s):
-    # return phiExample(s, L1=10.0, L2=10.0)/30.0 * 4
-    return phiExample(s, L1=10.0, L2=10.0)/43.8855 * 4
+    # Normalized phi function - divides by the integral to ensure integral = 1
+    return phiExample(s, L1=10.0, L2=10.0) / _phi_integral * 4
 
 # -----------------------------------------------------------------------------------
 def main():
@@ -56,12 +60,6 @@ def main():
     import matplotlib.pyplot as plt
     import vis
     import time
-
-    # Integrate phi_func(s) from [0, 5] x [0, 5] and print result
-    from scipy.integrate import dblquad
-    integral_result, _ = dblquad(lambda x, y: phiExample((x, y), L1=10.0, L2=10.0), 0, 10, lambda _: 0, lambda _: 10)
-    print(f"Integral of phi_func over [0, 10] x [0, 10]: {integral_result:.4f}")
-    input("Press Enter to continue...")
 
 
     # Set up the agent -----------------------------------------------------------------------------
