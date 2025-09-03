@@ -10,7 +10,7 @@ class Obstacle():
         - Wall
     The obstacles are defined in a 2D space (for now)
     """
-    def __init__(self, pos, dimensions, obs_type, f_max, f_min=None, min_dist=1e-2, obs_name=None, eps_meters=None, e_max=1):
+    def __init__(self, pos, dimensions, kappa, obs_type, rho0, r0=None, obs_name=None):
         """
         Parameters:
             - pos: position of the obstacle
@@ -20,42 +20,38 @@ class Obstacle():
                 o Circle: f @ x = r + eps
                 o Rectangle: f @ x = w + eps_x or h + eps_y
                 o Wall: f @ x = eps
-            - eps_meters: if given, it will be used instead of f_min to calculate the eps
-            - f_max: maximum force applied @ x = min_dist
-            - min_dist: minimum distance to the obstacle (min dist to avoid dividing by zero)
             - obs_name: name of the obstacle (for debugging)
-            - e_max: maximum eps allowed (Used to calculate f_min)
+            # TODO: Complete here
 
         """
         # Save variables
         self.type = obs_type
         self.pos = np.asarray(pos)
         self.name_id = obs_name
+        # Potential field parameters
+        self.kappa = kappa
+        self.rho0 = rho0 # Obstacle vicinity distance (measured from the border of the obstacle and on)
 
-        self.min_dist = min_dist
-        self.k_obs = f_max * min_dist**2
-        
-        assert not (f_min == None and eps_meters is None), f"{obs_name}: Either a minimum force or a distance from the obstacle must be provided"
-        assert not (f_min is not None and eps_meters is not None), f"{obs_name}: Only one of <f_min> or <eps_meters> can be provided at any time"
+        # Function Placeholders, to be filled later
+        self.rhoFunc = None
+        self.gradRhoFunc = None
 
         dimensions = np.asarray(dimensions) if isinstance(dimensions, (list, tuple, np.ndarray)) else np.array([dimensions])
         if obs_type == 'circle':
             assert dimensions.size == 1 and dimensions > 0, "Circle obstacle must have only one dimension (radius) > 0"
             self.r = dimensions[0]
+            self.r0 = r0 if r0 is not None else self.r  # r0 is the radius used to calculation of pot fields. Could be greater than r, for safety.
 
-            # If given minimum force, lets calculate the distance we have it
-            if f_min is not None:
-                self.eps = -self.r + np.sqrt(self.k_obs/f_min)  # eps: [m] away from the wall
-                if self.eps > e_max:
-                    f"FMIN might be too small. FMIN > {self.k_obs/((self.eps + self.r)**2):.2e} \t[{obs_name} - eps={self.eps:.2f} > {e_max:.2f}]"
-            # Otherwise lets go directly to the eps percentage and recalculate f_min there
-            elif eps_meters is not None:
-                # If the user has given us a number in meters, we dont care about fmin
-                assert eps_meters > 0, f"eps_meters additional distance must be greater than 0 (obs_name={obs_name})"
-                self.eps = eps_meters
-                f_min = self.k_obs/((self.eps + self.r)**2)
-            else:
-                raise ValueError("Either a minimum force or a distance from the obstacle must be provided")
+            # Lets define distance and gradient functions
+            # Distance function: ρ(x) = ||x - pos|| - r0
+            def _rhoFunc(x):
+                return np.linalg.norm(x - self.pos) - self.r0
+            self.rhoFunc = _rhoFunc
+
+            # Gradient function: ∇ρ(x) = (x - pos) / ||x - pos||
+            def _gradRhoFunc(x):
+                return (x - self.pos) / np.linalg.norm(x - self.pos)
+            self.gradRhoFunc = _gradRhoFunc
 
         elif obs_type == 'rectangle':
             assert len(dimensions) == 2 and dimensions.all(), "Rectangle obstacle must have two dimensions (width, height) > 0"
@@ -63,25 +59,37 @@ class Obstacle():
             self.height = dimensions[1]
             self.bottom_left = self.pos - np.array([self.width / 2, self.height / 2])
 
-            if f_min is not None:
-                self.eps_x = -self.width/2  + np.sqrt(self.k_obs/f_min)    # eps: [m] away from the wall
-                self.eps_y = -self.height/2 + np.sqrt(self.k_obs/f_min)   # eps: [m] away from the wall
+            self.W = np.array([self.width/2, self.height/2])  # Half-width and half-height for easier calculations later
             
-                if self.eps_x > e_max:
-                    print(f"{obs_name}: FMIN might be too small. FMIN > {(self.k_obs/((self.eps + self.width/2)**2)):.2e} \t[{obs_name} - eps_x={self.eps_x:.2f} > {e_max:.2f}")
-                if self.eps_y > e_max: 
-                    print(f"{obs_name}: FMIN might be too small. FMIN > {(self.k_obs/((self.eps + self.height/2)**2)):.2e} \t[{obs_name} - eps_y={self.eps_y:.2f} > {e_max:.2f}")
-            
-            elif eps_meters is not None:
-                self.eps_x = eps_meters
-                self.eps_y = eps_meters
-                f_min_x = self.k_obs/((self.eps_x + self.width/2 )**2)
-                f_min_y = self.k_obs/((self.eps_y + self.height/2)**2)
-                f_min = max(f_min_x, f_min_y)
+            # Lets define distance and gradient functions
+            # Distance function
+            def _rhoFunc(x):
+                E = np.abs(x - self.pos) - self.W
+                maxE = np.max(E)
+                if maxE >= 0:
+                    return maxE
+                else:
+                    return -np.min(-E)
+            self.rhoFunc = _rhoFunc
 
-            else:
-                raise ValueError("Either a minimum force or a distance from the obstacle must be provided")
-            
+            # Gradient function
+            def _gradRhoFunc(x):
+                E = np.abs(x - self.pos) - self.W
+                if np.max(E) >= 0:
+                    # outside or on: gradient points in the direction
+                    # of the coordinate that attained the max
+                    if E[0] >= E[1]:
+                        return np.array([np.sign(x[0] - self.pos[0]), 0])
+                    else:
+                        return np.array([0, np.sign(x[1] - self.pos[1])])
+                else:
+                    # inside: gradient also points to the nearest side
+                    G = - E
+                    if G[0] <= G[1]:
+                        return np.array([np.sign(x[0] - self.pos[0]), 0])
+                    else:
+                        return np.array([0, np.sign(x[1] - self.pos[1])])
+            self.gradRhoFunc = _gradRhoFunc
 
 
         elif obs_type == 'wall':
@@ -108,18 +116,17 @@ class Obstacle():
             n = n / np.linalg.norm(n)
             self.n = n
 
-            if f_min is not None:
-                self.eps = np.sqrt(self.k_obs/f_min) # eps: [m] away from the wall
-                if self.eps > e_max: 
-                    print(f"{obs_name}: FMIN might be  too small. FMIN > {self.k_obs/(e_max)**2:.2e} \t[{obs_name} - eps={self.eps:.2f} > {e_max:.2f} (more than {e_max:.3f}[m] from the wall)]")
-            
-            elif eps_meters is not None:
-                self.eps = eps_meters
-                f_min = self.k_obs/(self.eps**2)
-            
-            else:
-                raise ValueError("Either a minimum force or a distance from the obstacle must be provided")
-            
+            # Lets define distance and gradient functions
+            # Distance function: ρ(x) = (x - p) . n
+            def _rhoFunc(x):
+                return np.dot(x - self.pos, self.n)
+            self.rhoFunc = _rhoFunc
+
+            # Gradient function: ∇ρ(x) = n
+            def _gradRhoFunc(x):
+                return self.n
+            self.gradRhoFunc = _gradRhoFunc
+
         else:
             raise ValueError("Obstacle type must be either 'circle', 'rectangle' or 'wall'")
 
@@ -128,12 +135,11 @@ class Obstacle():
 
         # Debug print
         if self.type == 'circle':
-            print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: {self.eps:.2f}[m] \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t\t f_min: {f_min:.2e} ")
+            print(f"Obstacle: {obs_name} \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t- K: {self.kappa} \t- rho_0: {self.rho0} \t- R0: {self.r0}")
         elif self.type == 'wall':
-            print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: {self.eps:.2f}[m] \t- type: {self.type} \t- Pos: {self.pos} \t\t- Normal: {dimensions} \t f_min: {f_min:.2e} ")
+            print(f"Obstacle: {obs_name} \t- type: {self.type} \t- Pos: {self.pos} \t\t- Normal: {dimensions} \t- K: {self.kappa} \t- rho_0: {self.rho0}")
         elif self.type == 'rectangle':
-            e_ = np.array([self.eps_x, self.eps_y])
-            print(f"Obstacle: {obs_name} \t- k: {self.k_obs:.2e} \t- e: ({e_[0]:.2f}[m], {e_[1]:.2f}[m]) \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t f_min: {f_min:.2e} ")
+            print(f"Obstacle: {obs_name} \t- type: {self.type} \t- Pos: {self.pos} \t- Dim: {dimensions} \t- K: {self.kappa} \t- rho_0: {self.rho0}")
 
     def distanceToTheWall(self, x):
         """
@@ -167,118 +173,93 @@ class Obstacle():
         else:
             raise ValueError("Obstacle type must be either 'circle', 'rectangle' or 'wall'")
 
-def ObstacleAvoidanceControllerGenerator(agent: Agent, obs_list, func_name=None):
+    def returnBoundaryPointsForPlotting(self, num_of_points=100):
+        # Return a 2d array of points that define the boundary of the obstacle
+        if self.type == 'circle':
+            theta = np.linspace(0, 2 * np.pi, num_of_points)
+            x = self.pos[0] + self.r * np.cos(theta)
+            y = self.pos[1] + self.r * np.sin(theta)
+            # Lets also put some points inside the circle uniformly using angle and radious
+            r_steps = np.linspace(0, self.r, num_of_points // 2)
+            theta_steps = np.linspace(0, 2 * np.pi, num_of_points // 2)
+            x_inner = self.pos[0] + r_steps[:, None] * np.cos(theta_steps)
+            y_inner = self.pos[1] + r_steps[:, None] * np.sin(theta_steps)
+            # Combine outer and inner points
+            x = np.concatenate((x, x_inner.flatten()))
+            y = np.concatenate((y, y_inner.flatten()))
+            return np.column_stack((x, y))
+
+        elif self.type == 'rectangle':
+            # Left wall using num_of_points
+            x_left = np.linspace(self.bottom_left[0], self.bottom_left[0], num_of_points)
+            y_left = np.linspace(self.bottom_left[1], self.bottom_left[1] + self.height, num_of_points)
+
+            x_right = np.linspace(self.bottom_left[0] + self.width, self.bottom_left[0] + self.width, num_of_points)
+            y_right = np.linspace(self.bottom_left[1], self.bottom_left[1] + self.height, num_of_points)
+
+            x_top = np.linspace(self.bottom_left[0], self.bottom_left[0] + self.width, num_of_points)
+            y_top = np.linspace(self.bottom_left[1] + self.height, self.bottom_left[1] + self.height, num_of_points)
+
+            x_bottom = np.linspace(self.bottom_left[0], self.bottom_left[0] + self.width, num_of_points)
+            y_bottom = np.linspace(self.bottom_left[1], self.bottom_left[1], num_of_points)
+
+            # Lets put some points inside the rectangle uniformly
+            # Calculate number of points based on rectangle dimensions
+            width_points = max(num_of_points // 4, int(num_of_points * self.width / (self.width + self.height)))
+            height_points = max(num_of_points // 4, int(num_of_points * self.height / (self.width + self.height)))
+            
+            x_inner = np.linspace(self.bottom_left[0] + 0.1, self.bottom_left[0] + self.width - 0.1, width_points)
+            y_inner = np.linspace(self.bottom_left[1] + 0.1, self.bottom_left[1] + self.height - 0.1, height_points)
+            x_inner, y_inner = np.meshgrid(x_inner, y_inner)
+            x_inner = x_inner.flatten()
+            y_inner = y_inner.flatten()
+
+            # Combine all points
+            x = np.concatenate((x_left, x_right, x_top, x_bottom, x_inner))
+            y = np.concatenate((y_left, y_right, y_top, y_bottom, y_inner))
+            return np.column_stack((x, y))
+        
+        elif self.type == 'wall':
+            # return empty array
+            return np.empty((0, 2))  # Wall has no boundary points to plot
+
+    def U(self, x):
+        """
+        Potential function for the obstacle avoidance.
+        """
+        rho = self.rhoFunc(x[:2])
+        if rho == 0:
+            rho = 1e-6  # Avoid division by zero
+        elif rho < 0:
+            return np.inf  # If the agent is inside the obstacle, return infinity
+        elif rho >= self.rho0:
+            # U = 0 for rho >= rho0
+            rho = self.rho0
+
+        return 0.5 * self.kappa * (1 / rho - 1 / self.rho0) ** 2
+
+    def gradU(self, x):
+        """
+        Gradient of the potential function for the obstacle avoidance.
+        """
+        rho = self.rhoFunc(x[:2])
+        rho = rho if rho != 0 else 1e-6  # Avoid division by zero
+        # Calculate ∇ρ
+        if rho >= self.rho0:
+            grad_rho = np.zeros_like(x[:2])
+        else: 
+            grad_rho = self.gradRhoFunc(x[:2])
+
+        return -self.kappa / (rho**2) * (1 / rho - 1 / self.rho0) * grad_rho
+
+def saveObstaclesToMemory(agent: Agent, obs_list):
     # Make sure the list is not empty
     assert len(obs_list) > 0, "Obstacle list is empty. Please provide a list of obstacles."
+
     # Make sure the obstacles are of type Obstacle
     for obstacle in obs_list:
         assert isinstance(obstacle, Obstacle), "Obstacle list must contain instances of the Obstacle class."
-    
+
     # Lets append obstacles to the agent list
     for obstacle in obs_list:
         agent.obstacle_list.append(obstacle)
-
-    # If we are playing with a Quadcopter we have to calculate an additional LQR gain for obstacle avoidance
-    if isinstance(agent.model, model_dynamics.Quadcopter):
-        K_LQR_obs = agent.model._calculateLqrControlGain(agent.model.Q_obs, agent.model.R)
-        K_LQR_def = agent.model.k_lqr.copy()
-
-    def obstacle_avoidance_control(x, t):
-        """
-        Obstacle avoidance control function.
-        This function calculates the control action to avoid obstacles.
-        """
-        # Forces in the global X, Y direction
-        f = np.zeros((2,))
-
-        # Iterate over all obstacles
-        for obstacle in obs_list:
-            # Check the type of the obstacle
-            if obstacle.type == 'circle':
-                # Calculate the distance to the obstacle
-                dist = np.linalg.norm(x[:2] - obstacle.pos)
-                dist = obstacle.min_dist if dist < obstacle.min_dist else dist
-            
-                if dist <= obstacle.r + obstacle.eps:
-                    # If the agent is within the obstacle radius, apply a control action to move away from it
-                    f += (x[:2] - obstacle.pos) / (dist**3) * obstacle.k_obs
-
-            elif obstacle.type == 'rectangle':
-                # Calculate the distance to the rectangle (X direction)
-                dist_x_abs = np.abs(x[0] - obstacle.pos[0])
-                dist_x_abs = obstacle.min_dist if dist_x_abs < obstacle.min_dist else dist_x_abs
-
-                # Calculate the distance to the rectangle (Y direction)
-                dist_y_abs = np.abs(x[1] - obstacle.pos[1])
-                dist_y_abs = obstacle.min_dist if dist_y_abs < obstacle.min_dist else dist_y_abs
-
-                within_obs_reach_x = (dist_x_abs <= obstacle.width/2  + obstacle.eps_x) and (np.abs(x[1] - obstacle.pos[1]) <= obstacle.height/2 + 0.5 * obstacle.height/2)
-                within_obs_reach_y = (dist_y_abs <= obstacle.height/2 + obstacle.eps_y) and (np.abs(x[0] - obstacle.pos[0]) <= obstacle.width/2  + 0.5 * obstacle.width/2)
-                # within_obs_reach_x = (dist_x_abs <= obstacle.width/2  + obstacle.eps_x) and (np.abs(x[1] - obstacle.pos[1]) <= obstacle.height/2)
-                # within_obs_reach_y = (dist_y_abs <= obstacle.height/2 + obstacle.eps_y) and (np.abs(x[0] - obstacle.pos[0]) <= obstacle.width/2 )
-
-                if within_obs_reach_x:
-                    # Force in the X direction
-                    if x[0] < obstacle.pos[0]:
-                        f[0] += -1 / (dist_x_abs**2) * obstacle.k_obs
-                    else:
-                        f[0] += +1 / (dist_x_abs**2) * obstacle.k_obs
-
-                if within_obs_reach_y:
-                    # Force in the Y direction
-                    if x[1] < obstacle.pos[1]:
-                        f[1] += -1 / (dist_y_abs**2) * obstacle.k_obs
-                    else:
-                        f[1] += +1 / (dist_y_abs**2) * obstacle.k_obs
-
-
-            elif obstacle.type == 'wall':
-                # Calculate the distance to the wall
-                dist = obstacle.distanceToTheWall(x[:2]) # dist can be negative
-                dist = obstacle.min_dist if dist < obstacle.min_dist else dist # Make sure we have a positive distance
-                
-                if dist <= obstacle.eps:
-                    # If the agent is within the wall distance, apply a control action to move away from it
-                    dx = dist * obstacle.n
-
-                    f += dx / (dist**3) * obstacle.k_obs
-            
-        # Lets translate Fx and Fy to the control space
-        if isinstance(agent.model, model_dynamics.Quadcopter):
-            # Forces show desired direction. In a quad we cant translate forces to inputs. We need to use them as LQR velocities target
-            # rotate forces to the body frame
-            sy = np.sin(agent.model.state[3])  # Rotate yaw to get from world frame to body frame # TODO: Is this correct?
-            cy = np.cos(agent.model.state[3])  # Rotate yaw to get from world frame to body frame
-            r_ = np.array([[cy, -sy], [sy, cy]])
-            f = r_ @ f
-            agent.model.f_command_to_controller = f
-
-            # [x,  y,  z,  psi, theta, phi, x',  y',  z',  psidot, thetadot, phidot]
-            if f[0] != 0 or f[1] != 0:
-                # If we have to avoid an obstacle, we need better velocity tracking
-                agent.model._state_target[6] += float(f[0])  # x'
-                agent.model._state_target[7] += float(f[1])  # y'
-                agent.model.k_lqr = K_LQR_obs
-                agent.model.state_target_modified = True
-            else: 
-                # Otherwise, we can use the default LQR gains
-                # If someone needs to avoid obstacles, we have to use the obstacle avoidance gains
-                agent.model.k_lqr = K_LQR_obs if agent.model.state_target_modified else K_LQR_def
-            
-            u = np.zeros((agent.model.num_of_inputs,))
-            
-        else:
-            # Single and Double integrators work fine with forces X and Y as inputs directly (scaled accordingly)
-            u = agent.model.convertForcesToInputs(f)
-
-        # Return control action
-        return u
-    
-    # Lets set the function name
-    if func_name is not None:
-        assert isinstance(func_name, str), "Function name must be a string"
-        obstacle_avoidance_control.__name__ = func_name
-    else:
-        obstacle_avoidance_control.__name__ = "None"
-
-    return obstacle_avoidance_control

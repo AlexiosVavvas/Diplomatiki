@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # -----------------------------------------------------------------------------------
 from my_erg_lib.agent import Agent
-from my_erg_lib.obstacles import Obstacle, ObstacleAvoidanceControllerGenerator
+from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
 from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
 from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
 import matplotlib.pyplot as plt
@@ -30,7 +30,7 @@ obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,  f_max=FMAX, min_dist=0.12, e
         Obstacle(pos=[0.66, 0.77], dimensions=0.12, f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle', obs_name="Obstacle 2"), 
         Obstacle(pos=[0.6, 0.5],   dimensions=0.08, f_max=FMAX, min_dist=0.10, eps_meters=EPS_M, obs_type='circle', obs_name="Obstacle 3"),]
 
-func_obs = ObstacleAvoidanceControllerGenerator(agent, obs_list=obs)
+func_obs = saveObstaclesToMemory(agent, obs_list=obs)
 
 
 # Avoiding Walls ----------------------
@@ -41,7 +41,7 @@ bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], f_max=FMAX, min_dist=m
         Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Right Wall" )]
 
 # Add the obstacle avoidance controller to the ergodic controller
-func_bar = ObstacleAvoidanceControllerGenerator(agent, obs_list=bar)
+func_bar = saveObstaclesToMemory(agent, obs_list=bar)
 
 # --------------------------------------------------------------------------------------------------
 

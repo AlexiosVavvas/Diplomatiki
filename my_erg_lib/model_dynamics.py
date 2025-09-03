@@ -59,9 +59,18 @@ class SingleIntegrator():
         '''
         return self.B.copy()
 
+    # TODO: To verify if this is correct
+    def g(self, x):
+        """
+        Affine Dynamics, States Part
+        x' = f(x) = g(x) + h(x) u
+        """
+        return self.A @ x 
+    
     def h(self, x):
         '''
         Affine Dynamics Control Part
+        x' = f(x) = g(x) + h(x) u
         '''
         return self.f_u(x)
 
@@ -135,18 +144,21 @@ class DoubleIntegrator():
     
     Note: By design of my code, the ergodic states should ALWAYS be the first two elements of the state vector.
     '''
-    def __init__(self, mass=1, dt=0.001, x0=None):
+    def __init__(self, mass=1, dt=0.001, x0=None, damping=0):
         
         self.dt = dt
         self.num_of_states = 4
         self.num_of_inputs = 2
         self.m = mass
+        self.b = damping
+        # v' + b/m * v = u/m : First order LTI in velocity, so τ = m/b
+        # For τ = 1s (velocity go to zero in 1 second) we can choose b = m/1
 
         self.A = np.array([
-                [0., 0., 1.0, 0.],
-                [0., 0., 0., 1.0],
-                [0., 0., 0., 0.],
-                [0., 0., 0., 0.]
+                [0., 0., 1.0,            0.            ],
+                [0., 0., 0.,             1.0           ],
+                [0., 0., -self.b/self.m, 0.            ],
+                [0., 0., 0.,             -self.b/self.m]
         ])
 
         self.B = np.array([
@@ -189,9 +201,18 @@ class DoubleIntegrator():
         '''
         return self.B.copy()
 
+    # TODO: To verify if this is correct
+    def g(self, x):
+        """
+        Affine Dynamics, States Part
+        x' = f(x) = g(x) + h(x) u
+        """
+        return self.A @ x 
+    
     def h(self, x):
         '''
         Affine Dynamics Control Part
+        x' = f(x) = g(x) + h(x) u
         '''
         return self.f_u(x)
 
@@ -403,8 +424,30 @@ class Quadcopter():
     def h(self, x):
         '''
         Affine Dynamics Control Part
+        x' = f(x) = g(x) + h(x) u
         '''
         return self.f_u(x)
+
+    # TODO: To verify if this is correct
+    def g(self, x):
+        """
+        Affine Dynamics, States Part
+        x' = f(x) = g(x) + h(x) u
+        """
+        return np.array([
+            x[6],  # x'
+            x[7],  # y'
+            x[8],  # z'
+            x[9],  # ψ'
+            x[10], # θ'
+            x[11],  # φ'
+            0,
+            0,
+            -9.81,
+            -self.damping * x[9],  # ψ'' = -damping * ψ'
+            -self.damping * x[10], # θ'' = -damping * θ'
+            -self.damping * x[11]  # φ'' = -damping * φ'
+        ])
 
     def step(self, x, u, dt=None):
         dt = self.dt if dt is None else dt

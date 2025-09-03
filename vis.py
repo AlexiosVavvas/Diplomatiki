@@ -21,8 +21,17 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
             Z_original[j, i] = phi_original([x1[i], x2[j]])
             Z_rec_from_ck[j, i] = phi_rec_from_ck([x1[i], x2[j]])
             Z_agent_fourier_rec[j, i] = phi_rec_from_agent([x1[i], x2[j]])
+    
+    # # Calculate the integrals using 2D trapezoidal rule
+    # integral_original = np.trapz(np.trapz(Z_original, x2, axis=0), x1)
+    # integral_agent_fourier = np.trapz(np.trapz(Z_agent_fourier_rec, x2, axis=0), x1)
+    # integral_rec_from_ck = np.trapz(np.trapz(Z_rec_from_ck, x2, axis=0), x1)
+
+    # print(f"Integral of original function: {integral_original:.6f}")
+    # print(f"Integral of agent fourier reconstruction: {integral_agent_fourier:.6f}")
+    # print(f"Integral of reconstruction from ck: {integral_rec_from_ck:.6f}")
         
-    fig = plt.figure(figsize=(18, 6))
+    fig = plt.figure(figsize=(18, 5))
     
     ax1 = fig.add_subplot(131)
     im1 = ax1.imshow(Z_original, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
@@ -1226,3 +1235,40 @@ def plotMeasurementsAndTargets(agent, measurements, associated_measurements=None
     
     # Return the figure number for reuse
     return fig.number
+
+
+def visHfield(agent, L_limits, delta, num_of_points):
+    # L_limits = [L1_min, L1_max, L2_min, L2_max]
+    x = np.linspace(L_limits[0], L_limits[1], num_of_points)
+    y = np.linspace(L_limits[2], L_limits[3], num_of_points)
+    X, Y = np.meshgrid(x, y)
+    Z = np.zeros((len(y), len(x)))
+    for i in range(len(x)):
+        for j in range(len(y)):
+            Z[j, i] = agent.calcH([x[i], y[j]], delta)
+
+    # Create a 1x2 subplot grid
+    fig = plt.figure(figsize=(10, 6))
+    
+    # 2D plot with imshow
+    ax1 = fig.add_subplot(121)
+    im1 = ax1.imshow(Z, extent=[L_limits[0], L_limits[1], L_limits[2], L_limits[3]], 
+                     origin='lower', cmap='viridis', aspect='auto')
+    ax1.set_xlabel('X Position')
+    ax1.set_ylabel('Y Position')
+    ax1.set_title('Potential Field - 2D View')
+    plt.colorbar(im1, ax=ax1, label='Potential Field Value')
+    # Plot a red dashed rectangle 0->agent.L1, 0->agent.L2
+    ax1.add_patch(plt.Rectangle((0, 0), agent.L1, agent.L2, fill=False, edgecolor='red', linestyle='--', linewidth=2))
+    
+    # 3D surface plot
+    ax2 = fig.add_subplot(122, projection='3d')
+    surf = ax2.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8)
+    ax2.set_xlabel('X Position')
+    ax2.set_ylabel('Y Position')
+    ax2.set_zlabel('Potential Field Value')
+    ax2.set_title('Potential Field - 3D View')
+    fig.colorbar(surf, ax=ax2, label='Potential Field Value', shrink=0.5)
+    
+    plt.tight_layout()
+    plt.show()

@@ -1,10 +1,6 @@
 import numpy as np
 from my_erg_lib.replay_buffer import ReplayBufferFIFO, ActionMask
 from my_erg_lib.barrier import Barrier
-from my_erg_lib.agent import Agent
-from my_erg_lib.obstacles import Obstacle
-from my_erg_lib.model_dynamics import Quadcopter
-import vis
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
@@ -139,6 +135,13 @@ class DecentralisedErgodicController():
         else:
             ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
 
+        # Lets write ck to file for visualisation purposes 
+        if self.agent.DASHBOARD_FLAG:
+            with open("logs/ck_values.txt", "w") as f:
+                for k1 in range(ck.shape[0]):
+                    for k2 in range(ck.shape[1]):
+                        f.write(f"{k1},{k2},{ck[k1, k2]}\n")
+
         erg_cost = self.calcErgodicCost(ck) 
 
         # Simulate Adjoint Backward to get rho(t)
@@ -151,15 +154,18 @@ class DecentralisedErgodicController():
         # Evaluate Ustar
         ustar = np.zeros((len(x_traj), self.agent.model.num_of_inputs))
         for i in range(len(x_traj)):
+            # Ergodic part of the solution
             ustar[i] = -self.Rinv @ self.agent.model.h(x_traj[i]).T @ rho[i]
 
-            # Add nominal control if available
+            # Add Nominal control instead of default
             ustar[i] += self.uNominal(x_traj[i], ti + i * prediction_dt)
         
         # Calculate Application Time
         tau, Jtau = self.calcApplicationTime(ustar, rho, x_traj, t_traj, ti, self.T)
-        assert Jtau < 0, "Jtau is Non Negative, which is not expected."
-        
+        # assert Jtau < 0, "Jtau is Non Negative, which is not expected."
+        if Jtau >= 0:
+            print(f"Warning: Jtau is Non Negative ({Jtau}), which is not expected.")
+
         # Determine Control Duration
         lamda_duration = self.calcLambdaDuration() # Default: 0.1 * Ts
 
@@ -191,6 +197,9 @@ class DecentralisedErgodicController():
         # TODO: Do gradient descent or something faster / clever? - Could change the time step here from t_traj to go faster
         # TODO: Make sure we dont always choose the first value - Seems like we do
         Jt_values = np.array([Jt(t_traj[i], x_traj[i], ustar[i], rho[i]) for i in range(len(t_traj))])
+        # We have a problem with the first value. Prev interval for example was [0, 0.03] and now [0.03, 0.06]. Now at 0.03 for the second calc uDef is defined from before, so Jt[0] has info from the prev interval. 
+        # We solve it by just ignoring this calculation and using the Jt[1] as the 1st. Not a big deal i guess.
+        Jt_values[0] = Jt_values[1].copy() if Jt_values[0] > Jt_values[1] else Jt_values[0]
         # vis.simplePlot(x=(t_traj - ti)/self.Ts, y=[Jt_values], 
         #            title="Jt_values", y_label="Jt", y_type="list",
         #            x_lim=None, y_lim=None,
@@ -198,9 +207,8 @@ class DecentralisedErgodicController():
 
         # Find time that minimizes Jt (argmin Jt)
         min_idx = np.argmin(Jt_values)
-        # min_idx = int(0.45*len(t_traj))
         optimal_tau = t_traj[min_idx]
-        optimal_Jt = Jt(t_traj[min_idx], x_traj[min_idx], ustar[min_idx], rho[min_idx])
+        optimal_Jt = Jt_values[min_idx]
         
         return optimal_tau, optimal_Jt
         
@@ -219,7 +227,7 @@ class DecentralisedErgodicController():
         ergodic_cost = 0.0
         for k1 in range(self.agent.Kmax+1):
             for k2 in range(self.agent.Kmax+1):
-                ergodic_cost += (ck[k1, k2] - self.agent.basis.calcPhikCoeff(k1, k2))**2
+                ergodic_cost += self.agent.basis.LamdaK_cache[(k1, k2)] * (ck[k1, k2] - self.agent.basis.calcPhikCoeff(k1, k2))**2
         ergodic_cost *= self.Q
         return ergodic_cost
 

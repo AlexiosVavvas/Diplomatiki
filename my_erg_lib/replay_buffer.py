@@ -65,7 +65,7 @@ class ReplayBufferFIFO:
         """Get an element at a specific index"""
         if index < 0 or index >= self.current_size:
             raise IndexError(f"Index {index} out of bounds for buffer of size {self.current_size}.")
-        return self.buffer[index]
+        return self.buffer[index].copy() #.copy() necessary to avoid modifying the buffer!! AAAaaahhhh!!
 
     def __len__(self):
         return self.current_size
@@ -88,7 +88,7 @@ class ActionMask():
         # Attention: tau is measured from the beginning of time 0, not from ti!
         self.ti = ti
         self.buffer_times.push(np.array([tau, tau + lamda_dur]))
-        self.buffer_actions.push(np.array(us))
+        self.buffer_actions.push(np.array(us.copy())) #.copy() necessary 
 
     def readAction(self, t_now):
         if len(self.buffer_times) == 0:
@@ -103,7 +103,7 @@ class ActionMask():
         # Search them in a priority order from the most recent to the oldest
         for i in range(len(self.buffer_times)-1, -1, -1):
             t_start, t_end = self.buffer_times.getElement(i)
-            if t_start <= t_now and t_now <= t_end:
+            if (t_start - 1e-10) <= t_now <= (t_end + 1e-10): # Add small tolerance for floating point comparison (AAAhhhhh, took time to find that out...)
                 return self.buffer_actions.getElement(i)
 
         # If no action found return None meaning Nominal Control

@@ -1,9 +1,11 @@
+import os
 import numpy as np
 
 import cProfile
 import pstats
 from pstats import SortKey
 
+# TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
 def phiExample(s, L1=1.0, L2=1.0):
     # Complex function with multiple peaks, valleys, and non-linearities
     x, y = s[0], s[1]
@@ -11,14 +13,13 @@ def phiExample(s, L1=1.0, L2=1.0):
     # Multiple Gaussian bumps
     # Generate random bump positions within the L1, L2 boundaries
     bump_positions = [
-        (0.2 * L1, 0.3 * L2), 
-        (0.7 * L1, 0.8 * L2), 
-        (0.5 * L1, 0.1 * L2), 
-        (0.9 * L1, 0.5 * L2),
-        (0.5 * L1, 0.8 * L2)
+        (0.3 * L1, 0.8 * L2),
+        (0.7 * L1, 0.2 * L2),
+        (0.15 * L1, 0.4 * L2),
+        (0.85 * L1, 0.6 * L2)
     ]
-    bump_heights = [5, 4, 2, 5, 8]
-    bump_widths = [30, 40, 25, 35, 20]
+    bump_heights = [5, 4, 3, 4.5]
+    bump_widths = [0.7, 0.7, 15.2, 6.3]
     
     bumps = 0
     for i in range(len(bump_positions)):
@@ -37,16 +38,18 @@ def phiExample(s, L1=1.0, L2=1.0):
     # ridge = 3 * np.exp(-100 * (x - y)**2)
     
     # Combine all components
-    return bumps + 0 #+ waves + trend + ridge
+    # return 13 #+ waves + trend + ridge
+    return bumps + 0.01 #+ waves + trend + ridge
 
 # Function to be used for phi with specific L1 and L2 values
 def phi_func(s):
-    return phiExample(s, L1=1.0, L2=1.0)
+    # return phiExample(s, L1=10.0, L2=10.0)/30.0 * 4
+    return phiExample(s, L1=10.0, L2=10.0)/43.8855 * 4
 
 # -----------------------------------------------------------------------------------
 def main():
     from my_erg_lib.agent import Agent
-    from my_erg_lib.obstacles import Obstacle, ObstacleAvoidanceControllerGenerator
+    from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
     from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
@@ -54,82 +57,161 @@ def main():
     import vis
     import time
 
-    # TODO: Something is wrong with the effect of the mass. Check it out (Double Integrator etc)
+    # Integrate phi_func(s) from [0, 5] x [0, 5] and print result
+    from scipy.integrate import dblquad
+    integral_result, _ = dblquad(lambda x, y: phiExample((x, y), L1=10.0, L2=10.0), 0, 10, lambda _: 0, lambda _: 10)
+    print(f"Integral of phi_func over [0, 10] x [0, 10]: {integral_result:.4f}")
+    input("Press Enter to continue...")
+
+
     # Set up the agent -----------------------------------------------------------------------------
     
     # ===== Dynamics Model =====
-    # Double integrator model ----
-    # x0 = [0.4, 0.6, 0, 0]
-    # u_limits = [[-10, 10], [-10, 10]]
-    # model = DoubleIntegrator(dt=0.001)
+    # Single integrator model ----
+    # x0 = [2, 4]
+    # u_limits = [[-1, 1], [-1, 1]]
+    # model = SingleIntegrator(dt=0.002)
     # u_nominal = None
+    # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
     # Q_ = 1
+    # R_ = 0.001 * np.eye(model.num_of_inputs)
     # PREDICTION_DT = model.dt * 25
-    # RELAX_FACTOR = 0.9
-    # IMAX = 10e3
-    # TS = 0.01; T_H = 0.2; deltaT_ERG = 0.25 * 10
+    # RELAX_FACTOR = 1
+    # IMAX = 100e3
+    # TS = 0.01; T_H = 0.1; deltaT_ERG = 0.25 * 5
     # BAR_WEIGHT = 0
+    # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+    # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+
+    # Double integrator model ----
+    x0 = [8, 4, 0, 0]
+    ULIM = 50 # 30
+    u_limits = [[-ULIM, ULIM], [-ULIM, ULIM]]
+    model = DoubleIntegrator(dt=0.0012, x0=x0, damping=2)
+    u_nominal = None
+    INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
+    Q_ = 8
+    R_ = 0.001 * np.eye(model.num_of_inputs)
+    RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
+    IMAX = 15e3
+    TS = 0.03; T_H = 0.5; deltaT_ERG = 3
+    PREDICTION_DT = model.dt * 5
+    BAR_WEIGHT = 0
+    UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+    DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+
 
     # Quadrotor model -----------
-    x0 = [0.8, 0.8, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
-    UP_MTR_LIM = 2         # Motor Upper Limit Thrust in [N]
-    LOW_MTR_LIM = -2       # Motor Lower Limit Thrust in [N]
-    mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
-    model = Quadcopter(dt=0.001, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"])
-    INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
-    TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
-    deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
-    Q_ = 1 # 1 with phiFunc
-    u_limits = model.input_limits
-    u_nominal = model.calcLQRcontrol
-    PREDICTION_DT = model.dt * 40
-    RELAX_FACTOR = 0.3
-    IMAX = 30e3
-    BAR_WEIGHT = 0 # 50
-    UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+    # TODO: Quad not working well with CBFs yet, the others do for now
+    # x0 = [8, 4, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+    # UP_MTR_LIM = 22         # Motor Upper Limit Thrust in [N]
+    # LOW_MTR_LIM = -22       # Motor Lower Limit Thrust in [N]
+    # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
+    # model = Quadcopter(dt=0.002, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"],
+    #                    mass=2, damping=3.5, R=np.diag([1, 1, 1, 1])*1)
+    # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
+    # TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
+    # deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
+    # Q_ = 8
+    # R_ = 0.001 * np.eye(model.num_of_inputs)
+    # u_limits = model.input_limits
+    # u_nominal = model.calcLQRcontrol
+    # PREDICTION_DT = model.dt * 40
+    # RELAX_FACTOR = 0.8
+    # IMAX = 20e3
+    # BAR_WEIGHT = 0 # 50
+    # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+    # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+
+    # del file cbf_log.txt and PSI.txt for gnuplot plotting
+    if os.path.exists("logs/cbf_log.txt"):
+        os.remove("logs/cbf_log.txt")
+        os.remove("logs/PSI.txt")
+        os.remove("logs/agent_state.txt")
+        os.remove("logs/obstacles_points.txt")
+        os.remove("logs/ergodic_cost.txt")
+        os.remove("logs/ck_values.txt")
 
     # Agent - Ergodic Controller -------------
+
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=1.0, L2=1.0, Kmax=3, 
-                  dynamics_model=model, phi=lambda s: 2, x0=x0) # phi=phi_func
+    agent = Agent(L1=10.0, L2=10.0, Kmax=4, 
+                #   dynamics_model=model, phi=phi_func, x0=x0) # phi=phi_func
+                  dynamics_model=model, phi=lambda s: 1/100, x0=x0) # phi=phi_func
     
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, uLimits=u_limits,
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R=R_, uLimits=u_limits,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
                                                  use_inf_buffer=INF_BUF_FLAG,
                                                  barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
     
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
-    FMAX = 0.25; EPS_M = 0.2
-    obs  = [Obstacle(pos=[0.2, 0.2],   dimensions=0.1,        f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 1"), 
-            Obstacle(pos=[0.66, 0.77], dimensions=0.12,       f_max=FMAX, min_dist=0.16, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 2"), 
-            Obstacle(pos=[0.6, 0.5],   dimensions=0.08,       f_max=FMAX, min_dist=0.12, eps_meters=EPS_M, obs_type='circle',    obs_name="Obstacle 3"),
-            Obstacle(pos=[0.15, 0.8],  dimensions=[0.2, 0.2], f_max=FMAX, min_dist=0.14, eps_meters=EPS_M, obs_type='rectangle', obs_name="Obstacle 4")]
+    # Floor Plan Obstacle Map ---------------------
+    # RHO0 = 0.15; KAPPA0 = 1
+    # obs = [Obstacle(pos=[2.16, 3.04],   dimensions=[1.89, 0.69], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 1"),
+    #        Obstacle(pos=[4.51, 1.41],   dimensions=[0.20, 2.83], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 2"),
+    #        Obstacle(pos=[5.02, 2.73],   dimensions=[0.82, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 3"),
+    #        Obstacle(pos=[7.37, 2.73],   dimensions=[0.78, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 4"),
+    #        Obstacle(pos=[7.86, 1.58],   dimensions=[0.20, 3.17], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 5"),
+    #        Obstacle(pos=[7.41, 4.83],   dimensions=[0.20, 1.14], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 6"),
+    #        Obstacle(pos=[8.75, 4.81],   dimensions=[2.49, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 7"),
+    #        Obstacle(pos=[6.79, 7.85],   dimensions=[1.06, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 8"),
+    #        Obstacle(pos=[8.26, 8.87],   dimensions=[0.20, 2.27], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 9"),
+    #        Obstacle(pos=[4.73, 9.13],   dimensions=[3.05, 1.73], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 10"),
+    #        Obstacle(pos=[6.15, 7.05],   dimensions=[0.20, 2.44], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 11"),
+    #        Obstacle(pos=[5.40, 5.93],   dimensions=[1.32, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 12"),
+    #        Obstacle(pos=[3.30, 7.05],   dimensions=[0.20, 2.44], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 13"),
+    #        Obstacle(pos=[1.64, 7.91],   dimensions=[0.99, 0.16], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 14"),
+    #        Obstacle(pos=[2.17, 1.58],   dimensions=0.35,         obs_type='circle',    kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 15")]
+    # saveObstaclesToMemory(agent, obs_list=obs)
+    # -----------------------------------------------
 
-    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obs, func_name="Obstacles")
+    # # Create 3x3 grid of circular obstacles with more spacing
+    grid_size = 3
+    # Add margin from edges
+    margin_x = 0.15  # 15% margin from edges
+    margin_y = 0.15  # 15% margin from edges
+    obs = []
+    for i in range(grid_size):
+        for j in range(grid_size):
+            x_pos = margin_x + i * (agent.L1 - 2 * margin_x) / (grid_size - 1)
+            y_pos = margin_y + j * (agent.L2 - 2 * margin_y) / (grid_size - 1)
+            obs.append(Obstacle(pos=[x_pos, y_pos], dimensions=0.7, obs_type='circle', kappa=1, rho0=0.15, obs_name=f"Obstacle {i*grid_size + j + 1}"))
 
+    saveObstaclesToMemory(agent, obs_list=obs)
+    # saveObstaclesToMemory(agent, obs_list=[Obstacle(pos=[2.5, 2.5], dimensions=[1.2, 1.2], obs_type='rectangle', kappa=0.7, rho0=0.3, obs_name=f"Obstacle {10}")])
+    # saveObstaclesToMemory(agent, obs_list=[Obstacle(pos=[5, 5], dimensions=0.5, obs_type='circle', kappa=0.7, rho0=0.3, obs_name=f"Obstacle {10}")])
+    
 
     # Avoiding Walls ----------------------
-    FMAX = 1; min_dist = 1e-2; EPS_M = 0.49; e_max = agent.L1
-    bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Bottom Wall"),
-            Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Top Wall"   ),
-            Obstacle(pos=[0,        0],   dimensions=[+1, 0], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Left Wall"  ),
-            Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], f_max=FMAX, min_dist=min_dist, e_max=e_max, eps_meters=EPS_M,  obs_type='wall', obs_name="Right Wall" )]
-    
+    bar  = [Obstacle(pos=[0,        0],   dimensions=[0, +1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Bottom Wall"),
+            Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Top Wall"   ),
+            Obstacle(pos=[0,        0],   dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Left Wall"  ),
+            Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Right Wall" )]
+
     # Add the obstacle avoidance controller to the ergodic controller
-    agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=bar, func_name="Walls")
+    saveObstaclesToMemory(agent, obs_list=bar)
+
     # Print uNominal Status
     print(agent.erg_c.uNominal)
+    
+    # Visualize H-field
+    # vis.visHfield(agent, L_limits=[-0.5, agent.L1+0.5, -0.5, agent.L2+0.5], delta=DELTA_SAFE, num_of_points=200)
 
     # Lets now update the phi_function to take into account the obstacles
-    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="All")
+    agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="None")
     agent.basis.precalcAllPhiK()
 
-    if input("\nVisualise Potential Fields? (y/n): ") == "y":
-        vis.visPotentialFields(agent)
+    # if input("\nVisualise Potential Fields? (y/n): ") == "y":
+    #     vis.visPotentialFields(agent)
 
     # More parameters
-    if input("Update EID phi function? (y/n): ") == "y":
+    if input("Localise Targets? (y/n): ") == "y":
+        LOCALISE_TARGETS_FLAG = True
+    else:
+        LOCALISE_TARGETS_FLAG = False
+
+    if LOCALISE_TARGETS_FLAG and input("Update EID phi function? (y/n): ") == "y":
         UPDATE_EID_FLAG = True
     else:
         UPDATE_EID_FLAG = False
@@ -139,7 +221,28 @@ def main():
     else:
         SAVE_IMAGES_FLAG = False
 
+    dash_resp = input("Start Python Dashboard.py? (y/n): ")
+    if dash_resp == "y":
+        # Run python dashboard.py
+        os.system("start cmd /k python dashboard.py")
+    # The flag is used to write to file, so even if not spawning new window, we may need the flags on (in case there is one dashboard already running)
+    DASHBOARD_FLAG = True if dash_resp != "n" else False
+    agent.DASHBOARD_FLAG = DASHBOARD_FLAG
+
     input("Press Enter to continue...")
+
+    # --------------------------------------------------------------------------------------------------
+    # Write obstacle positions to file for later visualisation with dashboard.py
+    if DASHBOARD_FLAG:
+        obstacle_points = []
+        for obs in agent.obstacle_list:
+            obstacle_points.append(obs.returnBoundaryPointsForPlotting(num_of_points=20))
+        # Write to file
+        with open("logs/obstacles_points.txt", "w") as f:
+            for obs_points in obstacle_points:
+                np.savetxt(f, obs_points, delimiter="\t")
+                f.write("\n")
+        del obstacle_points  # Clear the list to free memory
     # --------------------------------------------------------------------------------------------------
     
     # Lists to store for plotting
@@ -147,6 +250,7 @@ def main():
     time_list = [0]  # Time vector
     u_list = [np.zeros((agent.model.num_of_inputs,))]  # Control action list
     u_before = np.zeros((agent.model.num_of_inputs,))  # Previous control action
+    u_safe_list = [np.zeros((agent.model.num_of_inputs,))]
     erg_cost_list = []
     state_target_list = [agent.model._state_target.copy()] if isinstance(agent.model, Quadcopter) else []  # State target list (only for quads with LQR)
     delta_t_Ts = []
@@ -163,8 +267,8 @@ def main():
     
     i = 0
     while i < IMAX:
-        if i == 5000:
-            agent.real_target_positions.append(np.array([0.1, 0.1, 0]))
+        # if i == 5000:
+        #     agent.real_target_positions.append(np.array([0.1, 0.1, 0]))
             
         # If multiple of Ts, calculate ergodic action
         if i % Ts_iter == 0:
@@ -188,7 +292,10 @@ def main():
                     for j in range(len(u)):
                         res += f"{u[j]:.2f}, "
                     return res[:-2] + "]"
-                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {delta_time * (IMAX-i)/Ts_iter:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)")
+                
+                expected_time_max = IMAX/(i+1)*(time.time()-initial_time); elapsed_time_max = time.time()-initial_time
+                rem_time_max = expected_time_max - elapsed_time_max     # rem_time_simple = delta_time * (IMAX-i)/Ts_iter
+                print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {rem_time_max:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)")
                 print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/T = {(tau - ti)/agent.erg_c.T:.1%} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
             
             # Debug print if agent inside boundaries
@@ -199,65 +306,73 @@ def main():
             
             # Update the action mask
             if lamda_dur > 0:
-                agent.erg_c.action_mask.pushAction(ti, tau, lamda_dur, us)
+                agent.erg_c.action_mask.pushAction(ti, tau, lamda_dur, us.copy())
 
 
             # Multi-Target EKF update -------------------------------------------------
-            # Make a measurement using the sensor
-            z_raw = agent.sensor.getMultipleMeasurements(agent.real_target_positions, agent.model.state[:3])
-            agent.sensor.measurements_raw = z_raw.copy()  # Store raw measurements for later use
-            # If we have some measurements and zero targets, initialize them all
-            if z_raw is not None and agent.num_of_targets == 0:
-                for measurement in z_raw:
-                    agent.spawnNewTargetEstimate(measurement, current_time=ti)
-            z_associated = agent.associateTargetsWithMahalanobis(z_raw, agent.model.state[:3], ASSOCIATION_THRESHOLD=5)
-            # Update estimate using the EKF
-            for meas_id, measurement in enumerate(z_associated):
-                # Update the EKF with the measurement
-                agent.ekfs[meas_id].update(xk=agent.model.state[:3], zk=measurement, time_now=ti)
-                # Update target estimate
-                agent.target_estimates[meas_id] = agent.ekfs[meas_id].a_k_1.copy()
-            # If we have a measurement that has not been associated with any target, spawn a new target
-            z_without_none = np.array([z if z is not None else np.zeros((2,)) for z in z_associated])
-            for m in z_raw:
-                if m is not None and m not in z_without_none:
-                    # Spawn a new target with the measurement
-                    agent.spawnNewTargetEstimate(measurement=m, current_time=ti)
-                    # Add new target to target_data dictionary
-                    new_target_id = len(agent.ekfs) - 1  # Get the ID of the newly spawned target
-                    target_data[new_target_id] = {'times': [], 'positions': [], 'sigmas': []}
+            if LOCALISE_TARGETS_FLAG:
+                # Make a measurement using the sensor
+                # if agent.model is single integrator agent_pos = agent.model.state + append a zero
+                if isinstance(agent.model, SingleIntegrator):
+                    agent_pos = np.append(agent.model.state, 0)
+                elif isinstance(agent.model, DoubleIntegrator):
+                    agent_pos = np.append(agent.model.state[0:2], 0)
+                else:
+                    agent_pos = agent.model.state[0:3]
+                z_raw = agent.sensor.getMultipleMeasurements(agent.real_target_positions, agent_pos)
+                agent.sensor.measurements_raw = z_raw.copy()  # Store raw measurements for later use
+                # If we have some measurements and zero targets, initialize them all
+                if z_raw is not None and agent.num_of_targets == 0:
+                    for measurement in z_raw:
+                        agent.spawnNewTargetEstimate(measurement, current_time=ti)
+                z_associated = agent.associateTargetsWithMahalanobis(z_raw, agent_pos, ASSOCIATION_THRESHOLD=5)
+                # Update estimate using the EKF
+                for meas_id, measurement in enumerate(z_associated):
+                    # Update the EKF with the measurement
+                    agent.ekfs[meas_id].update(xk=agent_pos, zk=measurement, time_now=ti)
+                    # Update target estimate
+                    agent.target_estimates[meas_id] = agent.ekfs[meas_id].a_k_1.copy()
+                # If we have a measurement that has not been associated with any target, spawn a new target
+                z_without_none = np.array([z if z is not None else np.zeros((2,)) for z in z_associated])
+                for m in z_raw:
+                    if m is not None and m not in z_without_none:
+                        # Spawn a new target with the measurement
+                        agent.spawnNewTargetEstimate(measurement=m, current_time=ti)
+                        # Add new target to target_data dictionary
+                        new_target_id = len(agent.ekfs) - 1  # Get the ID of the newly spawned target
+                        target_data[new_target_id] = {'times': [], 'positions': [], 'sigmas': []}
 
-            # Store data using dictionary structure
-            for meas_id in range(len(agent.ekfs)):
-                # Ensure the target exists in target_data
-                if meas_id not in target_data:
-                    target_data[meas_id] = {'times': [], 'positions': [], 'sigmas': []}
-                
-                target_data[meas_id]['times'].append(time_list[i])
-                target_data[meas_id]['positions'].append(agent.ekfs[meas_id].a_k_1.copy())
-                target_data[meas_id]['sigmas'].append(agent.ekfs[meas_id].sigma_k_1.copy())
+                # Store data using dictionary structure
+                for meas_id in range(len(agent.ekfs)):
+                    # Ensure the target exists in target_data
+                    if meas_id not in target_data:
+                        target_data[meas_id] = {'times': [], 'positions': [], 'sigmas': []}
+                    
+                    target_data[meas_id]['times'].append(time_list[i])
+                    target_data[meas_id]['positions'].append(agent.ekfs[meas_id].a_k_1.copy())
+                    target_data[meas_id]['sigmas'].append(agent.ekfs[meas_id].sigma_k_1.copy())
 
-            # Check if we need to merge targets
-            if agent.num_of_targets > 1:
-                # Chack Bhattacharyya Distance between every pair and merge as needed
-                agent.mergeTargetsIfNeeded(MERGE_THRESHOLD=3, EUCL_DIST_THRESHOLD=0.15, SIMILAR_MEASUREMENTS_ANGLE_THRESHOLD_RAD=30* np.pi/180)
+                # Check if we need to merge targets
+                if agent.num_of_targets > 1:
+                    # Chack Bhattacharyya Distance between every pair and merge as needed
+                    agent.mergeTargetsIfNeeded(MERGE_THRESHOLD=3, EUCL_DIST_THRESHOLD=0.15, SIMILAR_MEASUREMENTS_ANGLE_THRESHOLD_RAD=30* np.pi/180)
 
-            # Also, lets check and remove outdated target estimates
-            agent.searchAndRemoveOldTargetEstimates(current_time=ti, MAX_AGE_SEC=60)
+                # Also, lets check and remove outdated target estimates
+                agent.searchAndRemoveOldTargetEstimates(current_time=ti, MAX_AGE_SEC=60)
 
             # Simulation saving file ----------------------------
             # if draw_plot_flag:
-            if (draw_plot_flag or i % 160 == 0) and SAVE_IMAGES_FLAG:
-                x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+            if (draw_plot_flag or i % 160/2 == 0) and SAVE_IMAGES_FLAG:
+                x_traj, _, _ = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
                 erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
                 if INF_BUF_FLAG:
-                    ck_ = agent.basis.calcCkCoeffRecursive(erg_traj, ti, agent.erg_c.T, agent.erg_c.Ts, agent.erg_c.t0_erg, x_buffer=agent.erg_c.past_states_buffer.get())
+                    ck_ = agent.basis.calcCkCoeffRecursive(erg_traj, ti, agent.erg_c.T, agent.erg_c.Ts, agent.erg_c.t0_erg, x_buffer=agent.erg_c.past_states_buffer.get(), update_ck_old=False)
                 else:
                     ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
                 phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
                 print("Plotting phi")
                 phi_3_ = ReconstructedPhi(agent.basis, precalc_phik=False)
-                vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=30)
+                vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_3_, all_traj=states_list, grid_res=40)
                 plt.savefig(f"images/phiQuadWithObs_{ti:.2f}.png")
                 print(f"Saved image to images/phiQuadWithObs_{ti:.2f}.png")
                 plt.close()
@@ -272,12 +387,23 @@ def main():
         else:
             # If no ergodic control is available, use the nominal control
             u = agent.erg_c.uNominal(agent.model.state, time_list[i])
-            
+
+        # Lets apply the CBF Safety Filter to ergodic output
+        u_safe = agent.calcUsafe(agent.model.state, u, alpha_1=ALPHA_HDOT, alpha_2=ALPHA_H, delta=DELTA_SAFE)
+        u_safe_list.append(u_safe.copy())  # Store the safe control action for later use
+        u += u_safe.copy()  # Add the safe control action to the ergodic control action
+        
+        # Lets clip again to agents control input limits
+        u = np.clip(u, agent.erg_c.uLimits[:, 0], agent.erg_c.uLimits[:, 1])
+        # If u_magnitude is more than 100, print a warning
+        if np.linalg.norm(u) > 100:
+            print(f"CRITICAL: Control action is too high: {u}")
+
         # Lets smooth out with the previous control action
         u = RELAX_FACTOR * u + (1-RELAX_FACTOR) * u_before  # Smooth the control action
         u_before = u.copy()
 
-        # TODO: Here we should simulate forware for simulation_dt with a dt, instead of stepping. Implemend model simulation function
+        # TODO: Here we should simulate forward for simulation_dt with a dt, instead of stepping. Implement model simulation function
         agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
         agent.erg_c.past_states_buffer.push(agent.model.state.copy()[:2])  # Store the state in the buffer
         if INF_BUF_FLAG:
@@ -289,7 +415,8 @@ def main():
         if i%(Ts_iter * UPDATE_EID_FREQ) == 0 and UPDATE_EID_FLAG:
             t_ = time.time()
             print("Updating phi...")
-            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-5, FINAL_FI_CLIP=10, ALWAYS_ADD=2)
+            # TODO: Globalize the parameters used here
+            agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-8, FINAL_FI_CLIP=0.01, ALWAYS_ADD=0)
             print(f"Updated phi in {time.time()-t_:.2f} s")
             draw_plot_flag = True
             # Restart ergodic memory buffer
@@ -302,8 +429,12 @@ def main():
                 # Here we need to reset the buffer since it can contain a lot of outdated past state information # TODO: Check if needed
                 agent.erg_c.past_states_buffer.reset(last_perc_to_keep=0.1)  # Reset the past states buffer
 
-            
-
+        # Append agent state to file
+        if DASHBOARD_FLAG:
+            with open("logs/agent_state.txt", "a") as f: 
+                f.write(f"{time_list[i]:.4f} {agent.model.state[0]:.4f} {agent.model.state[1]:.4f} {u[0]:.4f} {u[1]:.4f}\n")          
+            with open("logs/ergodic_cost.txt", "a") as f:   
+                f.write(f"{time_list[i]:.4f} {erg_cost:.4f} {1 if u_safe.any() != 0 else 0}\n")  # Save ergodic cost to file
 
         # Store states for plotting later etc --------------------
         u_list.append(u.copy())
@@ -325,19 +456,91 @@ def main():
     time_list = np.array(time_list)
     state_target_list = np.array(state_target_list)
     delta_t_Ts = np.array(delta_t_Ts)
+    u_safe_list = np.array(u_safe_list)
 
 
     # ---------------- PLOTTING ----------------------------------------------------
-    # Visualize the trajectory
-    plt.figure(figsize=(8, 6))
-    for i in range(agent.model.num_of_states):
-        plt.plot(time_list, states_list[:, i], label=agent.model.state_names[i])
-    plt.legend()
-    plt.grid()
+    # Visualize the trajectory and control inputs in a 2x1 grid
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
     
+    # Top subplot: States
+    for i in range(agent.model.num_of_states):
+        if i == 0:  # x position
+            ax1.plot(time_list, states_list[:, i], label=agent.model.state_names[i], color='blue', linestyle='-')
+        elif i == 1:  # y position
+            ax1.plot(time_list, states_list[:, i], label=agent.model.state_names[i], color='orange', linestyle='-')
+        elif i == 2:  # x velocity
+            ax1.plot(time_list, states_list[:, i], label=agent.model.state_names[i], color='blue', linestyle='--')
+        elif i == 3:  # y velocity
+            ax1.plot(time_list, states_list[:, i], label=agent.model.state_names[i], color='orange', linestyle='--')
+        else:  # other states
+            ax1.plot(time_list, states_list[:, i], label=agent.model.state_names[i])
+    
+    # Add green background where u_safe is applied (any non-zero value)
+    u_safe_applied = np.any(np.abs(u_safe_list) > 1e-6, axis=1)  # Check if any component is non-zero
+    if np.any(u_safe_applied):
+        # Find continuous regions where u_safe is applied
+        safe_regions = []
+        start_idx = None
+        for i, applied in enumerate(u_safe_applied):
+            if applied and start_idx is None:
+                start_idx = i
+            elif not applied and start_idx is not None:
+                safe_regions.append((start_idx, i-1))
+                start_idx = None
+        # Handle case where u_safe is applied until the end
+        if start_idx is not None:
+            safe_regions.append((start_idx, len(u_safe_applied)-1))
+        
+        # Add green background for each region
+        for start_idx, end_idx in safe_regions:
+            ax1.axvspan(time_list[start_idx], time_list[end_idx], 
+                       alpha=0.2, color='green', zorder=0, 
+                       label='Safety Control Applied' if start_idx == safe_regions[0][0] else "")
+    
+    ax1.axhline(y=agent.L1, color='r', linestyle='--', label='L1')
+    ax1.axhline(y=0, color='r', linestyle='--')
+    ax1.legend()
+    ax1.grid()
+    ax1.set_title('Agent States')
+    ax1.set_ylabel('State Values')
+    
+    # Bottom subplot: Control inputs
+    for i in range(agent.model.num_of_inputs):
+        if i == 0:  # u1
+            ax2.plot(time_list, u_list[:, i], linestyle="-", label=f"control {i}", color='blue')
+            ax2.plot(time_list, u_list[:, i] - u_safe_list[:, i], linestyle="--", label=f"control {i} - safe", color='blue')
+        elif i == 1:  # u2
+            ax2.plot(time_list, u_list[:, i], linestyle="-", label=f"control {i}", color='orange')
+            ax2.plot(time_list, u_list[:, i] - u_safe_list[:, i], linestyle="--", label=f"control {i} - safe", color='orange')
+        else:  # other controls
+            ax2.plot(time_list, u_list[:, i], linestyle="-", label=f"control {i}")
+            ax2.plot(time_list, u_list[:, i] - u_safe_list[:, i], linestyle="--", label=f"control {i} - safe")
+    
+    # Add green background where u_safe is applied (any non-zero value)
+    if np.any(u_safe_applied):
+        # Add green background for each region
+        for start_idx, end_idx in safe_regions:
+            ax2.axvspan(time_list[start_idx], time_list[end_idx], 
+                       alpha=0.2, color='green', zorder=0, 
+                       label='Safety Control Applied' if start_idx == safe_regions[0][0] else "")
+    
+    ax2.legend()
+    ax2.grid()
+    ax2.set_title('Control Inputs')
+    ax2.set_xlabel('Time [s]')
+    ax2.set_ylabel('Control Values')
+    
+    plt.tight_layout()
+
     plt.figure(figsize=(8, 6))
     for i in range(agent.model.num_of_inputs):
-        plt.plot(time_list, u_list[:, i], marker='.', linestyle="-",label=f"control {i}")
+        if i == 0:  # u1
+            plt.plot(time_list, u_safe_list[:, i], linestyle="-", label=f"control {i} - safe", color='blue')
+        elif i == 1:  # u2
+            plt.plot(time_list, u_safe_list[:, i], linestyle="-", label=f"control {i} - safe", color='orange')
+        else:  # other controls
+            plt.plot(time_list, u_safe_list[:, i], linestyle="-", label=f"control {i} - safe")
     plt.legend()
     plt.grid()
 
@@ -381,7 +584,7 @@ def main():
     plt.axhline(y=1, color='r', linestyle='--', label='Ts')
 
     # Lets plot the target position estimate and the sigma band around it
-    if len(target_data[0]['times']) > 1:  # Check if we have data
+    if len(target_data[0]['times']) > 1 and LOCALISE_TARGETS_FLAG:  # Check if we have data
         # Create a single figure with 3 subplots for all targets
         fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
         colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
@@ -434,12 +637,12 @@ def main():
 
         # Configure axes
         axes[0].set_ylabel("X Position")
-        axes[0].set_ylim([0, 1])
+        axes[0].set_ylim([0, agent.L1])
         axes[0].grid(True)
         axes[0].legend()
         
         axes[1].set_ylabel("Y Position")
-        axes[1].set_ylim([0, 1])
+        axes[1].set_ylim([0, agent.L2])
         axes[1].grid(True)
 
         axes[2].set_xlabel("Time [s]")
@@ -450,7 +653,12 @@ def main():
         plt.tight_layout()
 
     # Ergodic Trajectory Plot
-    ck_ = agent.basis.calcCkCoeff(states_list, x_buffer=None, ti=ti, T=agent.erg_c.T)
+    x_traj, u_traj, t_traj = agent.model.simulateForward(x0=agent.model.state, ti=ti, udef=agent.erg_c.uNominal, T=agent.erg_c.T, dt=PREDICTION_DT)
+    erg_traj = x_traj[:, :2] # Only take the ergodic dimensions
+    if INF_BUF_FLAG:
+        ck_ = agent.basis.calcCkCoeffRecursive(erg_traj, ti, agent.erg_c.T, agent.erg_c.Ts, agent.erg_c.t0_erg, x_buffer=agent.erg_c.past_states_buffer.get(), update_ck_old=False)
+    else:
+        ck_ = agent.basis.calcCkCoeff(erg_traj, x_buffer=agent.erg_c.past_states_buffer.get() ,ti=ti, T=agent.erg_c.T)
     phi_rec_from_ck = ReconstructedPhiFromCk(agent.basis, ck_)
     phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
     vis.plotPhi(agent, phi_rec_from_ck=phi_rec_from_ck, phi_rec_from_agent=phi_rec, all_traj=states_list)

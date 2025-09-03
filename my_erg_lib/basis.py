@@ -47,13 +47,13 @@ class Basis():
     # Basis Functions ---------------------------------------------------------
     # xv: [x1, x2] (2D point) - Ergodic dimensions
     def Fk(self, xv, k1, k2, hk):
-        Fk = np.cos(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk
+        Fk = np.cos(k1*np.pi*xv[0]/self.L1) * np.cos(k2*np.pi*xv[1]/self.L2) / hk
         return Fk
     
     def dFk_dx(self, xv, k1, k2, hk):
         Fk_x = np.zeros((2,))
-        Fk_x[0] = -np.sin(k1*np.pi/self.L1*xv[0]) * np.cos(k2*np.pi/self.L2*xv[1]) / hk * (k1*np.pi/self.L1)
-        Fk_x[1] = -np.cos(k1*np.pi/self.L1*xv[0]) * np.sin(k2*np.pi/self.L2*xv[1]) / hk * (k2*np.pi/self.L2)
+        Fk_x[0] = -np.sin(k1*np.pi*xv[0]/self.L1) * np.cos(k2*np.pi*xv[1]/self.L2) / hk * (k1*np.pi/self.L1)
+        Fk_x[1] = -np.cos(k1*np.pi*xv[0]/self.L1) * np.sin(k2*np.pi*xv[1]/self.L2) / hk * (k2*np.pi/self.L2)
         return Fk_x
 
     # Precalculations ---------------------------------------------------------
@@ -88,17 +88,23 @@ class Basis():
             return self.hk_cache[(k1, k2)]
         
         L1 = self.L1; L2 = self.L2
-        if k1==0 and k2==0:
-            hk = L1 * L2
-        elif k1==0 and k2!=0:
-            hk = L2 * (2*k2*L1*np.pi + L2*np.sin(2*k2*L1*np.pi/L2)) / (4 * L2 * np.pi)
-        elif k1!=0 and k2==0:
-            hk = L1 * (2*k1*L2*np.pi + L1*np.sin(2*k1*L2*np.pi/L1)) / (4 * L1 * np.pi)
-        else:
-            hk = (2*k2*L1*np.pi + L2*np.sin(2*k2*L1*np.pi/L2)) * (2*k1*L2*np.pi + L1*np.sin(2*k1*L2*np.pi/L1)) / (4 * L1 * L2)
-            hk /= 16 * k1 * k2 * np.pi**2
+        # Calculation of hk based on their paper (Something is Wrong - Implementation Fault??)
+        # if k1==0 and k2==0:
+        #     hk = L1 * L2
+        # elif k1==0 and k2!=0:
+        #     hk = L2 * (2*k2*L1*np.pi + L2*np.sin(2*k2*L1*np.pi/L2)) / (4 * L2 * np.pi)
+        # elif k1!=0 and k2==0:
+        #     hk = L1 * (2*k1*L2*np.pi + L1*np.sin(2*k1*L2*np.pi/L1)) / (4 * L1 * np.pi)
+        # else:
+        #     hk = (2*k2*L1*np.pi + L2*np.sin(2*k2*L1*np.pi/L2)) * (2*k1*L2*np.pi + L1*np.sin(2*k1*L2*np.pi/L1)) / (4 * L1 * L2)
+        #     hk /= 16 * k1 * k2 * np.pi**2
 
-        hk = np.sqrt(hk)  # Take the square root of the integral
+        # hk = np.sqrt(hk)  # Take the square root of the integral
+
+        # Correct Calculation
+        def alpha(k,L):
+            return np.sqrt(1/L) if k==0 else np.sqrt(2/L)
+        hk = 1 / (alpha(k1, L1) * alpha(k2, L2) )
 
         # add to dictionary
         self.hk_cache[(k1, k2)] = hk
@@ -153,15 +159,16 @@ class Basis():
             print(f"Phi Coefficient calculated for k1={k1}, k2={k2}." + (f" \t [{time.time()-t_:.2f} s]" if time.time()-t_ > 0.1 else ""))
         return phi_k
     
-    # TODO: Recursively calculate the coefficients Ck
-    def calcCkCoeffRecursive(self, x_traj, ti, T, ts, t0_erg, x_buffer):
+    # Recursively calculate the coefficients Ck
+    def calcCkCoeffRecursive(self, x_traj, ti, T, ts, t0_erg, x_buffer, update_ck_old=True):
         # Calculate integral from ti -> ti + T
         ck_int_forward  = self.calcCkCoeff(x_traj, ti, T, do_not_divide_integral_flag=True)
         # Calculate integral from ti-ts -> ti
         ck_int_backward = self.calcCkCoeff(x_buffer, ti-ts, ts, do_not_divide_integral_flag=True)
 
         ck_bar_new = (ti - ts + T - t0_erg) / (ti + T - t0_erg) * self.ck_bar_old + 1/(ti + T - t0_erg) * ck_int_backward
-        self.ck_bar_old = ck_bar_new
+        if update_ck_old:
+            self.ck_bar_old = ck_bar_new
 
         # Calculate final ck
         ck = ck_bar_new + 1/(ti + T - t0_erg) * ck_int_forward
@@ -280,8 +287,6 @@ class ReconstructedPhiFromCk():
 
         for k1 in range(self.base.Kmax+1):
             for k2 in range(self.base.Kmax+1):
-                lamda_k = self.base.LamdaK_cache[(k1, k2)]
-                lamda_k = 1
-                result += lamda_k * self.ck[k1, k2] * self.base.Fk(args[0], k1, k2, self.base.calcHk(k1, k2))
+                result += self.ck[k1, k2] * self.base.Fk(args[0], k1, k2, self.base.calcHk(k1, k2))
         
         return result

@@ -4,7 +4,6 @@ from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadco
 from my_erg_lib.eid import Sensor, EKF
 import my_erg_lib.Utilities as utils
 import time
-import random
 
 class Agent():
     def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None):
@@ -18,15 +17,20 @@ class Agent():
         
         # Connecting model dynamics
         self.model = dynamics_model
+        # Make sure x0 is within the space limits 0->L1, 0->L2 if given
+        if x0 is not None:
+            assert len(x0) == self.model.num_of_states, "Initial position x0 must have the same length as the model's state vector."
+            assert 0 <= x0[0] <= L1 and 0 <= x0[1] <= L2, "Initial position x0 must be within the limits of the space." # TODO: Assuming x[0], x[1] are the x, y coordinates
         self.model.reset(x0)
 
         # TODO: Maybe make a separate target class for this?
         # Multiple targets setup
         self.real_target_positions = [      # Real target position (Ground Truth)   # TODO: Maybe take it from an env?
-            np.array([0.8, 0.4, 0]),        # Target 1
-            np.array([0.3, 0.7, 0]),        # Target 2
-            np.array([0.5, 0.2, 0])         # Target 3
+            np.array([2, 2, 0]),        # Target 1
+            np.array([4, 8, 0]),        # Target 2
+            np.array([8, 6, 0])         # Target 3
         ]
+        # TODO: Fix comparing real targ pos to agents pos for different dynamics models
         self.num_of_targets = 0     # Number of target estimates so far
         self.target_estimates = []
         
@@ -34,7 +38,7 @@ class Agent():
         self.ekfs = []
 
         # Lets connect a sensor to track the target position 
-        self.sensor = Sensor(sensor_range=0.20,
+        self.sensor = Sensor(sensor_range=2,
                              R=np.diag([0.01, 0.01]))         
 
         # Initialise obstacle list
@@ -215,12 +219,11 @@ class Agent():
         else:
             raise ValueError("Either 'measurement' or 'a_init' must be provided to spawn a new target.")
         
-        # TODO: Why does it look like an ellipse and not a circle at first?
         ekf_ = EKF(ekf_id=self.ekfs[-1].id + 1 if self.ekfs != [] else 0,  # Increment ID if exists, else start from 0
                    a_init=a_init,
-                   sigma_init=np.eye(3)*1e-2,    # 1e-1 may be more appropriate
+                   sigma_init=np.eye(3)*5e-1,    # 1e-1 may be more appropriate
                    R=np.diag([0.1, 0.1]),        # Sensor noise covariance    
-                   Q=np.eye(3) * 1e-5,           # Process noise covariance
+                   Q=np.eye(3) * 1e-4,           # Process noise covariance (1e-5)
                    a_limits=[[0, self.L1], [0, self.L2], [0, 10]],
                    time_now=current_time)
         
@@ -497,7 +500,7 @@ class Agent():
         Check if the state is within the bounds of the system
         '''
         # Check if the 2 first ergodic dimension are within the bounds L1, L2
-        if x[0] < 0 or x[0] > self.L1 or x[1] < 0 or x[1] > self.L2:
+        if not (0 <= x[0] <= self.L1 and 0 <= x[1] <= self.L2):
             print(f"--> ATTENTION: State out of bounds: {x}")
 
         # Check if model is quadcopter
@@ -508,7 +511,146 @@ class Agent():
                 print(f"--> Quad is getting out of hand in the Z dim: {z:.2f} m")
 
 
+    # ======= Potential Function Calculations =======
+    def calcPotentialU(self, x):
+        """
+        Calculate the potential function U at a given state x.
+        This function sums the potential contributions from all obstacles in the obstacle list.
+        """
+        U = 0
+        for obs in self.obstacle_list:
+            U += obs.U(x[:2])
+        return U
+
+    def calcPotentialUGradient(self, x):
+        """
+        Calculate the gradient of the potential function U at a given state x.
+        """
+        grad_U = np.zeros(2)
+        for obs in self.obstacle_list:
+            grad_U += obs.gradU(x[:2])
+
+        return grad_U
+
+    def calcH(self, x, delta=0.0):
+        """
+        Calculate h(x), the CBF (Control Barrier Function) value at a given state x.
+        This function is used to ensure safety constraints are satisfied.
+        """
+        U = self.calcPotentialU(x)
+        h = 1 / (1 + U) - delta
+        return h
+
+    def calcHGradient(self, x):
+        """
+        Calculate the gradient of h(x) at a given state x.
+        This function is used to ensure safety constraints are satisfied.
+        ATTENTION: Returns 2x1 vector, only for positional dimensions. Need to append accordingly in order to multiply by f(x) later on.
+        """
+        U = self.calcPotentialU(x)
+        grad_U = self.calcPotentialUGradient(x)
+        h_grad = -grad_U / (1 + U)**2
+
+        # Append zeros for the other dimensions if needed (e.g., for quadcopter)
+        if self.model.num_of_states > 2:
+            h_grad = np.append(h_grad, np.zeros(self.model.num_of_states - 2))
+
+        return h_grad
+
+    def calcHessianH(self, x, epsilon=1e-3):
+        # Lets use finite differences to calculate the Hessian of h(x)
+        hessian_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
+
+        for i in range(self.model.num_of_states):
+            for j in range(i, self.model.num_of_states):  # compute for j >= i to exploit symmetry
+                if i == j:
+                    x_plus = x.copy()
+                    x_plus[i] += epsilon
+                    h_plus = self.calcH(x_plus)
+
+                    x_minus = x.copy()
+                    x_minus[i] -= epsilon
+                    h_minus = self.calcH(x_minus)
+
+                    hessian_h[i, i] = (h_plus - 2 * self.calcH(x) + h_minus) / (epsilon ** 2)
+                else:
+                    x_pp = x.copy()
+                    x_pp[i] += epsilon
+                    x_pp[j] += epsilon
+                    h_pp = self.calcH(x_pp)
+
+                    x_pm = x.copy()
+                    x_pm[i] += epsilon
+                    x_pm[j] -= epsilon
+                    h_pm = self.calcH(x_pm)
+
+                    x_mp = x.copy()
+                    x_mp[i] -= epsilon
+                    x_mp[j] += epsilon
+                    h_mp = self.calcH(x_mp)
+
+                    x_mm = x.copy()
+                    x_mm[i] -= epsilon
+                    x_mm[j] -= epsilon
+                    h_mm = self.calcH(x_mm)
+
+                    hessian_value = (h_pp - h_pm - h_mp + h_mm) / (4 * epsilon ** 2)
+                    hessian_h[i, j] = hessian_value
+                    hessian_h[j, i] = hessian_value  # symmetry
 
 
+        return hessian_h
+
+    def calcUsafe(self, x, udef_now, alpha_1=1.0, alpha_2=1.0, delta=0.0):
+
+        # Calculate CBF function h(x)
+        h = self.calcH(x, delta)
+        # Calculate CBF gradient
+        grad_h = self.calcHGradient(x[:2])
+        # Calculate CBF Hessian
+        hess_h = self.calcHessianH(x, epsilon=1e-4)
+
+        # System Dynamics
+        f = self.model.f(x, udef_now)
+        f_x = self.model.f_x(x, udef_now)
+        g = self.model.h(x)
+
+        h_dot = grad_h.T @ f    
+        h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
+
+        PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
+        # PSI = h_ddot + alpha_1 * h_dot + alpha_2 * h
+        beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
+
+        if PSI >= 0:
+            # No need to change the control input if PSI > 0, we are not in a danger zone
+            u_safe = np.zeros_like(udef_now)      
+        else:
+            if np.linalg.norm(beta) < 1e-6:
+                u_safe = np.zeros_like(udef_now)
+            else:
+                u_safe = - beta.T / (np.linalg.norm(beta)**2) * PSI
+                pass
+
+        u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
+
+        # Append to file
+        if self.DASHBOARD_FLAG:
+            with open("logs/cbf_log.txt", "a") as f:
+                string = f"{h:.3f}\t{PSI:.3f}\t{np.linalg.norm(grad_h):.3f}\t"
+                for u in u_safe:
+                    string += f"{u:.3f}\t"
+                f.write(string + "\n")
+
+            with open("logs/PSI.txt", "a") as f:
+                if PSI < 0:
+                    f.write(f"{h_ddot:.3f}\t{2 * alpha_1 * h_dot:.3f}\t{alpha_2 * h:.3f}\t{PSI}\n")
+                else:
+                    f.write("0.0\t0.0\t0.0\t0.0\n")
+                
+
+
+        return u_safe
+    
 
     

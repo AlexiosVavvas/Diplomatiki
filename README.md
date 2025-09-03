@@ -50,16 +50,63 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - Spectral coefficient caching for performance
   - Distribution reconstruction capabilities
 - `barriers.py`: Barrier functions to enforce state and control constraints
+- **CBF Safety Filter**: Control Barrier Function implementation in `agent.py`:
+  - Real-time safety constraint monitoring using `calcH()`, `calcHGradient()`, and `calcHessianH()`
+  - Quadratic program formulation for minimal control intervention
+  - Second-order CBF implementation with configurable class-K functions
 
-### Obstacle Avoidance
-- `obstacles.py`: Implementation of obstacle avoidance using potential fields:
+### Advanced Obstacle Avoidance System
+The system implements a sophisticated dual-layer obstacle avoidance approach combining traditional Artificial Potential Fields (APF) with modern Control Barrier Functions (CBF):
+
+#### Control Barrier Function (CBF) Safety Filter - **NEW**
+- **Smart Safety Layer**: CBF acts as a safety filter on top of the primary controller, only intervening when necessary
+- **Danger Quantification**: Uses potential field-based barrier functions `h(x) = 1/(1+U(x)) - δ` to quantify proximity to danger
+- **Intelligent Course Correction**: Only alters the control input when the system detects imminent collision risk (PSI < 0)
+- **Minimal Interference**: Unlike reactive APF approaches that constantly push away from obstacles, CBF allows natural navigation until safety intervention is required
+- **Mathematical Rigor**: Guarantees forward invariance of safe sets through Lie derivatives and barrier constraints
+
+#### Traditional Artificial Potential Fields (APF)
+- `obstacles.py`: Implementation of reactive obstacle avoidance using potential fields:
   - Support for multiple obstacle types:
     - Circular obstacles with customizable radius
     - Rectangular obstacles with width and height parameters
     - Wall obstacles with normal vector definition
-  - Reactive obstacle avoidance through artificial potential fields
-  - Customizable repulsive forces and influence regions
+  - Continuous repulsive forces based on proximity to obstacles
+  - Customizable force parameters (`kappa`, `rho0`) and influence regions
   - Boundary enforcement to keep agents within exploration space
+
+#### Mathematical Formulation of CBF Safety Filter
+
+The CBF safety filter implements a second-order control barrier function approach:
+
+**Barrier Function**: `h(x) = 1/(1 + U(x)) - δ` where `U(x)` is the total potential field from all obstacles
+
+**Safety Constraint**: The system maintains safety by ensuring `ψ(x,u) ≥ 0` where:
+```
+ψ = ḧ + 2α₁ḣ + α₂h ≥ 0
+```
+
+**Safety-Critical Control**: When `ψ < 0`, the safety filter computes minimal intervention:
+```
+u_safe = -β^T/||β||² * ψ
+```
+where `β = (f^T∇²h + ∇h^T∇f)g` represents the control authority direction.
+
+**Key Parameters**:
+- `α₁, α₂`: Class-K function gains (typically α₁=2.0, α₂=1.0)
+- `δ`: Safety margin parameter (typically 0.05)
+- Control limits and smoothing ensure practical implementation
+
+This approach guarantees that the agent remains in the safe set `{x : h(x) ≥ 0}` while minimally interfering with the primary ergodic exploration objective.
+
+#### Key Differences: CBF vs APF Approach
+- **APF (Reactive)**: Continuously generates repulsive forces based on position relative to obstacles
+- **CBF (Proactive Safety Filter)**: Monitors safety constraints and only intervenes when violation is imminent
+- **CBF Advantages**: 
+  - More natural trajectory behavior in obstacle-rich environments
+  - Reduced control chattering and oscillations
+  - Mathematically guaranteed safety with minimal intervention
+  - Better integration with primary control objectives (ergodic exploration)
 
 <div align="center">
 <img src="images/images/potential_field_4.png" width="90%" alt="Potential field visualization">
@@ -115,12 +162,12 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 This library is designed for multi-agent robotic control in various scenarios:
 
 ```python
-# Example usage with quadrotor model, obstacle avoidance, and multi-target tracking
+# Example usage with quadrotor model, advanced CBF safety filter, and multi-target tracking
 import numpy as np
 from my_erg_lib.agent import Agent
 from my_erg_lib.model_dynamics import Quadcopter
 from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
-from my_erg_lib.obstacles import Obstacle, ObstacleAvoidanceControllerGenerator
+from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
 
 # Create quadrotor model with specified parameters
 x0 = [0.8, 0.8, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -137,21 +184,27 @@ agent = Agent(L1=1.0, L2=1.0, Kmax=5, dynamics_model=model, phi=phi_func, x0=x0)
 agent.erg_c = DecentralisedErgodicController(agent, uNominal=model.calcLQRcontrol, 
                                             T_sampling=0.1, T_horizon=1.25)
 
-# Add obstacles to the environment
+# Add obstacles to the environment for both APF and CBF
 obstacles = [
-    Obstacle(pos=[0.2, 0.2], dimensions=0.1, f_max=0.25, min_dist=0.14, 
-             eps_meters=0.2, obs_type='circle', obs_name="Obstacle 1"),
-    Obstacle(pos=[0.6, 0.3], dimensions=[0.2, 0.5], f_max=0.25, min_dist=0.52, 
-             eps_meters=0.2, obs_type='rectangle', obs_name="Obstacle 2")
+    Obstacle(pos=[0.2, 0.2], dimensions=0.1, kappa=10.0, rho0=0.2, 
+             obs_type='circle', obs_name="Obstacle 1"),
+    Obstacle(pos=[0.6, 0.3], dimensions=[0.2, 0.5], kappa=15.0, rho0=0.25, 
+             obs_type='rectangle', obs_name="Obstacle 2")
 ]
-agent.erg_c.uNominal += ObstacleAvoidanceControllerGenerator(agent, obs_list=obstacles)
+saveObstaclesToMemory(agent, obs_list=obstacles)
+
+# CBF safety filter parameters
+ALPHA_HDOT = 2.0    # First derivative gain
+ALPHA_H = 1.0       # Function value gain  
+DELTA_SAFE = 0.05   # Safety margin
+RELAX_FACTOR = 0.7  # Control smoothing factor
 
 # Initialize simulation variables
 time_list = [0]
 Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Iterations per sampling time
 u_previous = np.zeros(agent.model.num_of_inputs)
 
-# Main simulation loop
+# Main simulation loop with CBF safety filter
 for i in range(10000):
     current_time = time_list[i]
     
@@ -197,8 +250,16 @@ for i in range(10000):
     if not us_current.any():
         us_current = agent.erg_c.uNominal(agent.model.state, current_time)
     
-    # Smooth control action
-    u_smooth = 0.3 * us_current + 0.7 * u_previous
+    # **Apply CBF Safety Filter** - This is the key new feature!
+    u_safe = agent.calcUsafe(agent.model.state, us_current, 
+                            alpha_1=ALPHA_HDOT, alpha_2=ALPHA_H, delta=DELTA_SAFE)
+    
+    # Combine ergodic control with safety correction
+    u_total = us_current + u_safe
+    
+    # Apply control limits and smoothing
+    u_total = np.clip(u_total, agent.erg_c.uLimits[:, 0], agent.erg_c.uLimits[:, 1])
+    u_smooth = RELAX_FACTOR * u_total + (1 - RELAX_FACTOR) * u_previous
     u_previous = u_smooth.copy()
     
     # Apply control and step model
@@ -210,12 +271,15 @@ for i in range(10000):
 ```
 
 ## Key Features
+- **Advanced Safety Architecture**: Novel CBF (Control Barrier Function) safety filter that acts as an intelligent safety layer, only intervening when collision risk is detected
 - Spectral decomposition of target distributions using Fourier basis functions
 - Receding horizon control for ergodic exploration
 - LQR stabilization for complex dynamic models
 - Multi-agent coordination through Fourier coefficient exchange
 - Advanced integration methods (Runge-Kutta 4) for accurate dynamics simulation
-- Obstacle avoidance with customizable potential fields
+- **Dual-Layer Obstacle Avoidance**: 
+  - Traditional APF for continuous repulsive guidance
+  - Smart CBF safety filter for minimal-intervention collision avoidance
 - Multi-target localization with bearing-only measurements
 - Dynamic target management with spawning, merging, and deletion
 - Information-driven exploration using Fisher Information Matrix
