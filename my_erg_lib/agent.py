@@ -21,7 +21,7 @@ class Agent():
         if x0 is not None:
             assert len(x0) == self.model.num_of_states, "Initial position x0 must have the same length as the model's state vector."
             assert 0 <= x0[0] <= L1 and 0 <= x0[1] <= L2, "Initial position x0 must be within the limits of the space." # TODO: Assuming x[0], x[1] are the x, y coordinates
-        self.model.reset(x0)
+            self.model.reset(x0)
 
         # TODO: Maybe make a separate target class for this?
         # Multiple targets setup

@@ -2,7 +2,7 @@ import numpy as np
 from my_erg_lib.obstacles import Obstacle
 
 
-def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False):
+def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False, ck_total=None, agent_list=None):
     phi_original = agent.basis.phi
 
     x1 = np.linspace(0, agent.L1, grid_res)
@@ -16,10 +16,17 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     Z_agent_fourier_rec = np.zeros((len(x1), len(x2)))
     Z_rec_from_ck = np.zeros((len(x1), len(x2)))
 
+    # Use ck_total for the third plot if provided, otherwise use the original phi_rec_from_ck
+    phi_rec_from_cks = phi_rec_from_ck
+    if ck_total is not None:
+        # Import here to avoid circular imports
+        from my_erg_lib.basis import ReconstructedPhiFromCk
+        phi_rec_from_cks = ReconstructedPhiFromCk(agent.basis, ck_total)
+
     for i in range(len(x1)):
         for j in range(len(x2)):
             Z_original[j, i] = phi_original([x1[i], x2[j]])
-            Z_rec_from_ck[j, i] = phi_rec_from_ck([x1[i], x2[j]])
+            Z_rec_from_ck[j, i] = phi_rec_from_cks([x1[i], x2[j]])
             Z_agent_fourier_rec[j, i] = phi_rec_from_agent([x1[i], x2[j]])
     
     # # Calculate the integrals using 2D trapezoidal rule
@@ -62,7 +69,12 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     else:
         im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), 
                         origin='lower', cmap=cm.viridis)
-    ax3.set_title('Reconstructed from Ck')
+    
+    # Update title based on whether ck_total is used
+    if ck_total is not None:
+        ax3.set_title('Multi-Agent Ck')
+    else:
+        ax3.set_title('Reconstructed from Ck')
     ax3.set_xlabel('x1')
     ax3.set_ylabel('x2')
     ax3.set_aspect('auto')
@@ -95,57 +107,84 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
         ax.add_patch(plt.Rectangle((W, W), agent.L1-2*W, agent.L2-2*W, color='black', fill=False, linestyle='--', linewidth=1))
 
     # In ax3 i want to plot the ellipse of the target pos estimate, with center at agent.a, and sigma = agent.ekf.sigma_k_1
-    if hasattr(agent, 'ekfs'):
-        for i_ in range(len(agent.ekfs)):
-            sigma = agent.ekfs[i_].sigma_k_1
-            center = agent.ekfs[i_].a_k_1[:2]
-            # Get the eigenvalues and eigenvectors of the covariance matrix
-            eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
-            # Calculate the angle of rotation
-            angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
-            # Calculate the width and height of the ellipse
-            width = 2 * np.sqrt(eigvals[0])
-            height = 2 * np.sqrt(eigvals[1])
-            width *= 3  # Scale to show 3 sigma case
-            height *= 3  # Scale to show 3 sigma case
-            # Create the ellipse
-            from matplotlib.patches import Ellipse
-            ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color='blue', fill=False, linestyle='--', linewidth=1)
-            ax3.add_patch(ellipse)
-            # Plot the estimated target position
-            ax3.plot(agent.ekfs[i_].a_k_1[0], agent.ekfs[i_].a_k_1[1], 'bx', markersize=5, label='Estimated Target Position')
-            
-            # Find the closest real target to the current EKF estimate
-            if hasattr(agent, 'real_target_positions') and len(agent.real_target_positions) > 0:
-                estimated_pos = agent.ekfs[i_].a_k_1[:2]
-                distances = [np.linalg.norm(estimated_pos - np.array(real_target[:2])) 
-                           for real_target in agent.real_target_positions]
-                closest_target_idx = np.argmin(distances)
-                closest_target = agent.real_target_positions[closest_target_idx]
-                
-                # Plot the closest real target position
-                ax3.plot(closest_target[0], closest_target[1], 
-                        'rx', markersize=5, label=f'Closest Ground Truth (T{closest_target_idx})')
+    ag_lst = [agent] if agent_list is None else agent_list
+    colors = ['b', 'g', 'm', 'c', 'y', 'orange', 'purple']  # Different colors for different agents
+    for idx, agent in enumerate(ag_lst):
+        if hasattr(agent, 'ekfs'):
+            for i_ in range(len(agent.ekfs)):
+                sigma = agent.ekfs[i_].sigma_k_1
+                center = agent.ekfs[i_].a_k_1[:2]
+                # Get the eigenvalues and eigenvectors of the covariance matrix
+                eigvals, eigvecs = np.linalg.eig(sigma[:2, :2])
+                # Calculate the angle of rotation
+                angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+                # Calculate the width and height of the ellipse
+                width = 2 * np.sqrt(eigvals[0])
+                height = 2 * np.sqrt(eigvals[1])
+                width *= 3  # Scale to show 3 sigma case
+                height *= 3  # Scale to show 3 sigma case
+                # Create the ellipse
+                from matplotlib.patches import Ellipse
+                ellipse = Ellipse(center, width=width, height=height, angle=angle*180/np.pi, color=colors[idx % len(colors)], fill=False, linestyle='--', linewidth=1)
+                ax3.add_patch(ellipse)
+                # Plot the estimated target position
+                ax3.plot(agent.ekfs[i_].a_k_1[0], agent.ekfs[i_].a_k_1[1], color=colors[idx % len(colors)], marker='x', markersize=5, label='Estimated Target Position')
+
+                # Find the closest real target to the current EKF estimate
+                if hasattr(agent, 'real_target_positions') and len(agent.real_target_positions) > 0:
+                    estimated_pos = agent.ekfs[i_].a_k_1[:2]
+                    distances = [np.linalg.norm(estimated_pos - np.array(real_target[:2])) 
+                            for real_target in agent.real_target_positions]
+                    closest_target_idx = np.argmin(distances)
+                    closest_target = agent.real_target_positions[closest_target_idx]
+                    
+                    # Plot the closest real target position
+                    ax3.plot(closest_target[0], closest_target[1], 
+                            'kx', markersize=5, label=f'Closest Ground Truth (T{closest_target_idx})')
 
     # Lets also draw the agent.sensor.sensor_range circle around the current agent position
-    if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
-        sensor_range = agent.sensor.sensor_range
-        # Draw circle representing the sensor range
-        sensor_circle = plt.Circle((agent.model.state[0], agent.model.state[1]), 
-                                   sensor_range, color='red', fill=False, linestyle='--', linewidth=1)
-        ax3.add_patch(sensor_circle)
-        # Plot the agent position
-        ax3.plot(agent.model.state[0], agent.model.state[1], 'go', markersize=5, label='Agent Position')
+    for idx, agent in enumerate(ag_lst):
+        if hasattr(agent, 'sensor') and hasattr(agent.sensor, 'sensor_range'):
+            sensor_range = agent.sensor.sensor_range
+            color = colors[idx % len(colors)]  # Extract color letter from color string
+            # Draw circle representing the sensor range
+            sensor_circle = plt.Circle((agent.model.state[0], agent.model.state[1]), 
+                                    sensor_range, color=color, fill=False, linestyle='--', linewidth=1)
+            ax3.add_patch(sensor_circle)
+            # Plot the agent position
+            ax3.plot(agent.model.state[0], agent.model.state[1], f'{color}o', markersize=5, label=f'Agent {idx+1} Position')
 
 
     if all_traj is not None:
-        all_traj = np.array(all_traj)
-        ax3.plot(all_traj[:, 0], all_traj[:, 1], 'k-', label='Trajectory')
-        # plot also the buffer
-        buffer_traj = agent.erg_c.past_states_buffer.get()
-        ax3.plot(buffer_traj[:, 0], buffer_traj[:, 1], 'r-', label='Buffer Trajectory')
-        # if phi_3 is not None:
-        #     ax2.plot(x_traj[:, 1], x_traj[:, 0], 'r-', label='Trajectory')
+        # Handle multiple agents if all_traj is a list of trajectories
+        if isinstance(all_traj, list) and len(all_traj) > 0:
+            # Plot trajectories for all agents
+            colors = ['b-', 'g-', 'm-', 'c-', 'y-', 'orange', 'purple']  # Different colors for different agents
+            for idx, traj in enumerate(all_traj):
+                if traj is not None and len(traj) > 0:
+                    traj = np.array(traj)
+                    color = colors[idx % len(colors)]
+                    ax3.plot(traj[:, 0], traj[:, 1], color, 
+                           label=f'Agent {idx+1} Trajectory', alpha=0.7)
+            
+            # Plot agent positions if agent_list is provided
+            if agent_list is not None:
+                agent_colors = ['bo-', 'go-', 'mo-', 'co-', 'yo-', 'orange', 'purple']
+                for idx, agent_i in enumerate(agent_list):
+                    if hasattr(agent_i, 'model') and hasattr(agent_i.model, 'state'):
+                        color = agent_colors[idx % len(agent_colors)]
+                        ax3.plot(agent_i.model.state[0], agent_i.model.state[1], 
+                               color, markersize=5, label=f'Agent {idx+1} Position')
+        else:
+            # Handle single trajectory (backward compatibility)
+            all_traj = np.array(all_traj)
+            ax3.plot(all_traj[:, 0], all_traj[:, 1], 'k-', label='Trajectory')
+        
+        # plot also the buffer for the main agent (agent)
+        for agent in ag_lst:
+            if hasattr(agent, 'erg_c') and hasattr(agent.erg_c, 'past_states_buffer'):
+                buffer_traj = agent.erg_c.past_states_buffer.get()
+                ax3.plot(buffer_traj[:, 0], buffer_traj[:, 1], 'r-', label='Main Agent Buffer Trajectory')
 
     plt.tight_layout()
 

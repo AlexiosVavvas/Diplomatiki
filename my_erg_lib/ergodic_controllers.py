@@ -14,6 +14,8 @@ class DecentralisedErgodicController():
         assert isinstance(agent, Agent), "agent must be an instance of the Agent class from my_erg_lib."
         self.agent = agent
         self.num_of_agents = num_of_agents
+        # Average Ck of the other agents, to be added to own Ck
+        self.ck_aver_others = np.zeros((self.agent.basis.Kmax+1, self.agent.basis.Kmax+1)) # ck_i_avg = 1 / (N-1) * sum(Ck_j), j!=i
 
         # Time Parameters
         self.T = T_horizon
@@ -143,6 +145,9 @@ class DecentralisedErgodicController():
                         f.write(f"{k1},{k2},{ck[k1, k2]}\n")
 
         erg_cost = self.calcErgodicCost(ck) 
+        
+        # Now we can communicate with others, since we have already calculated our part (+ personal erg cost etc)
+        ck += self.ck_aver_others             # Add the average Ck of the other agents
 
         # Simulate Adjoint Backward to get rho(t)
         rho, _ = self.simulateAdjointBackward(x_traj, u_traj, t_traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)

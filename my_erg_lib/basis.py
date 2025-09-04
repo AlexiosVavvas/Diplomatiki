@@ -8,6 +8,7 @@ class Basis():
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
+        self.ck = np.zeros((Kmax+1, Kmax+1))         # Last computed ck for sharing with others
         self.ck_bar_old = np.zeros((Kmax+1, Kmax+1)) # Cumulative Ck values from previous iterations (used for infinite buffer + avoiding infinite integration)
         assert Kmax >= 1, "Kmax must be greater than or equal to 1."
         
@@ -172,8 +173,11 @@ class Basis():
 
         # Calculate final ck
         ck = ck_bar_new + 1/(ti + T - t0_erg) * ck_int_forward
+        
+        # Save to memory
+        self.ck = ck
 
-        return ck
+        return ck.copy()
 
     def calcCkCoeff(self, x_traj, ti, T, x_buffer=None, do_not_divide_integral_flag=False):
         '''
@@ -217,9 +221,11 @@ class Basis():
                     ck[k1, k2] = np.trapz(fk_values, x=t_points)
                 else:
                     ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
-
         
-        return ck
+        # Save to memory
+        self.ck = ck
+        
+        return ck.copy()
 
 
     # Other Properties and Functions -----------------------------------------
