@@ -6,49 +6,32 @@ import pstats
 from pstats import SortKey
 
 # TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
-def phiExample(s, L1=1.0, L2=1.0):
-    # Complex function with multiple peaks, valleys, and non-linearities
-    x, y = s[0], s[1]
+def create_phi_func(L1=10.0, L2=10.0):
+    """Creates a normalized phi function with multiple Gaussian bumps"""
     
-    # Multiple Gaussian bumps
-    # Generate random bump positions within the L1, L2 boundaries
-    bump_positions = [
-        (0.3 * L1, 0.8 * L2),
-        (0.7 * L1, 0.2 * L2),
-        (0.15 * L1, 0.4 * L2),
-        (0.85 * L1, 0.6 * L2)
+    # Bump configuration: (x_pos, y_pos, height, width)
+    bumps_config = [
+        (0.3 * L1, 0.8 * L2, 5, 0.7),
+        (0.7 * L1, 0.2 * L2, 4, 0.7), 
+        (0.15 * L1, 0.4 * L2, 3, 15.2),
+        (0.85 * L1, 0.6 * L2, 4.5, 6.3)
     ]
-    bump_heights = [5, 4, 3, 4.5]
-    bump_widths = [0.7, 0.7, 15.2, 6.3]
     
-    bumps = 0
-    for i in range(len(bump_positions)):
-        pos_x, pos_y = bump_positions[i]
-        height = bump_heights[i]
-        width = bump_widths[i]
-        bumps += height * np.exp(-width * ((x-pos_x)**2 + (y-pos_y)**2))
+    def phi_unnormalized(s):
+        x, y = s[0], s[1]
+        bumps = sum(h * np.exp(-w * ((x-px)**2 + (y-py)**2)) 
+                   for px, py, h, w in bumps_config)
+        return bumps + 0.01
     
-    # Sinusoidal variations
-    # waves = 2 * np.sin(8 * np.pi * x) * np.cos(6 * np.pi * y)
+    # Calculate normalization constant
+    from scipy.integrate import dblquad
+    _phi_integral, _ = dblquad(lambda x, y: phi_unnormalized((x, y)), 0, L1, lambda _: 0, lambda _: L2)
     
-    # Polynomial trend
-    # trend = (x - 0.4)**2 * (y - 0.6)**2 * 5
-    
-    # Sharp ridge
-    # ridge = 3 * np.exp(-100 * (x - y)**2)
-    
-    # Combine all components
-    # return 13 #+ waves + trend + ridge
-    return bumps + 0.01 #+ waves + trend + ridge
+    # Return normalized function
+    return lambda s: phi_unnormalized(s) / _phi_integral * 4
 
-# Calculate the integral of phiExample over the domain once
-from scipy.integrate import dblquad
-_phi_integral, _ = dblquad(lambda x, y: phiExample((x, y), L1=10.0, L2=10.0), 0, 10, lambda _: 0, lambda _: 10)
-
-# Function to be used for phi with specific L1 and L2 values
-def phi_func(s):
-    # Normalized phi function - divides by the integral to ensure integral = 1
-    return phiExample(s, L1=10.0, L2=10.0) / _phi_integral * 4
+# Create the phi function
+phi_func = create_phi_func(L1=10.0, L2=10.0)
 
 # -----------------------------------------------------------------------------------
 def main():
