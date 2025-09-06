@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # -----------------------------------------------------------------------------------
 import numpy as np
-from my_erg_lib.model_dynamics import Quadcopter
+from my_erg_lib_old.model_dynamics import Quadcopter
 
 # x0 = [x,   y,   z, ψ, θ, φ, x', y', z', ψ', θ', φ']
 x0 =   [0.5, 0.4, 2, 30*3.14/180, 30*3.14/180, 30*3.14/180, 0,  0,  -1,  0,  0.5,  0]

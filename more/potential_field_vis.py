@@ -3,10 +3,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # -----------------------------------------------------------------------------------
-from my_erg_lib.agent import Agent
-from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
-from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
+from my_erg_lib_old.agent import Agent
+from my_erg_lib_old.obstacles import Obstacle, saveObstaclesToMemory
+from my_erg_lib_old.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
+from my_erg_lib_old.ergodic_controllers import DecentralisedErgodicController
 import matplotlib.pyplot as plt
 import numpy as np
 

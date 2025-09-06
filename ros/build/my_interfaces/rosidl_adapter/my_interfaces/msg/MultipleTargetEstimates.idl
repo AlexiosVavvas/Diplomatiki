@@ -1,0 +1,25 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from my_interfaces/msg/MultipleTargetEstimates.msg
+// generated code does not contain a copyright notice
+
+#include "my_interfaces/msg/SingleTargetEstimate.idl"
+#include "std_msgs/msg/Header.idl"
+
+module my_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "MultipleTargetEstimates Message" "\n"
+      "This message contains an array of target estimates for multiple detected targets.")
+    struct MultipleTargetEstimates {
+      @verbatim (language="comment", text=
+        "Standard ROS header with timestamp and frame_id")
+      std_msgs::msg::Header header;
+
+      int32 num_of_targets;
+
+      sequence<my_interfaces::msg::SingleTargetEstimate> target_estimates;
+
+      sequence<my_interfaces::msg::SingleTargetEstimate> ground_truths;
+    };
+  };
+};

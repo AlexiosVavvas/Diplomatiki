@@ -1,5 +1,5 @@
-from my_erg_lib.agent import Agent
-from my_erg_lib.model_dynamics import Quadcopter
+from my_erg_lib_old.agent import Agent
+from my_erg_lib_old.model_dynamics import Quadcopter
 import numpy as np
 
 # Lets test associations with targets

@@ -1,0 +1,25 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from my_interfaces/msg/CkTable.msg
+// generated code does not contain a copyright notice
+
+
+module my_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "Table of floats message" "\n"
+      "Represents a square table/matrix of float values")
+    struct CkTable {
+      @verbatim (language="comment", text=
+        "Size of the square table (size x size)")
+      int32 table_size;
+
+      @verbatim (language="comment", text=
+        "Flattened array of float values (row-major order)")
+      sequence<double> ck_values;
+
+      @verbatim (language="comment", text=
+        "Total ergodic cost for all agents known now")
+      double total_erg_cost;
+    };
+  };
+};

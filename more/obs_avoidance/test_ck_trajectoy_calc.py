@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from my_erg_lib.basis import Basis, ReconstructedPhiFromCk, ReconstructedPhi
+from my_erg_lib_old.basis import Basis, ReconstructedPhiFromCk, ReconstructedPhi
 
 def generate_dummy_trajectory(L1, L2, trajectory_type='circular', num_points=1000, T=10.0):
     """

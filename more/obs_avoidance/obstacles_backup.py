@@ -1,6 +1,6 @@
 import numpy as np
-from my_erg_lib.agent import Agent
-import my_erg_lib.model_dynamics as model_dynamics
+from my_erg_lib_old.agent import Agent
+import my_erg_lib_old.model_dynamics as model_dynamics
 
 class Obstacle():
     """

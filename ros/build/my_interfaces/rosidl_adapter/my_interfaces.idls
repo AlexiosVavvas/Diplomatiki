@@ -1,0 +1,6 @@
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/CkTable.idl
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/AgentData.idl
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/SingleObstacle.idl
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleObstacles.idl
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/SingleTargetEstimate.idl
+/home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleTargetEstimates.idl
