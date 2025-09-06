@@ -34,8 +34,8 @@ extern "C"
 {
 #endif
 
-#include "rosidl_runtime_c/primitives_sequence.h"  // inputs, states
-#include "rosidl_runtime_c/primitives_sequence_functions.h"  // inputs, states
+#include "rosidl_runtime_c/primitives_sequence.h"  // in_range_agents_ids, inputs, states
+#include "rosidl_runtime_c/primitives_sequence_functions.h"  // in_range_agents_ids, inputs, states
 #include "std_msgs/msg/detail/header__functions.h"  // header
 
 // forward declare type support functions
@@ -119,6 +119,14 @@ static bool _AgentData__cdr_serialize(
   // Field name: active_cbf_flag
   {
     cdr << (ros_message->active_cbf_flag ? true : false);
+  }
+
+  // Field name: in_range_agents_ids
+  {
+    size_t size = ros_message->in_range_agents_ids.size;
+    auto array_ptr = ros_message->in_range_agents_ids.data;
+    cdr << static_cast<uint32_t>(size);
+    cdr.serializeArray(array_ptr, size);
   }
 
   return true;
@@ -206,6 +214,22 @@ static bool _AgentData__cdr_deserialize(
     ros_message->active_cbf_flag = tmp ? true : false;
   }
 
+  // Field name: in_range_agents_ids
+  {
+    uint32_t cdrSize;
+    cdr >> cdrSize;
+    size_t size = static_cast<size_t>(cdrSize);
+    if (ros_message->in_range_agents_ids.data) {
+      rosidl_runtime_c__int8__Sequence__fini(&ros_message->in_range_agents_ids);
+    }
+    if (!rosidl_runtime_c__int8__Sequence__init(&ros_message->in_range_agents_ids, size)) {
+      fprintf(stderr, "failed to create array for field 'in_range_agents_ids'");
+      return false;
+    }
+    auto array_ptr = ros_message->in_range_agents_ids.data;
+    cdr.deserializeArray(array_ptr, size);
+  }
+
   return true;
 }  // NOLINT(readability/fn_size)
 
@@ -277,6 +301,17 @@ size_t get_serialized_size_my_interfaces__msg__AgentData(
   {
     size_t item_size = sizeof(ros_message->active_cbf_flag);
     current_alignment += item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // field.name in_range_agents_ids
+  {
+    size_t array_size = ros_message->in_range_agents_ids.size;
+    auto array_ptr = ros_message->in_range_agents_ids.data;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    (void)array_ptr;
+    size_t item_size = sizeof(array_ptr[0]);
+    current_alignment += array_size * item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
 
@@ -388,6 +423,17 @@ size_t max_serialized_size_my_interfaces__msg__AgentData(
     last_member_size = array_size * sizeof(uint8_t);
     current_alignment += array_size * sizeof(uint8_t);
   }
+  // member: in_range_agents_ids
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    is_plain = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    last_member_size = array_size * sizeof(uint8_t);
+    current_alignment += array_size * sizeof(uint8_t);
+  }
 
   size_t ret_val = current_alignment - initial_alignment;
   if (is_plain) {
@@ -397,7 +443,7 @@ size_t max_serialized_size_my_interfaces__msg__AgentData(
     using DataType = my_interfaces__msg__AgentData;
     is_plain =
       (
-      offsetof(DataType, active_cbf_flag) +
+      offsetof(DataType, in_range_agents_ids) +
       last_member_size
       ) == ret_val;
   }

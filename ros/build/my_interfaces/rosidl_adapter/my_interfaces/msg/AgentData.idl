@@ -27,6 +27,8 @@ module my_interfaces {
       double ergodic_cost;
 
       boolean active_cbf_flag;
+
+      sequence<int8> in_range_agents_ids;
     };
   };
 };

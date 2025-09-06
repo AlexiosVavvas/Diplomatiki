@@ -237,6 +237,68 @@ bool my_interfaces__msg__agent_data__convert_from_py(PyObject * _pymsg, void * _
     ros_message->active_cbf_flag = (Py_True == field);
     Py_DECREF(field);
   }
+  {  // in_range_agents_ids
+    PyObject * field = PyObject_GetAttrString(_pymsg, "in_range_agents_ids");
+    if (!field) {
+      return false;
+    }
+    if (PyObject_CheckBuffer(field)) {
+      // Optimization for converting arrays of primitives
+      Py_buffer view;
+      int rc = PyObject_GetBuffer(field, &view, PyBUF_SIMPLE);
+      if (rc < 0) {
+        Py_DECREF(field);
+        return false;
+      }
+      Py_ssize_t size = view.len / sizeof(int8_t);
+      if (!rosidl_runtime_c__int8__Sequence__init(&(ros_message->in_range_agents_ids), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create int8__Sequence ros_message");
+        PyBuffer_Release(&view);
+        Py_DECREF(field);
+        return false;
+      }
+      int8_t * dest = ros_message->in_range_agents_ids.data;
+      rc = PyBuffer_ToContiguous(dest, &view, view.len, 'C');
+      if (rc < 0) {
+        PyBuffer_Release(&view);
+        Py_DECREF(field);
+        return false;
+      }
+      PyBuffer_Release(&view);
+    } else {
+      PyObject * seq_field = PySequence_Fast(field, "expected a sequence in 'in_range_agents_ids'");
+      if (!seq_field) {
+        Py_DECREF(field);
+        return false;
+      }
+      Py_ssize_t size = PySequence_Size(field);
+      if (-1 == size) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      if (!rosidl_runtime_c__int8__Sequence__init(&(ros_message->in_range_agents_ids), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create int8__Sequence ros_message");
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      int8_t * dest = ros_message->in_range_agents_ids.data;
+      for (Py_ssize_t i = 0; i < size; ++i) {
+        PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
+        if (!item) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
+        assert(PyLong_Check(item));
+        int8_t tmp = (int8_t)PyLong_AsLong(item);
+        memcpy(&dest[i], &tmp, sizeof(int8_t));
+      }
+      Py_DECREF(seq_field);
+    }
+    Py_DECREF(field);
+  }
 
   return true;
 }
@@ -441,6 +503,63 @@ PyObject * my_interfaces__msg__agent_data__convert_to_py(void * raw_ros_message)
         return NULL;
       }
     }
+  }
+  {  // in_range_agents_ids
+    PyObject * field = NULL;
+    field = PyObject_GetAttrString(_pymessage, "in_range_agents_ids");
+    if (!field) {
+      return NULL;
+    }
+    assert(field->ob_type != NULL);
+    assert(field->ob_type->tp_name != NULL);
+    assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
+    // ensure that itemsize matches the sizeof of the ROS message field
+    PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
+    assert(itemsize_attr != NULL);
+    size_t itemsize = PyLong_AsSize_t(itemsize_attr);
+    Py_DECREF(itemsize_attr);
+    if (itemsize != sizeof(int8_t)) {
+      PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
+      Py_DECREF(field);
+      return NULL;
+    }
+    // clear the array, poor approach to remove potential default values
+    Py_ssize_t length = PyObject_Length(field);
+    if (-1 == length) {
+      Py_DECREF(field);
+      return NULL;
+    }
+    if (length > 0) {
+      PyObject * pop = PyObject_GetAttrString(field, "pop");
+      assert(pop != NULL);
+      for (Py_ssize_t i = 0; i < length; ++i) {
+        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
+        if (!ret) {
+          Py_DECREF(pop);
+          Py_DECREF(field);
+          return NULL;
+        }
+        Py_DECREF(ret);
+      }
+      Py_DECREF(pop);
+    }
+    if (ros_message->in_range_agents_ids.size > 0) {
+      // populating the array.array using the frombytes method
+      PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
+      assert(frombytes != NULL);
+      int8_t * src = &(ros_message->in_range_agents_ids.data[0]);
+      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->in_range_agents_ids.size * sizeof(int8_t));
+      assert(data != NULL);
+      PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
+      Py_DECREF(data);
+      Py_DECREF(frombytes);
+      if (!ret) {
+        Py_DECREF(field);
+        return NULL;
+      }
+      Py_DECREF(ret);
+    }
+    Py_DECREF(field);
   }
 
   // ownership of _pymessage is transferred to the caller

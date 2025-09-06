@@ -78,6 +78,10 @@ cdr_serialize(
   cdr << ros_message.ergodic_cost;
   // Member: active_cbf_flag
   cdr << (ros_message.active_cbf_flag ? true : false);
+  // Member: in_range_agents_ids
+  {
+    cdr << ros_message.in_range_agents_ids;
+  }
   return true;
 }
 
@@ -118,6 +122,11 @@ cdr_deserialize(
     uint8_t tmp;
     cdr >> tmp;
     ros_message.active_cbf_flag = tmp ? true : false;
+  }
+
+  // Member: in_range_agents_ids
+  {
+    cdr >> ros_message.in_range_agents_ids;
   }
 
   return true;
@@ -189,6 +198,16 @@ get_serialized_size(
   {
     size_t item_size = sizeof(ros_message.active_cbf_flag);
     current_alignment += item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // Member: in_range_agents_ids
+  {
+    size_t array_size = ros_message.in_range_agents_ids.size();
+
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    size_t item_size = sizeof(ros_message.in_range_agents_ids[0]);
+    current_alignment += array_size * item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
 
@@ -302,6 +321,18 @@ max_serialized_size_AgentData(
     current_alignment += array_size * sizeof(uint8_t);
   }
 
+  // Member: in_range_agents_ids
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    is_plain = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    last_member_size = array_size * sizeof(uint8_t);
+    current_alignment += array_size * sizeof(uint8_t);
+  }
+
   size_t ret_val = current_alignment - initial_alignment;
   if (is_plain) {
     // All members are plain, and type is not empty.
@@ -310,7 +341,7 @@ max_serialized_size_AgentData(
     using DataType = my_interfaces::msg::AgentData;
     is_plain =
       (
-      offsetof(DataType, active_cbf_flag) +
+      offsetof(DataType, in_range_agents_ids) +
       last_member_size
       ) == ret_val;
   }

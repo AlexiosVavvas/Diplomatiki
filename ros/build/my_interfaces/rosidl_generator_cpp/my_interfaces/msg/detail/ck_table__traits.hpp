@@ -14,6 +14,10 @@
 #include "my_interfaces/msg/detail/ck_table__struct.hpp"
 #include "rosidl_runtime_cpp/traits.hpp"
 
+// Include directives for member types
+// Member 'position'
+#include "geometry_msgs/msg/detail/point__traits.hpp"
+
 namespace my_interfaces
 {
 
@@ -54,6 +58,20 @@ inline void to_flow_style_yaml(
   {
     out << "total_erg_cost: ";
     rosidl_generator_traits::value_to_yaml(msg.total_erg_cost, out);
+    out << ", ";
+  }
+
+  // member: total_erg_cost_in_range
+  {
+    out << "total_erg_cost_in_range: ";
+    rosidl_generator_traits::value_to_yaml(msg.total_erg_cost_in_range, out);
+    out << ", ";
+  }
+
+  // member: position
+  {
+    out << "position: ";
+    to_flow_style_yaml(msg.position, out);
   }
   out << "}";
 }  // NOLINT(readability/fn_size)
@@ -100,6 +118,25 @@ inline void to_block_style_yaml(
     out << "total_erg_cost: ";
     rosidl_generator_traits::value_to_yaml(msg.total_erg_cost, out);
     out << "\n";
+  }
+
+  // member: total_erg_cost_in_range
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    out << "total_erg_cost_in_range: ";
+    rosidl_generator_traits::value_to_yaml(msg.total_erg_cost_in_range, out);
+    out << "\n";
+  }
+
+  // member: position
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    out << "position:\n";
+    to_block_style_yaml(msg.position, out, indentation + 2);
   }
 }  // NOLINT(readability/fn_size)
 

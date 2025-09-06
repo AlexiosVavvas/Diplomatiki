@@ -104,6 +104,24 @@ inline void to_flow_style_yaml(
   {
     out << "active_cbf_flag: ";
     rosidl_generator_traits::value_to_yaml(msg.active_cbf_flag, out);
+    out << ", ";
+  }
+
+  // member: in_range_agents_ids
+  {
+    if (msg.in_range_agents_ids.size() == 0) {
+      out << "in_range_agents_ids: []";
+    } else {
+      out << "in_range_agents_ids: [";
+      size_t pending_items = msg.in_range_agents_ids.size();
+      for (auto item : msg.in_range_agents_ids) {
+        rosidl_generator_traits::value_to_yaml(item, out);
+        if (--pending_items > 0) {
+          out << ", ";
+        }
+      }
+      out << "]";
+    }
   }
   out << "}";
 }  // NOLINT(readability/fn_size)
@@ -209,6 +227,26 @@ inline void to_block_style_yaml(
     out << "active_cbf_flag: ";
     rosidl_generator_traits::value_to_yaml(msg.active_cbf_flag, out);
     out << "\n";
+  }
+
+  // member: in_range_agents_ids
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    if (msg.in_range_agents_ids.size() == 0) {
+      out << "in_range_agents_ids: []\n";
+    } else {
+      out << "in_range_agents_ids:\n";
+      for (auto item : msg.in_range_agents_ids) {
+        if (indentation > 0) {
+          out << std::string(indentation, ' ');
+        }
+        out << "- ";
+        rosidl_generator_traits::value_to_yaml(item, out);
+        out << "\n";
+      }
+    }
   }
 }  // NOLINT(readability/fn_size)
 

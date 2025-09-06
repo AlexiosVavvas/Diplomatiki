@@ -15,6 +15,10 @@
 #include "rosidl_runtime_cpp/message_initialization.hpp"
 
 
+// Include directives for member types
+// Member 'position'
+#include "geometry_msgs/msg/detail/point__struct.hpp"
+
 #ifndef _WIN32
 # define DEPRECATED__my_interfaces__msg__CkTable __attribute__((deprecated))
 #else
@@ -34,23 +38,26 @@ struct CkTable_
   using Type = CkTable_<ContainerAllocator>;
 
   explicit CkTable_(rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
+  : position(_init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
+      this->total_erg_cost_in_range = 0.0;
     }
   }
 
   explicit CkTable_(const ContainerAllocator & _alloc, rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
+  : position(_alloc, _init)
   {
-    (void)_alloc;
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
+      this->total_erg_cost_in_range = 0.0;
     }
   }
 
@@ -64,6 +71,12 @@ struct CkTable_
   using _total_erg_cost_type =
     double;
   _total_erg_cost_type total_erg_cost;
+  using _total_erg_cost_in_range_type =
+    double;
+  _total_erg_cost_in_range_type total_erg_cost_in_range;
+  using _position_type =
+    geometry_msgs::msg::Point_<ContainerAllocator>;
+  _position_type position;
 
   // setters for named parameter idiom
   Type & set__table_size(
@@ -82,6 +95,18 @@ struct CkTable_
     const double & _arg)
   {
     this->total_erg_cost = _arg;
+    return *this;
+  }
+  Type & set__total_erg_cost_in_range(
+    const double & _arg)
+  {
+    this->total_erg_cost_in_range = _arg;
+    return *this;
+  }
+  Type & set__position(
+    const geometry_msgs::msg::Point_<ContainerAllocator> & _arg)
+  {
+    this->position = _arg;
     return *this;
   }
 
@@ -134,6 +159,12 @@ struct CkTable_
       return false;
     }
     if (this->total_erg_cost != other.total_erg_cost) {
+      return false;
+    }
+    if (this->total_erg_cost_in_range != other.total_erg_cost_in_range) {
+      return false;
+    }
+    if (this->position != other.position) {
       return false;
     }
     return true;

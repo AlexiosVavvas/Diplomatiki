@@ -73,6 +73,7 @@ CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_inter
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h
  /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence.h
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__type_support.h
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h
  /opt/ros/humble/include/rosidl_typesupport_c/rosidl_typesupport_c/identifier.h

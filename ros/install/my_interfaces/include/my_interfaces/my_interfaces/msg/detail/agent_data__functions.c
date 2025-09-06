@@ -16,6 +16,7 @@
 #include "std_msgs/msg/detail/header__functions.h"
 // Member `states`
 // Member `inputs`
+// Member `in_range_agents_ids`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
 bool
@@ -44,6 +45,11 @@ my_interfaces__msg__AgentData__init(my_interfaces__msg__AgentData * msg)
   }
   // ergodic_cost
   // active_cbf_flag
+  // in_range_agents_ids
+  if (!rosidl_runtime_c__int8__Sequence__init(&msg->in_range_agents_ids, 0)) {
+    my_interfaces__msg__AgentData__fini(msg);
+    return false;
+  }
   return true;
 }
 
@@ -64,6 +70,8 @@ my_interfaces__msg__AgentData__fini(my_interfaces__msg__AgentData * msg)
   rosidl_runtime_c__double__Sequence__fini(&msg->inputs);
   // ergodic_cost
   // active_cbf_flag
+  // in_range_agents_ids
+  rosidl_runtime_c__int8__Sequence__fini(&msg->in_range_agents_ids);
 }
 
 bool
@@ -110,6 +118,12 @@ my_interfaces__msg__AgentData__are_equal(const my_interfaces__msg__AgentData * l
   if (lhs->active_cbf_flag != rhs->active_cbf_flag) {
     return false;
   }
+  // in_range_agents_ids
+  if (!rosidl_runtime_c__int8__Sequence__are_equal(
+      &(lhs->in_range_agents_ids), &(rhs->in_range_agents_ids)))
+  {
+    return false;
+  }
   return true;
 }
 
@@ -149,6 +163,12 @@ my_interfaces__msg__AgentData__copy(
   output->ergodic_cost = input->ergodic_cost;
   // active_cbf_flag
   output->active_cbf_flag = input->active_cbf_flag;
+  // in_range_agents_ids
+  if (!rosidl_runtime_c__int8__Sequence__copy(
+      &(input->in_range_agents_ids), &(output->in_range_agents_ids)))
+  {
+    return false;
+  }
   return true;
 }
 

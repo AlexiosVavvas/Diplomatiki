@@ -21,16 +21,48 @@ namespace msg
 namespace builder
 {
 
+class Init_CkTable_position
+{
+public:
+  explicit Init_CkTable_position(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
+  {}
+  ::my_interfaces::msg::CkTable position(::my_interfaces::msg::CkTable::_position_type arg)
+  {
+    msg_.position = std::move(arg);
+    return std::move(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
+class Init_CkTable_total_erg_cost_in_range
+{
+public:
+  explicit Init_CkTable_total_erg_cost_in_range(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
+  {}
+  Init_CkTable_position total_erg_cost_in_range(::my_interfaces::msg::CkTable::_total_erg_cost_in_range_type arg)
+  {
+    msg_.total_erg_cost_in_range = std::move(arg);
+    return Init_CkTable_position(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
 class Init_CkTable_total_erg_cost
 {
 public:
   explicit Init_CkTable_total_erg_cost(::my_interfaces::msg::CkTable & msg)
   : msg_(msg)
   {}
-  ::my_interfaces::msg::CkTable total_erg_cost(::my_interfaces::msg::CkTable::_total_erg_cost_type arg)
+  Init_CkTable_total_erg_cost_in_range total_erg_cost(::my_interfaces::msg::CkTable::_total_erg_cost_type arg)
   {
     msg_.total_erg_cost = std::move(arg);
-    return std::move(msg_);
+    return Init_CkTable_total_erg_cost_in_range(msg_);
   }
 
 private:

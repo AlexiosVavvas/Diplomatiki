@@ -90,6 +90,9 @@ struct AgentData_
   using _active_cbf_flag_type =
     bool;
   _active_cbf_flag_type active_cbf_flag;
+  using _in_range_agents_ids_type =
+    std::vector<int8_t, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<int8_t>>;
+  _in_range_agents_ids_type in_range_agents_ids;
 
   // setters for named parameter idiom
   Type & set__header(
@@ -138,6 +141,12 @@ struct AgentData_
     const bool & _arg)
   {
     this->active_cbf_flag = _arg;
+    return *this;
+  }
+  Type & set__in_range_agents_ids(
+    const std::vector<int8_t, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<int8_t>> & _arg)
+  {
+    this->in_range_agents_ids = _arg;
     return *this;
   }
 
@@ -205,6 +214,9 @@ struct AgentData_
       return false;
     }
     if (this->active_cbf_flag != other.active_cbf_flag) {
+      return false;
+    }
+    if (this->in_range_agents_ids != other.in_range_agents_ids) {
       return false;
     }
     return true;

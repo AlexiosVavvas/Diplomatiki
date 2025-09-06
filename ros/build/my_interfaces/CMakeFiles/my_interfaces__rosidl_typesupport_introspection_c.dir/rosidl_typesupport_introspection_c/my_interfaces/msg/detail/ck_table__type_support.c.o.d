@@ -58,4 +58,11 @@ CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupp
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h \
  /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence.h \
- /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/point.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__functions.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/rosidl_generator_c__visibility_control.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__type_support.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__rosidl_typesupport_introspection_c.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h

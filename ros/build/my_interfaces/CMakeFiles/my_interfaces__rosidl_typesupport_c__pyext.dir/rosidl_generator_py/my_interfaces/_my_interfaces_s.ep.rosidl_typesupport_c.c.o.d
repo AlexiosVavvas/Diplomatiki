@@ -205,6 +205,7 @@ CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h \
  /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence.h \
+ /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/agent_data__type_support.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/agent_data__struct.h \
@@ -214,7 +215,6 @@ CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/agent_data__functions.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__type_support.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__struct.h \
- /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__functions.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__type_support.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__struct.h \

@@ -22,6 +22,7 @@ extern "C"
 #include "std_msgs/msg/detail/header__struct.h"
 // Member 'states'
 // Member 'inputs'
+// Member 'in_range_agents_ids'
 #include "rosidl_runtime_c/primitives_sequence.h"
 
 /// Struct defined in msg/AgentData in the package my_interfaces.
@@ -40,6 +41,7 @@ typedef struct my_interfaces__msg__AgentData
   rosidl_runtime_c__double__Sequence inputs;
   double ergodic_cost;
   bool active_cbf_flag;
+  rosidl_runtime_c__int8__Sequence in_range_agents_ids;
 } my_interfaces__msg__AgentData;
 
 // Struct for a sequence of my_interfaces__msg__AgentData.

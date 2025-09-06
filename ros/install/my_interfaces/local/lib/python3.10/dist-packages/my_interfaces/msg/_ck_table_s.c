@@ -19,6 +19,10 @@
 #include "rosidl_runtime_c/primitives_sequence.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
+ROSIDL_GENERATOR_C_IMPORT
+bool geometry_msgs__msg__point__convert_from_py(PyObject * _pymsg, void * _ros_message);
+ROSIDL_GENERATOR_C_IMPORT
+PyObject * geometry_msgs__msg__point__convert_to_py(void * raw_ros_message);
 
 ROSIDL_GENERATOR_C_EXPORT
 bool my_interfaces__msg__ck_table__convert_from_py(PyObject * _pymsg, void * _ros_message)
@@ -133,6 +137,26 @@ bool my_interfaces__msg__ck_table__convert_from_py(PyObject * _pymsg, void * _ro
     ros_message->total_erg_cost = PyFloat_AS_DOUBLE(field);
     Py_DECREF(field);
   }
+  {  // total_erg_cost_in_range
+    PyObject * field = PyObject_GetAttrString(_pymsg, "total_erg_cost_in_range");
+    if (!field) {
+      return false;
+    }
+    assert(PyFloat_Check(field));
+    ros_message->total_erg_cost_in_range = PyFloat_AS_DOUBLE(field);
+    Py_DECREF(field);
+  }
+  {  // position
+    PyObject * field = PyObject_GetAttrString(_pymsg, "position");
+    if (!field) {
+      return false;
+    }
+    if (!geometry_msgs__msg__point__convert_from_py(field, &ros_message->position)) {
+      Py_DECREF(field);
+      return false;
+    }
+    Py_DECREF(field);
+  }
 
   return true;
 }
@@ -228,6 +252,31 @@ PyObject * my_interfaces__msg__ck_table__convert_to_py(void * raw_ros_message)
     field = PyFloat_FromDouble(ros_message->total_erg_cost);
     {
       int rc = PyObject_SetAttrString(_pymessage, "total_erg_cost", field);
+      Py_DECREF(field);
+      if (rc) {
+        return NULL;
+      }
+    }
+  }
+  {  // total_erg_cost_in_range
+    PyObject * field = NULL;
+    field = PyFloat_FromDouble(ros_message->total_erg_cost_in_range);
+    {
+      int rc = PyObject_SetAttrString(_pymessage, "total_erg_cost_in_range", field);
+      Py_DECREF(field);
+      if (rc) {
+        return NULL;
+      }
+    }
+  }
+  {  // position
+    PyObject * field = NULL;
+    field = geometry_msgs__msg__point__convert_to_py(&ros_message->position);
+    if (!field) {
+      return NULL;
+    }
+    {
+      int rc = PyObject_SetAttrString(_pymessage, "position", field);
       Py_DECREF(field);
       if (rc) {
         return NULL;

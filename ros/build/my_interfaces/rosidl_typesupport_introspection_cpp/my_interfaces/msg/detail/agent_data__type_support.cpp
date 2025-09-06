@@ -127,7 +127,52 @@ void resize_function__AgentData__inputs(void * untyped_member, size_t size)
   member->resize(size);
 }
 
-static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_message_member_array[8] = {
+size_t size_function__AgentData__in_range_agents_ids(const void * untyped_member)
+{
+  const auto * member = reinterpret_cast<const std::vector<int8_t> *>(untyped_member);
+  return member->size();
+}
+
+const void * get_const_function__AgentData__in_range_agents_ids(const void * untyped_member, size_t index)
+{
+  const auto & member =
+    *reinterpret_cast<const std::vector<int8_t> *>(untyped_member);
+  return &member[index];
+}
+
+void * get_function__AgentData__in_range_agents_ids(void * untyped_member, size_t index)
+{
+  auto & member =
+    *reinterpret_cast<std::vector<int8_t> *>(untyped_member);
+  return &member[index];
+}
+
+void fetch_function__AgentData__in_range_agents_ids(
+  const void * untyped_member, size_t index, void * untyped_value)
+{
+  const auto & item = *reinterpret_cast<const int8_t *>(
+    get_const_function__AgentData__in_range_agents_ids(untyped_member, index));
+  auto & value = *reinterpret_cast<int8_t *>(untyped_value);
+  value = item;
+}
+
+void assign_function__AgentData__in_range_agents_ids(
+  void * untyped_member, size_t index, const void * untyped_value)
+{
+  auto & item = *reinterpret_cast<int8_t *>(
+    get_function__AgentData__in_range_agents_ids(untyped_member, index));
+  const auto & value = *reinterpret_cast<const int8_t *>(untyped_value);
+  item = value;
+}
+
+void resize_function__AgentData__in_range_agents_ids(void * untyped_member, size_t size)
+{
+  auto * member =
+    reinterpret_cast<std::vector<int8_t> *>(untyped_member);
+  member->resize(size);
+}
+
+static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_message_member_array[9] = {
   {
     "header",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE,  // type
@@ -263,13 +308,30 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_mes
     nullptr,  // fetch(index, &value) function pointer
     nullptr,  // assign(index, value) function pointer
     nullptr  // resize(index) function pointer
+  },
+  {
+    "in_range_agents_ids",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::AgentData, in_range_agents_ids),  // bytes offset in struct
+    nullptr,  // default value
+    size_function__AgentData__in_range_agents_ids,  // size() function pointer
+    get_const_function__AgentData__in_range_agents_ids,  // get_const(index) function pointer
+    get_function__AgentData__in_range_agents_ids,  // get(index) function pointer
+    fetch_function__AgentData__in_range_agents_ids,  // fetch(index, &value) function pointer
+    assign_function__AgentData__in_range_agents_ids,  // assign(index, value) function pointer
+    resize_function__AgentData__in_range_agents_ids  // resize(index) function pointer
   }
 };
 
 static const ::rosidl_typesupport_introspection_cpp::MessageMembers AgentData_message_members = {
   "my_interfaces::msg",  // message namespace
   "AgentData",  // message name
-  8,  // number of fields
+  9,  // number of fields
   sizeof(my_interfaces::msg::AgentData),
   AgentData_message_member_array,  // message members
   AgentData_init_function,  // function to initialize message memory (memory has to be allocated)

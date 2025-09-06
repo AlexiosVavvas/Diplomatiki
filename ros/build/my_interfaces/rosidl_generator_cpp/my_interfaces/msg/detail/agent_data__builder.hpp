@@ -21,16 +21,32 @@ namespace msg
 namespace builder
 {
 
+class Init_AgentData_in_range_agents_ids
+{
+public:
+  explicit Init_AgentData_in_range_agents_ids(::my_interfaces::msg::AgentData & msg)
+  : msg_(msg)
+  {}
+  ::my_interfaces::msg::AgentData in_range_agents_ids(::my_interfaces::msg::AgentData::_in_range_agents_ids_type arg)
+  {
+    msg_.in_range_agents_ids = std::move(arg);
+    return std::move(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::AgentData msg_;
+};
+
 class Init_AgentData_active_cbf_flag
 {
 public:
   explicit Init_AgentData_active_cbf_flag(::my_interfaces::msg::AgentData & msg)
   : msg_(msg)
   {}
-  ::my_interfaces::msg::AgentData active_cbf_flag(::my_interfaces::msg::AgentData::_active_cbf_flag_type arg)
+  Init_AgentData_in_range_agents_ids active_cbf_flag(::my_interfaces::msg::AgentData::_active_cbf_flag_type arg)
   {
     msg_.active_cbf_flag = std::move(arg);
-    return std::move(msg_);
+    return Init_AgentData_in_range_agents_ids(msg_);
   }
 
 private:

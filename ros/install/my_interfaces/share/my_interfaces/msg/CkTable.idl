@@ -2,6 +2,7 @@
 // with input from my_interfaces/msg/CkTable.msg
 // generated code does not contain a copyright notice
 
+#include "geometry_msgs/msg/Point.idl"
 
 module my_interfaces {
   module msg {
@@ -18,8 +19,16 @@ module my_interfaces {
       sequence<double> ck_values;
 
       @verbatim (language="comment", text=
-        "Total ergodic cost for all agents known now")
+        "Total ergodic cost for all agents now")
       double total_erg_cost;
+
+      @verbatim (language="comment", text=
+        "Total ergodic cost for all in range agents now")
+      double total_erg_cost_in_range;
+
+      @verbatim (language="comment", text=
+        "Current Agent position [x, y, z] (used to simulate short antenna range)")
+      geometry_msgs::msg::Point position;
     };
   };
 };

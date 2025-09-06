@@ -16,11 +16,11 @@ def generate_launch_description():
     
     # Define agent configurations (agent_id, x_pos, y_pos)
     agent_configs = [
-        {'agent_id': '1', 'x_pos': '1', 'y_pos': '1'},
-        {'agent_id': '2', 'x_pos': '3', 'y_pos': '2'},
-        {'agent_id': '3', 'x_pos': '5', 'y_pos': '7'},
-        {'agent_id': '4', 'x_pos': '7', 'y_pos': '8'},
-        {'agent_id': '5', 'x_pos': '9', 'y_pos': '1'},
+        {'agent_id': '1', 'x_pos': '1', 'y_pos': '1', 'antenna_rad': '6.0', 'antenna_range_flag': 'false'},
+        {'agent_id': '2', 'x_pos': '3', 'y_pos': '2', 'antenna_rad': '6.0', 'antenna_range_flag': 'false'},
+        {'agent_id': '3', 'x_pos': '5', 'y_pos': '7', 'antenna_rad': '6.0', 'antenna_range_flag': 'false'},
+        {'agent_id': '4', 'x_pos': '7', 'y_pos': '8', 'antenna_rad': '6.0', 'antenna_range_flag': 'false'},
+        {'agent_id': '5', 'x_pos': '9', 'y_pos': '1', 'antenna_rad': '6.0', 'antenna_range_flag': 'false'},
     ]
     
     # Create nodes list
@@ -37,6 +37,8 @@ def generate_launch_description():
             arguments=[
             '--agent_id', config['agent_id'],
             '--init_pos', config['x_pos'], config['y_pos'],
+            '--antenna_rad', config['antenna_rad'],
+            '--antenna_range_flag', config['antenna_range_flag'],
             '--ros-args', '--log-level', 'WARN'
             ],
             output='screen',

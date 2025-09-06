@@ -7,6 +7,7 @@
 
 # Member 'states'
 # Member 'inputs'
+# Member 'in_range_agents_ids'
 import array  # noqa: E402, I100
 
 import builtins  # noqa: E402, I100
@@ -73,6 +74,7 @@ class AgentData(metaclass=Metaclass_AgentData):
         '_inputs',
         '_ergodic_cost',
         '_active_cbf_flag',
+        '_in_range_agents_ids',
     ]
 
     _fields_and_field_types = {
@@ -84,6 +86,7 @@ class AgentData(metaclass=Metaclass_AgentData):
         'inputs': 'sequence<double>',
         'ergodic_cost': 'double',
         'active_cbf_flag': 'boolean',
+        'in_range_agents_ids': 'sequence<int8>',
     }
 
     SLOT_TYPES = (
@@ -95,6 +98,7 @@ class AgentData(metaclass=Metaclass_AgentData):
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
         rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.BasicType('boolean'),  # noqa: E501
+        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('int8')),  # noqa: E501
     )
 
     def __init__(self, **kwargs):
@@ -110,6 +114,7 @@ class AgentData(metaclass=Metaclass_AgentData):
         self.inputs = array.array('d', kwargs.get('inputs', []))
         self.ergodic_cost = kwargs.get('ergodic_cost', float())
         self.active_cbf_flag = kwargs.get('active_cbf_flag', bool())
+        self.in_range_agents_ids = array.array('b', kwargs.get('in_range_agents_ids', []))
 
     def __repr__(self):
         typename = self.__class__.__module__.split('.')
@@ -155,6 +160,8 @@ class AgentData(metaclass=Metaclass_AgentData):
         if self.ergodic_cost != other.ergodic_cost:
             return False
         if self.active_cbf_flag != other.active_cbf_flag:
+            return False
+        if self.in_range_agents_ids != other.in_range_agents_ids:
             return False
         return True
 
@@ -305,3 +312,31 @@ class AgentData(metaclass=Metaclass_AgentData):
                 isinstance(value, bool), \
                 "The 'active_cbf_flag' field must be of type 'bool'"
         self._active_cbf_flag = value
+
+    @builtins.property
+    def in_range_agents_ids(self):
+        """Message field 'in_range_agents_ids'."""
+        return self._in_range_agents_ids
+
+    @in_range_agents_ids.setter
+    def in_range_agents_ids(self, value):
+        if isinstance(value, array.array):
+            assert value.typecode == 'b', \
+                "The 'in_range_agents_ids' array.array() must have the type code of 'b'"
+            self._in_range_agents_ids = value
+            return
+        if __debug__:
+            from collections.abc import Sequence
+            from collections.abc import Set
+            from collections import UserList
+            from collections import UserString
+            assert \
+                ((isinstance(value, Sequence) or
+                  isinstance(value, Set) or
+                  isinstance(value, UserList)) and
+                 not isinstance(value, str) and
+                 not isinstance(value, UserString) and
+                 all(isinstance(v, int) for v in value) and
+                 all(val >= -128 and val < 128 for val in value)), \
+                "The 'in_range_agents_ids' field must be a set or sequence and each value of type 'int' and each integer in [-128, 127]"
+        self._in_range_agents_ids = array.array('b', value)

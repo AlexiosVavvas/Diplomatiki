@@ -506,6 +506,7 @@ CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfa
   /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/visibility_control.h \
   rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h \
   /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence.h \
+  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
   rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h \
   rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h \
   /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h

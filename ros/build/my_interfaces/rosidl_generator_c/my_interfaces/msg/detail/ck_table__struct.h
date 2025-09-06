@@ -20,6 +20,8 @@ extern "C"
 // Include directives for member types
 // Member 'ck_values'
 #include "rosidl_runtime_c/primitives_sequence.h"
+// Member 'position'
+#include "geometry_msgs/msg/detail/point__struct.h"
 
 /// Struct defined in msg/CkTable in the package my_interfaces.
 /**
@@ -32,8 +34,12 @@ typedef struct my_interfaces__msg__CkTable
   int32_t table_size;
   /// Flattened array of float values (row-major order)
   rosidl_runtime_c__double__Sequence ck_values;
-  /// Total ergodic cost for all agents known now
+  /// Total ergodic cost for all agents now
   double total_erg_cost;
+  /// Total ergodic cost for all in range agents now
+  double total_erg_cost_in_range;
+  /// Current Agent position [x, y, z] (used to simulate short antenna range)
+  geometry_msgs__msg__Point position;
 } my_interfaces__msg__CkTable;
 
 // Struct for a sequence of my_interfaces__msg__CkTable.

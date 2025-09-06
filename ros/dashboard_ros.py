@@ -8,7 +8,8 @@ import os
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
-from my_interfaces.msg import AgentData, MultipleObstacles, SingleObstacle, MultipleTargetEstimates, SingleTargetEstimate, CkTable
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
+from my_interfaces.msg import AgentData, MultipleObstacles, SingleObstacle, MultipleTargetEstimates, SingleTargetEstimate, CkTable  # type: ignore
 from std_msgs.msg import Header
 import threading
 import time
@@ -19,6 +20,15 @@ from matplotlib.patches import Ellipse
 class LiveDashboard(Node):
     def __init__(self):
         super().__init__('dashboard_node')
+        
+        # Create QoS profile for best effort communication
+        # This allows for faster data transmission with potential message loss
+        self.best_effort_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10,
+            durability=DurabilityPolicy.VOLATILE
+        )
         
         # Create separate figure windows for each plot
         self.traj_fig, self.traj_ax = plt.subplots(1, 1, figsize=(9, 7))
@@ -136,7 +146,8 @@ class LiveDashboard(Node):
                 'states': [],
                 'inputs': [],
                 'ergodic_costs': [],
-                'cbf_flags': []
+                'cbf_flags': [],
+                'in_range_agents_ids': []
             }
         
         with self.ck_lock:
@@ -153,7 +164,7 @@ class LiveDashboard(Node):
             AgentData,
             f'agent_{agent_id}/data',
             lambda msg, aid=agent_id: self.agent_data_callback(msg, aid),
-            10
+            self.best_effort_qos
         )
         self.subscribers[agent_id] = subscriber
         
@@ -162,7 +173,7 @@ class LiveDashboard(Node):
             MultipleObstacles,
             f'agent_{agent_id}/known_obstacles',
             lambda msg, aid=agent_id: self.obstacles_callback(msg, aid),
-            10
+            self.best_effort_qos
         )
         self.obstacle_subscribers[agent_id] = obstacle_subscriber
         
@@ -171,7 +182,7 @@ class LiveDashboard(Node):
             MultipleTargetEstimates,
             f'agent_{agent_id}/target_estimates',
             lambda msg, aid=agent_id: self.target_estimates_callback(msg, aid),
-            10
+            self.best_effort_qos
         )
         self.target_estimate_subscribers[agent_id] = target_subscriber
         
@@ -180,7 +191,7 @@ class LiveDashboard(Node):
             CkTable,
             f'agent_{agent_id}/ck',
             lambda msg, aid=agent_id: self.ck_callback(msg, aid),
-            10
+            self.best_effort_qos
         )
         self.ck_subscribers[agent_id] = ck_subscriber
         
@@ -273,6 +284,7 @@ class LiveDashboard(Node):
             data['inputs'].append(list(msg.inputs))  # Convert to list to avoid reference issues
             data['ergodic_costs'].append(msg.ergodic_cost)
             data['cbf_flags'].append(msg.active_cbf_flag)
+            data['in_range_agents_ids'].append(list(msg.in_range_agents_ids))  # Store communication connections
 
             # Keep only the last 100000 data points to avoid memory issues but show more history
             max_points = int(1e5/2.5)
@@ -357,7 +369,7 @@ class LiveDashboard(Node):
             # Store CK table data
             self.ck_data[agent_id]['timestamps'].append(sim_time)
             self.ck_data[agent_id]['table_size'] = msg.table_size
-            self.ck_data[agent_id]['total_erg_costs'].append(msg.total_erg_cost)
+            self.ck_data[agent_id]['total_erg_costs'].append(msg.total_erg_cost_in_range)
             
             # Reshape the flattened array to a square matrix
             ck_table = np.array(msg.ck_values).reshape(msg.table_size, msg.table_size)
@@ -570,6 +582,9 @@ class LiveDashboard(Node):
         self.traj_ax.set_ylim(0, 10)
         self.traj_ax.set_title('Agent Trajectories')
         
+        # Draw communication lines between agents (before obstacles and targets for proper layering)
+        self.draw_communication_lines(self.traj_ax, agent_data_copy)
+        
         # Draw obstacles on the trajectory plot
         self.draw_obstacles(self.traj_ax)
         
@@ -753,6 +768,55 @@ class LiveDashboard(Node):
                 # Skip this agent's target data if there are issues with the covariance matrix
                 continue
         
+    def draw_communication_lines(self, ax, agent_data_copy):
+        """Draw dotted communication lines between agents that can communicate with each other"""
+        try:
+            # Get current positions and communication connections for all agents
+            agent_positions = {}
+            agent_connections = {}
+            
+            # Extract current positions and in-range agents for each agent
+            for agent_id, data in agent_data_copy.items():
+                if len(data['states']) > 0 and len(data['in_range_agents_ids']) > 0:
+                    # Get current position (last state)
+                    current_state = data['states'][-1]
+                    if len(current_state) >= 2:
+                        agent_positions[agent_id] = (current_state[0], current_state[1])
+                        
+                        # Get current in-range agents (last communication data)
+                        in_range_agents = data['in_range_agents_ids'][-1]
+                        agent_connections[agent_id] = in_range_agents
+            
+            # Draw communication lines
+            for agent_id, connections in agent_connections.items():
+                if agent_id not in agent_positions:
+                    continue
+                    
+                agent_pos = agent_positions[agent_id]
+                agent_color = self.agent_colors[agent_id % len(self.agent_colors)]
+                
+                # Draw dotted lines to each agent this agent can communicate with
+                for connected_agent_id in connections:
+                    if connected_agent_id in agent_positions:
+                        connected_pos = agent_positions[connected_agent_id]
+                        
+                        # Draw dotted line from this agent to the connected agent
+                        ax.plot([agent_pos[0], connected_pos[0]], 
+                               [agent_pos[1], connected_pos[1]], 
+                               color=agent_color, 
+                               linestyle=':', 
+                               linewidth=1.5, 
+                               alpha=0.7,
+                               zorder=1)  # Lower zorder so lines appear behind trajectories
+                        
+        except Exception as e:
+            # Print error for debugging (can be removed in production)
+            if hasattr(self, 'get_logger'):
+                self.get_logger().warn(f'Error drawing communication lines: {e}')
+            else:
+                print(f"Error drawing communication lines: {e}")
+            pass
+    
     def cleanup(self):
         """Clean up all subscribers and resources"""
         self._shutdown_requested = True  # Set shutdown flag

@@ -16,7 +16,8 @@ class DecentralisedErgodicController():
         self.num_of_agents = num_of_agents
         # Average Ck of the other agents, to be added to own Ck
         self.ck_aver_others = np.zeros((self.agent.basis.Kmax+1, self.agent.basis.Kmax+1)) # ck_i_avg = 1 / (N-1) * sum(Ck_j), j!=i
-        self.total_erg_cost = 0.0  # Total ergodic cost for all agents known now
+        self.total_erg_cost = 0.0  # Total ergodic cost for all agents now
+        self.total_erg_cost_in_range = 0.0 # Total ergodic cost for agents in range now
 
         # Time Parameters
         self.T = T_horizon

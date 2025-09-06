@@ -5,6 +5,7 @@ import signal
 import sys
 
 import rclpy
+import rclpy.parameter
 import argparse
 
 # TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
@@ -59,11 +60,15 @@ def main(args=None):
 
     # Lets parse arguments to get agent ID
     parser = argparse.ArgumentParser(description='Run agent node with dynamic ID')
-    parser.add_argument('--agent_id', type=int, required=True, help='Agent ID to name the node')
-    parser.add_argument('--init_pos', type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
+    parser.add_argument('--agent_id',           type=int,            required=True,                  help='Agent ID to name the node')
+    parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
+    parser.add_argument('--antenna_range_flag', type=bool,           required=False, default=False,  help='Antenna range flag')
+    parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
     parsed_args, ros_args = parser.parse_known_args()  # Parse known args only, keep ROS args separate
     AGENT_ID = parsed_args.agent_id
     INIT_POS_2D = np.array(parsed_args.init_pos)
+    ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
+    ANTENNA_RADIUS = parsed_args.antenna_rad if ANTENNA_RANGE_FLAG else np.inf
 
     # System Read Only Parameters to set in ROS
     LOCALISE_TARGETS_FLAG = True
@@ -137,7 +142,7 @@ def main(args=None):
     # Generate Agent and connect to an ergodic controller object
     agent = Agent(L1=10.0, L2=10.0, Kmax=4, 
                   dynamics_model=DoubleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2),
-                  agent_id=AGENT_ID,
+                  agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
                   phi=lambda s: 1/100) # phi=phi_func
                 #   phi=phi_func)      # phi=phi_func
 
@@ -147,7 +152,7 @@ def main(args=None):
                                                  barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
     
     # System Read Only Parameters to set in ROS
-    from rcl_interfaces.msg import ParameterDescriptor
+    from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult
     descriptor = ParameterDescriptor(read_only=True, description='Read only')
     agent.declare_parameter('id', AGENT_ID, descriptor=descriptor)
     agent.declare_parameter('localise_targets_flag', LOCALISE_TARGETS_FLAG, descriptor=descriptor)
@@ -155,6 +160,29 @@ def main(args=None):
     agent.declare_parameter('save_images_flag', SAVE_IMAGES_FLAG, descriptor=descriptor)
     agent.declare_parameter('imax', IMAX, descriptor=descriptor)
     agent.declare_parameter('init_position_2d', INIT_POS_2D.tolist(), descriptor=descriptor)
+    
+    # Declare antenna_radius parameter (not read-only) and update agent's antenna_rad
+    agent.declare_parameter('antenna_radius', ANTENNA_RADIUS)
+    agent.antenna_rad = agent.get_parameter('antenna_radius').value
+    agent.declare_parameter('antenna_range_flag', ANTENNA_RANGE_FLAG)
+    agent.antenna_range_flag = agent.get_parameter('antenna_range_flag').value
+
+    # Add parameter callback to update antenna_rad when parameter changes
+    def parameter_callback(params):
+        for param in params:
+            if param.name == 'antenna_radius':
+                agent.antenna_rad = param.value
+                agent.get_logger().info(f'Updated antenna_rad to: {agent.antenna_rad}')
+            if param.name == 'antenna_range_flag':
+                agent.antenna_range_flag = param.value
+                if param.value == True:
+                    agent.get_logger().info("Enabling Antenna Range for this agent...")
+                else:
+                    agent.get_logger().info("Disabling Antenna Range for this agent...")
+
+        return SetParametersResult(successful=True)
+
+    agent.add_on_set_parameters_callback(parameter_callback)
 
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
@@ -252,16 +280,30 @@ def main(args=None):
                 # Ergodic Control Calculation ---------------------------------------------
                 # Calculate ergodic control for the sample step
                 us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(time_list[i], prediction_dt=PREDICTION_DT)
+
+
+
                 # Calculate the average CK table of all discovered agents (except the self)
                 other_agent_ck_data = [ck for aid, ck in agent.getAgentCkData().items() if aid != agent.agent_id and ck is not None]
-                if len(other_agent_ck_data) > 0:
-                    agent.erg_c.ck_aver_others = np.mean(other_agent_ck_data, axis=0)
-
                 # Append to the list above this agents ck
                 other_agent_ck_data.append(agent.basis.ck)
                 ck_total = np.mean(other_agent_ck_data, axis=0)
                 # with this now lets calculate total ergodic cost
                 agent.erg_c.total_erg_cost = agent.erg_c.calcErgodicCost(ck_total)
+
+                # If we have limited antenna range for communication enabled
+                if agent.antenna_range_flag:
+                    in_range_ck_data = [ck for aid, ck in agent.getAgentCkData(in_range_only=True).items() if aid != agent.agent_id and ck is not None]
+                    if len(in_range_ck_data) > 0:
+                        agent.erg_c.ck_aver_others = np.mean(in_range_ck_data, axis=0)
+                    ck_total_in_range = np.mean(in_range_ck_data + [agent.basis.ck], axis=0) if len(in_range_ck_data) > 0 else agent.basis.ck
+                    agent.erg_c.total_erg_cost_in_range = agent.erg_c.calcErgodicCost(ck_total_in_range)
+                else:
+                    if len(other_agent_ck_data) > 0:
+                        agent.erg_c.ck_aver_others = np.mean(other_agent_ck_data, axis=0)
+                    agent.erg_c.total_erg_cost_in_range = agent.erg_c.total_erg_cost
+
+
 
                 # change lamda dur only if not quadcopter
                 if not isinstance(agent.model, Quadcopter):
@@ -287,7 +329,7 @@ def main(args=None):
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])
                 if np.any(np.abs(agent.model.state[:2]) > 50):
-                    print(f"Agent WAYY out of bounds! Stopping simulation.")
+                    agent.get_logger().fatal(f"Agent WAYY out of bounds! Stopping simulation.")
                     break
                 
                 # Update the action mask
@@ -392,14 +434,14 @@ def main(args=None):
             u = np.clip(u, agent.erg_c.uLimits[:, 0], agent.erg_c.uLimits[:, 1])
             # If u_magnitude is more than 100, print a warning
             if np.linalg.norm(u) > 100:
-                print(f"CRITICAL: Agent control action is too high: {u}")
+                agent.get_logger().warn(f"CRITICAL: Agent control action is too high: {u}")
 
             # Lets smooth out with the previous control action
             u = RELAX_FACTOR * u + (1-RELAX_FACTOR) * u_before  # Smooth the control action
             u_before = u.copy()
 
             # ROS Send data to data topic
-            if not shutdown_flag.is_set():
+            if not shutdown_flag.is_set() and i % 30 == 0:
                 agent.publishData(state_now=agent.model.state, u_input_now=u, erg_cost_now=erg_cost, 
                                   active_cbf_flag=True if int(np.any(u_safe != 0)) == 1 else False,
                                   time_now=time_list[i])
@@ -420,10 +462,10 @@ def main(args=None):
             # Lets update phi(x) if needed
             if i%(Ts_iter * UPDATE_EID_FREQ) == 0 and UPDATE_EID_FLAG:
                 t_ = time.time()
-                print("Updating phi...")
+                agent.get_logger().info("Updating phi...")
                 # TODO: Globalize the parameters used here
                 agent.updateEIDphiFunction(NUM_GAUSS_POINTS=10, P_UPPER_LIM=8, HTA_SCALE=8e-8, FINAL_FI_CLIP=0.01, ALWAYS_ADD=0)
-                print(f"Updated phi in {time.time()-t_:.2f} s")
+                agent.get_logger().info(f"Updated phi in {time.time()-t_:.2f} s")
                 draw_plot_flag = True
                 # Restart ergodic memory buffer
                 if INF_BUF_FLAG:
@@ -450,9 +492,9 @@ def main(args=None):
 
         # Check if simulation ended due to shutdown signal
         if shutdown_flag.is_set():
-            print("Simulation terminated by user interrupt.")
+            agent.get_logger().info("Simulation terminated by user interrupt.")
         else:
-            print(f"Simulation finished in {time.time()-initial_time:.2f} s")
+            agent.get_logger().info(f"Simulation finished in {time.time()-initial_time:.2f} s")
 
         # Convert lists to numpy arrays for plotting
         states_list = np.array(states_list)
@@ -472,35 +514,35 @@ def main(args=None):
             try:
                 rclpy.spin_once(agent, timeout_sec=0.1)
             except rclpy.executors.ExternalShutdownException:
-                print("ROS external shutdown detected.")
+                agent.get_logger().warn("ROS external shutdown detected.")
                 break
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt received in main thread.")
+        agent.get_logger().warn("\nKeyboard interrupt received in main thread.")
     finally:
         # Signal shutdown to all threads
         shutdown_flag.set()
         
         # Wait for simulation thread to finish
         if sim_thread.is_alive():
-            print("Waiting for simulation thread to finish...")
+            agent.get_logger().info("Waiting for simulation thread to finish...")
             sim_thread.join(timeout=3.0)  # Wait up to 3 seconds
             if sim_thread.is_alive():
-                print("Warning: Simulation thread did not finish cleanly.")
+                agent.get_logger().error("Warning: Simulation thread did not finish cleanly.")
 
         # Clear up with ROS
         try:
             if rclpy.ok():
                 agent.destroy_node()
         except Exception as e:
-            print(f"Error destroying node: {e}")
-        
+            agent.get_logger().error(f"Error destroying node: {e}")
+
         try:
             if rclpy.ok():
                 rclpy.shutdown()
         except Exception as e:
-            print(f"Error shutting down RCL: {e}")
-        
-        print("Cleanup complete. Goodbye!")
+            agent.get_logger().error(f"Error shutting down RCL: {e}")
+
+        agent.get_logger().info("Cleanup complete. Goodbye!")
 
 # -----------------------------------------------------------------------------------
 

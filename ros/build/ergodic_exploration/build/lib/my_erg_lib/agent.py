@@ -12,7 +12,7 @@ from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstac
 import re
 
 class Agent(Node):
-    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None):
+    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False):
         self.agent_id = agent_id if agent_id is not None else 0
         self.time_since_start = 0.0
 
@@ -22,6 +22,8 @@ class Agent(Node):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
+        self.antenna_rad = antenna_rad  # Antenna radius in meters (for CK sharing among agents)
+        self.antenna_range_flag = antenna_range_flag
         
         # Connecting model dynamics
         self.model = dynamics_model
@@ -66,8 +68,10 @@ class Agent(Node):
 
         # Agents in the same network
         self.discovered_agents = set()
+        self.in_range_agents = set()  # Agents within antenna range for CK calculations
         self.ck_subscribers = {}  # Dict to store subscribers for other agents
         self.agent_ck_data = {}  # Dict to store CK data from other agents {agent_id: ck_table}
+        self.agent_positions = {}  # Dict to store positions of other agents {agent_id: (x, y)}
         
         # Timer for periodic agent discovery (every second)
         self.discovery_timer = self.create_timer(1.0, self.discoverAgentsInROS)
@@ -674,6 +678,10 @@ class Agent(Node):
         msg.table_size = self.Kmax + 1
         msg.ck_values = ck.flatten().tolist()
         msg.total_erg_cost = float(self.erg_c.total_erg_cost)
+        msg.total_erg_cost_in_range = float(self.erg_c.total_erg_cost_in_range)
+        msg.position.x = float(self.model.state[0])
+        msg.position.y = float(self.model.state[1])
+        msg.position.z = 0.0        # Assuming 2D plane for ergodic exploration
         self.ck_publisher.publish(msg)
 
     def publishData(self, state_now, u_input_now, erg_cost_now, active_cbf_flag, time_now):
@@ -690,6 +698,7 @@ class Agent(Node):
         msg.inputs = [float(x) for x in u_input_now.flatten()]
         msg.ergodic_cost = float(erg_cost_now)
         msg.active_cbf_flag = bool(active_cbf_flag)
+        msg.in_range_agents_ids = [int(id_) for id_ in self.getInRangeAgentIds()]
 
         self.data_publisher.publish(msg)
     
@@ -780,6 +789,38 @@ class Agent(Node):
         if current_agents != self.discovered_agents:
             self.get_logger().info(f'Active agents: {sorted(current_agents)}')
             self.discovered_agents = current_agents
+        
+        # Update in-range agents based on antenna radius
+        self.updateInRangeAgents()
+
+    def updateInRangeAgents(self):
+        """Update the list of agents within antenna range"""
+        current_in_range = set()
+        my_position = np.array([self.model.state[0], self.model.state[1]])
+        
+        for agent_id in self.discovered_agents:
+            if agent_id == self.agent_id:
+                continue
+                
+            # Check if we have position data for this agent
+            if agent_id in self.agent_positions:
+                other_position = np.array(self.agent_positions[agent_id])
+                distance = np.linalg.norm(my_position - other_position)
+                
+                if distance <= self.antenna_rad:
+                    current_in_range.add(agent_id)
+        
+        # Log changes in in-range agents
+        if current_in_range != self.in_range_agents:
+            newly_in_range = current_in_range - self.in_range_agents
+            newly_out_of_range = self.in_range_agents - current_in_range
+            
+            if newly_in_range:
+                self.get_logger().info(f'Agents now in range: {sorted(newly_in_range)}')
+            if newly_out_of_range:
+                self.get_logger().info(f'Agents now out of range: {sorted(newly_out_of_range)}')
+                
+            self.in_range_agents = current_in_range
 
     def createAgentSubscriber(self, agent_id):
         """Create a subscriber for a specific agent"""
@@ -805,10 +846,20 @@ class Agent(Node):
         # Remove stored CK data for this agent
         if agent_id in self.agent_ck_data:
             del self.agent_ck_data[agent_id]
+            
+        # Remove stored position data for this agent
+        if agent_id in self.agent_positions:
+            del self.agent_positions[agent_id]
+            
+        # Remove from in-range agents
+        self.in_range_agents.discard(agent_id)
 
     def agentCkCallback(self, msg, agent_id):
         """Callback function to handle CK data from other agents"""
         try:
+            # Store agent position from the message
+            self.agent_positions[agent_id] = (msg.position.x, msg.position.y)
+            
             # Convert flattened row-major form back to table
             table_size = msg.table_size
             ck_flat = np.array(msg.ck_values)
@@ -825,24 +876,36 @@ class Agent(Node):
         except Exception as e:
             self.get_logger().error(f'Error processing CK data from agent_{agent_id}: {str(e)}')
 
-    def getAgentCkData(self, agent_id=None):
+    def getAgentCkData(self, agent_id=None, in_range_only=False):
         """
         Get CK data from other agents
         
         Args:
             agent_id: If specified, return CK data for that specific agent.
                      If None, return dict of all agents' CK data.
+            in_range_only: If True, only return data for agents within antenna range.
         
         Returns:
             If agent_id specified: numpy array of CK table or None if not available
             If agent_id is None: dict {agent_id: ck_table} for all discovered agents
         """
         if agent_id is not None:
+            # Check if specific agent is in range if requested
+            if in_range_only and agent_id not in self.in_range_agents:
+                return None
             return self.agent_ck_data.get(agent_id, None)
         else:
-            return self.agent_ck_data.copy()
+            if in_range_only:
+                # Return only data from agents within range
+                return {aid: ck_data for aid, ck_data in self.agent_ck_data.items() 
+                       if aid in self.in_range_agents}
+            else:
+                return self.agent_ck_data.copy()
 
-    
+    def getInRangeAgentIds(self):
+        """Get list of currently in-range agent IDs (excluding self)"""
+        return sorted(list(self.in_range_agents)) if (self.antenna_range_flag == True) else self.getDiscoveredAgentIds()
+
     def getDiscoveredAgentIds(self):
         """Get list of currently discovered agent IDs (excluding self)"""
         return sorted(list(self.discovered_agents - {self.agent_id}))

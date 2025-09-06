@@ -14,6 +14,8 @@
 // Include directives for member types
 // Member `ck_values`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
+// Member `position`
+#include "geometry_msgs/msg/detail/point__functions.h"
 
 bool
 my_interfaces__msg__CkTable__init(my_interfaces__msg__CkTable * msg)
@@ -28,6 +30,12 @@ my_interfaces__msg__CkTable__init(my_interfaces__msg__CkTable * msg)
     return false;
   }
   // total_erg_cost
+  // total_erg_cost_in_range
+  // position
+  if (!geometry_msgs__msg__Point__init(&msg->position)) {
+    my_interfaces__msg__CkTable__fini(msg);
+    return false;
+  }
   return true;
 }
 
@@ -41,6 +49,9 @@ my_interfaces__msg__CkTable__fini(my_interfaces__msg__CkTable * msg)
   // ck_values
   rosidl_runtime_c__double__Sequence__fini(&msg->ck_values);
   // total_erg_cost
+  // total_erg_cost_in_range
+  // position
+  geometry_msgs__msg__Point__fini(&msg->position);
 }
 
 bool
@@ -61,6 +72,16 @@ my_interfaces__msg__CkTable__are_equal(const my_interfaces__msg__CkTable * lhs, 
   }
   // total_erg_cost
   if (lhs->total_erg_cost != rhs->total_erg_cost) {
+    return false;
+  }
+  // total_erg_cost_in_range
+  if (lhs->total_erg_cost_in_range != rhs->total_erg_cost_in_range) {
+    return false;
+  }
+  // position
+  if (!geometry_msgs__msg__Point__are_equal(
+      &(lhs->position), &(rhs->position)))
+  {
     return false;
   }
   return true;
@@ -84,6 +105,14 @@ my_interfaces__msg__CkTable__copy(
   }
   // total_erg_cost
   output->total_erg_cost = input->total_erg_cost;
+  // total_erg_cost_in_range
+  output->total_erg_cost_in_range = input->total_erg_cost_in_range;
+  // position
+  if (!geometry_msgs__msg__Point__copy(
+      &(input->position), &(output->position)))
+  {
+    return false;
+  }
   return true;
 }
 

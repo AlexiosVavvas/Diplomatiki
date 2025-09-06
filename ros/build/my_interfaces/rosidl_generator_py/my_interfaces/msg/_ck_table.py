@@ -47,6 +47,10 @@ class Metaclass_CkTable(type):
             cls._TYPE_SUPPORT = module.type_support_msg__msg__ck_table
             cls._DESTROY_ROS_MESSAGE = module.destroy_ros_message_msg__msg__ck_table
 
+            from geometry_msgs.msg import Point
+            if Point.__class__._TYPE_SUPPORT is None:
+                Point.__class__.__import_type_support__()
+
     @classmethod
     def __prepare__(cls, name, bases, **kwargs):
         # list constant names here so that they appear in the help text of
@@ -63,18 +67,24 @@ class CkTable(metaclass=Metaclass_CkTable):
         '_table_size',
         '_ck_values',
         '_total_erg_cost',
+        '_total_erg_cost_in_range',
+        '_position',
     ]
 
     _fields_and_field_types = {
         'table_size': 'int32',
         'ck_values': 'sequence<double>',
         'total_erg_cost': 'double',
+        'total_erg_cost_in_range': 'double',
+        'position': 'geometry_msgs/Point',
     }
 
     SLOT_TYPES = (
         rosidl_parser.definition.BasicType('int32'),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
         rosidl_parser.definition.BasicType('double'),  # noqa: E501
+        rosidl_parser.definition.BasicType('double'),  # noqa: E501
+        rosidl_parser.definition.NamespacedType(['geometry_msgs', 'msg'], 'Point'),  # noqa: E501
     )
 
     def __init__(self, **kwargs):
@@ -84,6 +94,9 @@ class CkTable(metaclass=Metaclass_CkTable):
         self.table_size = kwargs.get('table_size', int())
         self.ck_values = array.array('d', kwargs.get('ck_values', []))
         self.total_erg_cost = kwargs.get('total_erg_cost', float())
+        self.total_erg_cost_in_range = kwargs.get('total_erg_cost_in_range', float())
+        from geometry_msgs.msg import Point
+        self.position = kwargs.get('position', Point())
 
     def __repr__(self):
         typename = self.__class__.__module__.split('.')
@@ -119,6 +132,10 @@ class CkTable(metaclass=Metaclass_CkTable):
         if self.ck_values != other.ck_values:
             return False
         if self.total_erg_cost != other.total_erg_cost:
+            return False
+        if self.total_erg_cost_in_range != other.total_erg_cost_in_range:
+            return False
+        if self.position != other.position:
             return False
         return True
 
@@ -184,3 +201,32 @@ class CkTable(metaclass=Metaclass_CkTable):
             assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
                 "The 'total_erg_cost' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
         self._total_erg_cost = value
+
+    @builtins.property
+    def total_erg_cost_in_range(self):
+        """Message field 'total_erg_cost_in_range'."""
+        return self._total_erg_cost_in_range
+
+    @total_erg_cost_in_range.setter
+    def total_erg_cost_in_range(self, value):
+        if __debug__:
+            assert \
+                isinstance(value, float), \
+                "The 'total_erg_cost_in_range' field must be of type 'float'"
+            assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
+                "The 'total_erg_cost_in_range' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
+        self._total_erg_cost_in_range = value
+
+    @builtins.property
+    def position(self):
+        """Message field 'position'."""
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        if __debug__:
+            from geometry_msgs.msg import Point
+            assert \
+                isinstance(value, Point), \
+                "The 'position' field must be a sub message of type 'Point'"
+        self._position = value

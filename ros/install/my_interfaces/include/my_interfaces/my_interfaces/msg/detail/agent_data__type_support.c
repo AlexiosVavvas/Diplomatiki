@@ -19,6 +19,7 @@
 #include "std_msgs/msg/detail/header__rosidl_typesupport_introspection_c.h"
 // Member `states`
 // Member `inputs`
+// Member `in_range_agents_ids`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
 #ifdef __cplusplus
@@ -150,7 +151,62 @@ bool my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__resize_f
   return rosidl_runtime_c__double__Sequence__init(member, size);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array[8] = {
+size_t my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__size_function__AgentData__in_range_agents_ids(
+  const void * untyped_member)
+{
+  const rosidl_runtime_c__int8__Sequence * member =
+    (const rosidl_runtime_c__int8__Sequence *)(untyped_member);
+  return member->size;
+}
+
+const void * my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_const_function__AgentData__in_range_agents_ids(
+  const void * untyped_member, size_t index)
+{
+  const rosidl_runtime_c__int8__Sequence * member =
+    (const rosidl_runtime_c__int8__Sequence *)(untyped_member);
+  return &member->data[index];
+}
+
+void * my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_function__AgentData__in_range_agents_ids(
+  void * untyped_member, size_t index)
+{
+  rosidl_runtime_c__int8__Sequence * member =
+    (rosidl_runtime_c__int8__Sequence *)(untyped_member);
+  return &member->data[index];
+}
+
+void my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__fetch_function__AgentData__in_range_agents_ids(
+  const void * untyped_member, size_t index, void * untyped_value)
+{
+  const int8_t * item =
+    ((const int8_t *)
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_const_function__AgentData__in_range_agents_ids(untyped_member, index));
+  int8_t * value =
+    (int8_t *)(untyped_value);
+  *value = *item;
+}
+
+void my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__assign_function__AgentData__in_range_agents_ids(
+  void * untyped_member, size_t index, const void * untyped_value)
+{
+  int8_t * item =
+    ((int8_t *)
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_function__AgentData__in_range_agents_ids(untyped_member, index));
+  const int8_t * value =
+    (const int8_t *)(untyped_value);
+  *item = *value;
+}
+
+bool my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__resize_function__AgentData__in_range_agents_ids(
+  void * untyped_member, size_t size)
+{
+  rosidl_runtime_c__int8__Sequence * member =
+    (rosidl_runtime_c__int8__Sequence *)(untyped_member);
+  rosidl_runtime_c__int8__Sequence__fini(member);
+  return rosidl_runtime_c__int8__Sequence__init(member, size);
+}
+
+static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array[9] = {
   {
     "header",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
@@ -286,13 +342,30 @@ static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__Age
     NULL,  // fetch(index, &value) function pointer
     NULL,  // assign(index, value) function pointer
     NULL  // resize(index) function pointer
+  },
+  {
+    "in_range_agents_ids",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_INT8,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces__msg__AgentData, in_range_agents_ids),  // bytes offset in struct
+    NULL,  // default value
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__size_function__AgentData__in_range_agents_ids,  // size() function pointer
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_const_function__AgentData__in_range_agents_ids,  // get_const(index) function pointer
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__get_function__AgentData__in_range_agents_ids,  // get(index) function pointer
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__fetch_function__AgentData__in_range_agents_ids,  // fetch(index, &value) function pointer
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__assign_function__AgentData__in_range_agents_ids,  // assign(index, value) function pointer
+    my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__resize_function__AgentData__in_range_agents_ids  // resize(index) function pointer
   }
 };
 
 static const rosidl_typesupport_introspection_c__MessageMembers my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_members = {
   "my_interfaces__msg",  // message namespace
   "AgentData",  // message name
-  8,  // number of fields
+  9,  // number of fields
   sizeof(my_interfaces__msg__AgentData),
   my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array,  // message members
   my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_init_function,  // function to initialize message memory (memory has to be allocated)

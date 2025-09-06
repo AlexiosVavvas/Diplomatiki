@@ -11,3 +11,4 @@ float64[] inputs
 float64 ergodic_cost
 bool active_cbf_flag
 
+int8[] in_range_agents_ids
