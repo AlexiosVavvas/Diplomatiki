@@ -54,6 +54,24 @@ inline void to_flow_style_yaml(
     out << ", ";
   }
 
+  // member: ck_values_average_in_range
+  {
+    if (msg.ck_values_average_in_range.size() == 0) {
+      out << "ck_values_average_in_range: []";
+    } else {
+      out << "ck_values_average_in_range: [";
+      size_t pending_items = msg.ck_values_average_in_range.size();
+      for (auto item : msg.ck_values_average_in_range) {
+        rosidl_generator_traits::value_to_yaml(item, out);
+        if (--pending_items > 0) {
+          out << ", ";
+        }
+      }
+      out << "]";
+    }
+    out << ", ";
+  }
+
   // member: total_erg_cost
   {
     out << "total_erg_cost: ";
@@ -65,6 +83,13 @@ inline void to_flow_style_yaml(
   {
     out << "total_erg_cost_in_range: ";
     rosidl_generator_traits::value_to_yaml(msg.total_erg_cost_in_range, out);
+    out << ", ";
+  }
+
+  // member: erg_cost_reduction_perc
+  {
+    out << "erg_cost_reduction_perc: ";
+    rosidl_generator_traits::value_to_yaml(msg.erg_cost_reduction_perc, out);
     out << ", ";
   }
 
@@ -110,6 +135,26 @@ inline void to_block_style_yaml(
     }
   }
 
+  // member: ck_values_average_in_range
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    if (msg.ck_values_average_in_range.size() == 0) {
+      out << "ck_values_average_in_range: []\n";
+    } else {
+      out << "ck_values_average_in_range:\n";
+      for (auto item : msg.ck_values_average_in_range) {
+        if (indentation > 0) {
+          out << std::string(indentation, ' ');
+        }
+        out << "- ";
+        rosidl_generator_traits::value_to_yaml(item, out);
+        out << "\n";
+      }
+    }
+  }
+
   // member: total_erg_cost
   {
     if (indentation > 0) {
@@ -127,6 +172,16 @@ inline void to_block_style_yaml(
     }
     out << "total_erg_cost_in_range: ";
     rosidl_generator_traits::value_to_yaml(msg.total_erg_cost_in_range, out);
+    out << "\n";
+  }
+
+  // member: erg_cost_reduction_perc
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    out << "erg_cost_reduction_perc: ";
+    rosidl_generator_traits::value_to_yaml(msg.erg_cost_reduction_perc, out);
     out << "\n";
   }
 

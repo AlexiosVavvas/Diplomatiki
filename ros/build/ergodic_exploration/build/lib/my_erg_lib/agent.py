@@ -64,7 +64,7 @@ class Agent(Node):
         self.target_est_publisher = self.create_publisher(MultipleTargetEstimates, f'agent_{self.agent_id}/target_estimates', 10)
         self.known_obst_publisher = self.create_publisher(MultipleObstacles, f'agent_{self.agent_id}/known_obstacles', 10)
         # Timer to periodically publish data
-        self.publish_timer = self.create_timer(1, self.publishTargetAndObstacleData)
+        self.publish_timer = self.create_timer(0.5, self.publishTargetAndObstacleData)
 
         # Agents in the same network
         self.discovered_agents = set()
@@ -677,8 +677,10 @@ class Agent(Node):
         msg = CkTable()
         msg.table_size = self.Kmax + 1
         msg.ck_values = ck.flatten().tolist()
+        msg.ck_values_average_in_range = self.erg_c.ck_aver_others.flatten().tolist()
         msg.total_erg_cost = float(self.erg_c.total_erg_cost)
         msg.total_erg_cost_in_range = float(self.erg_c.total_erg_cost_in_range)
+        msg.erg_cost_reduction_perc = float((self.erg_c.init_erg_cost - self.erg_c.total_erg_cost_in_range)/self.erg_c.init_erg_cost) if self.erg_c.init_erg_cost > 0 else 0.0
         msg.position.x = float(self.model.state[0])
         msg.position.y = float(self.model.state[1])
         msg.position.z = 0.0        # Assuming 2D plane for ergodic exploration

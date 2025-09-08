@@ -19,12 +19,20 @@ module my_interfaces {
       sequence<double> ck_values;
 
       @verbatim (language="comment", text=
+        "Mean Ck array for agents in range as seen by a particular agent")
+      sequence<double> ck_values_average_in_range;
+
+      @verbatim (language="comment", text=
         "Total ergodic cost for all agents now")
       double total_erg_cost;
 
       @verbatim (language="comment", text=
         "Total ergodic cost for all in range agents now")
       double total_erg_cost_in_range;
+
+      @verbatim (language="comment", text=
+        "Reduction percentage of Total ergodic cost for all in range agents now. For example if init is 100 and now 90 -> 10%")
+      double erg_cost_reduction_perc;
 
       @verbatim (language="comment", text=
         "Current Agent position [x, y, z] (used to simulate short antenna range)")

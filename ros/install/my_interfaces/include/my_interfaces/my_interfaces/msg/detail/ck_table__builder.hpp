@@ -37,16 +37,32 @@ private:
   ::my_interfaces::msg::CkTable msg_;
 };
 
+class Init_CkTable_erg_cost_reduction_perc
+{
+public:
+  explicit Init_CkTable_erg_cost_reduction_perc(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
+  {}
+  Init_CkTable_position erg_cost_reduction_perc(::my_interfaces::msg::CkTable::_erg_cost_reduction_perc_type arg)
+  {
+    msg_.erg_cost_reduction_perc = std::move(arg);
+    return Init_CkTable_position(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
 class Init_CkTable_total_erg_cost_in_range
 {
 public:
   explicit Init_CkTable_total_erg_cost_in_range(::my_interfaces::msg::CkTable & msg)
   : msg_(msg)
   {}
-  Init_CkTable_position total_erg_cost_in_range(::my_interfaces::msg::CkTable::_total_erg_cost_in_range_type arg)
+  Init_CkTable_erg_cost_reduction_perc total_erg_cost_in_range(::my_interfaces::msg::CkTable::_total_erg_cost_in_range_type arg)
   {
     msg_.total_erg_cost_in_range = std::move(arg);
-    return Init_CkTable_position(msg_);
+    return Init_CkTable_erg_cost_reduction_perc(msg_);
   }
 
 private:
@@ -69,16 +85,32 @@ private:
   ::my_interfaces::msg::CkTable msg_;
 };
 
+class Init_CkTable_ck_values_average_in_range
+{
+public:
+  explicit Init_CkTable_ck_values_average_in_range(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
+  {}
+  Init_CkTable_total_erg_cost ck_values_average_in_range(::my_interfaces::msg::CkTable::_ck_values_average_in_range_type arg)
+  {
+    msg_.ck_values_average_in_range = std::move(arg);
+    return Init_CkTable_total_erg_cost(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
 class Init_CkTable_ck_values
 {
 public:
   explicit Init_CkTable_ck_values(::my_interfaces::msg::CkTable & msg)
   : msg_(msg)
   {}
-  Init_CkTable_total_erg_cost ck_values(::my_interfaces::msg::CkTable::_ck_values_type arg)
+  Init_CkTable_ck_values_average_in_range ck_values(::my_interfaces::msg::CkTable::_ck_values_type arg)
   {
     msg_.ck_values = std::move(arg);
-    return Init_CkTable_total_erg_cost(msg_);
+    return Init_CkTable_ck_values_average_in_range(msg_);
   }
 
 private:

@@ -62,10 +62,16 @@ cdr_serialize(
   {
     cdr << ros_message.ck_values;
   }
+  // Member: ck_values_average_in_range
+  {
+    cdr << ros_message.ck_values_average_in_range;
+  }
   // Member: total_erg_cost
   cdr << ros_message.total_erg_cost;
   // Member: total_erg_cost_in_range
   cdr << ros_message.total_erg_cost_in_range;
+  // Member: erg_cost_reduction_perc
+  cdr << ros_message.erg_cost_reduction_perc;
   // Member: position
   geometry_msgs::msg::typesupport_fastrtps_cpp::cdr_serialize(
     ros_message.position,
@@ -87,11 +93,19 @@ cdr_deserialize(
     cdr >> ros_message.ck_values;
   }
 
+  // Member: ck_values_average_in_range
+  {
+    cdr >> ros_message.ck_values_average_in_range;
+  }
+
   // Member: total_erg_cost
   cdr >> ros_message.total_erg_cost;
 
   // Member: total_erg_cost_in_range
   cdr >> ros_message.total_erg_cost_in_range;
+
+  // Member: erg_cost_reduction_perc
+  cdr >> ros_message.erg_cost_reduction_perc;
 
   // Member: position
   geometry_msgs::msg::typesupport_fastrtps_cpp::cdr_deserialize(
@@ -129,6 +143,16 @@ get_serialized_size(
     current_alignment += array_size * item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
+  // Member: ck_values_average_in_range
+  {
+    size_t array_size = ros_message.ck_values_average_in_range.size();
+
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    size_t item_size = sizeof(ros_message.ck_values_average_in_range[0]);
+    current_alignment += array_size * item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
   // Member: total_erg_cost
   {
     size_t item_size = sizeof(ros_message.total_erg_cost);
@@ -138,6 +162,12 @@ get_serialized_size(
   // Member: total_erg_cost_in_range
   {
     size_t item_size = sizeof(ros_message.total_erg_cost_in_range);
+    current_alignment += item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // Member: erg_cost_reduction_perc
+  {
+    size_t item_size = sizeof(ros_message.erg_cost_reduction_perc);
     current_alignment += item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
@@ -192,6 +222,19 @@ max_serialized_size_CkTable(
       eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
   }
 
+  // Member: ck_values_average_in_range
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    is_plain = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
+
   // Member: total_erg_cost
   {
     size_t array_size = 1;
@@ -202,6 +245,15 @@ max_serialized_size_CkTable(
   }
 
   // Member: total_erg_cost_in_range
+  {
+    size_t array_size = 1;
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
+
+  // Member: erg_cost_reduction_perc
   {
     size_t array_size = 1;
 

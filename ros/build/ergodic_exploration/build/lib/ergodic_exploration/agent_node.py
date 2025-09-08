@@ -62,7 +62,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description='Run agent node with dynamic ID')
     parser.add_argument('--agent_id',           type=int,            required=True,                  help='Agent ID to name the node')
     parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
-    parser.add_argument('--antenna_range_flag', type=bool,           required=False, default=False,  help='Antenna range flag')
+    parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
     parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
     parsed_args, ros_args = parser.parse_known_args()  # Parse known args only, keep ROS args separate
     AGENT_ID = parsed_args.agent_id
@@ -216,14 +216,14 @@ def main(args=None):
         for j in range(grid_size):
             x_pos = margin_x + i * (agent.L1 - 2 * margin_x) / (grid_size - 1)
             y_pos = margin_y + j * (agent.L2 - 2 * margin_y) / (grid_size - 1)
-            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=0.7, obs_type='circle', kappa=1, rho0=0.15, obs_name=f"Obstacle {i*grid_size + j + 1}"))
+            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=1.3, obs_type='circle', kappa=1, rho0=0.15, obs_name=f"Obstacle {i*grid_size + j + 1}"))
 
 
     # Avoiding Walls ----------------------
-    obs_walls  = [Obstacle(pos=[0,          0],   dimensions=[0, +1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Bottom Wall"),
-                  Obstacle(pos=[0, agent.L2],   dimensions=[0, -1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Top Wall"   ),
-                  Obstacle(pos=[0,          0],   dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Left Wall"  ),
-                  Obstacle(pos=[agent.L1, 0],   dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Right Wall" )]
+    obs_walls  = [Obstacle(pos=[agent.L1/2, 0         ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Bottom Wall"),
+                  Obstacle(pos=[agent.L1/2, agent.L2  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Top Wall"   ),
+                  Obstacle(pos=[0,          agent.L2/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Left Wall"  ),
+                  Obstacle(pos=[agent.L1,   agent.L2/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Right Wall" )]
 
     # Save obstacles to memory
     saveObstaclesToMemory(agent, obs_list=obs_grid)
@@ -300,9 +300,11 @@ def main(args=None):
                     agent.erg_c.total_erg_cost_in_range = agent.erg_c.calcErgodicCost(ck_total_in_range)
                 else:
                     if len(other_agent_ck_data) > 0:
-                        agent.erg_c.ck_aver_others = np.mean(other_agent_ck_data, axis=0)
+                        agent.erg_c.ck_aver_others = ck_total
                     agent.erg_c.total_erg_cost_in_range = agent.erg_c.total_erg_cost
-
+                # Reset initial cost for calculations later
+                if agent.erg_c.init_erg_cost == -1:
+                    agent.erg_c.init_erg_cost = agent.erg_c.total_erg_cost_in_range
 
 
                 # change lamda dur only if not quadcopter
@@ -476,6 +478,8 @@ def main(args=None):
                 else:
                     # Here we need to reset the buffer since it can contain a lot of outdated past state information # TODO: Check if needed
                     agent.erg_c.past_states_buffer.reset(last_perc_to_keep=0.1)  # Reset the past states buffer
+                # Reset initial cost
+                agent.erg_c.init_erg_cost = -1
 
 
             # Store states for plotting later etc --------------------

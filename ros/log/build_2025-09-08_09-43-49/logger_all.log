@@ -1,0 +1,246 @@
+[0.145s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.145s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=6, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x75bd9ad147c0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x75bd9aed1de0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x75bd9aed1de0>>)
+[0.353s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.354s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.354s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.354s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.354s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.354s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.355s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/alex/Diplomatiki/ros'
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.355s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.369s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.369s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.370s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.370s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.370s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.370s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['ignore', 'ignore_ament_install']
+[0.370s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'ignore'
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'ignore_ament_install'
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['colcon_pkg']
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'colcon_pkg'
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['colcon_meta']
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'colcon_meta'
+[0.371s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['ros']
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'ros'
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['cmake', 'python']
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'cmake'
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'python'
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extensions ['python_setup_py']
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(__pycache__) by extension 'python_setup_py'
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.372s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.373s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['ignore', 'ignore_ament_install']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'ignore'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'ignore_ament_install'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['colcon_pkg']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'colcon_pkg'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['colcon_meta']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'colcon_meta'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['ros']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'ros'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['cmake', 'python']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'cmake'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'python'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extensions ['python_setup_py']
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib) by extension 'python_setup_py'
+[0.374s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['ignore', 'ignore_ament_install']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'ignore'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'ignore_ament_install'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['colcon_pkg']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'colcon_pkg'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['colcon_meta']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'colcon_meta'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['ros']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'ros'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['cmake', 'python']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'cmake'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'python'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extensions ['python_setup_py']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(my_erg_lib/__pycache__) by extension 'python_setup_py'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.375s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.376s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extensions ['ignore', 'ignore_ament_install']
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extension 'ignore'
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extension 'ignore_ament_install'
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extensions ['colcon_pkg']
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extension 'colcon_pkg'
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extensions ['colcon_meta']
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extension 'colcon_meta'
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extensions ['ros']
+[0.377s] Level 1:colcon.colcon_core.package_identification:_identify(src/ergodic_exploration) by extension 'ros'
+[0.382s] DEBUG:colcon.colcon_core.package_identification:Package 'src/ergodic_exploration' with type 'ros.ament_python' and name 'ergodic_exploration'
+[0.382s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extensions ['ignore', 'ignore_ament_install']
+[0.382s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extension 'ignore'
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extension 'ignore_ament_install'
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extensions ['colcon_pkg']
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extension 'colcon_pkg'
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extensions ['colcon_meta']
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extension 'colcon_meta'
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extensions ['ros']
+[0.383s] Level 1:colcon.colcon_core.package_identification:_identify(src/my_interfaces) by extension 'ros'
+[0.384s] DEBUG:colcon.colcon_core.package_identification:Package 'src/my_interfaces' with type 'ros.ament_cmake' and name 'my_interfaces'
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.430s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.431s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/alex/Diplomatiki/ros/install/ergodic_exploration' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.431s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/alex/Diplomatiki/ros/install/my_interfaces' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.431s] WARNING:colcon.colcon_ros.prefix_path.catkin:The path '/home/alex/Diplomatiki/ros/install/my_interfaces' in the environment variable CMAKE_PREFIX_PATH doesn't exist
+[0.432s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 0 installed packages in /home/alex/Diplomatiki/ros/install
+[0.433s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 295 installed packages in /opt/ros/humble
+[0.435s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_args' from command line to 'None'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_target' from command line to 'None'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_clean_cache' from command line to 'False'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_clean_first' from command line to 'False'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'cmake_force_configure' from command line to 'False'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'ament_cmake_args' from command line to 'None'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'catkin_cmake_args' from command line to 'None'
+[0.491s] Level 5:colcon.colcon_core.verb:set package 'my_interfaces' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.491s] DEBUG:colcon.colcon_core.verb:Building package 'my_interfaces' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/alex/Diplomatiki/ros/build/my_interfaces', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/alex/Diplomatiki/ros/install/my_interfaces', 'merge_install': False, 'path': '/home/alex/Diplomatiki/ros/src/my_interfaces', 'symlink_install': False, 'test_result_base': None}
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_args' from command line to 'None'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_target' from command line to 'None'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_clean_cache' from command line to 'False'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_clean_first' from command line to 'False'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'cmake_force_configure' from command line to 'False'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'ament_cmake_args' from command line to 'None'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'catkin_cmake_args' from command line to 'None'
+[0.492s] Level 5:colcon.colcon_core.verb:set package 'ergodic_exploration' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.492s] DEBUG:colcon.colcon_core.verb:Building package 'ergodic_exploration' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/alex/Diplomatiki/ros/build/ergodic_exploration', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/alex/Diplomatiki/ros/install/ergodic_exploration', 'merge_install': False, 'path': '/home/alex/Diplomatiki/ros/src/ergodic_exploration', 'symlink_install': False, 'test_result_base': None}
+[0.492s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.496s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.496s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/alex/Diplomatiki/ros/src/my_interfaces' with build type 'ament_cmake'
+[0.496s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/alex/Diplomatiki/ros/src/my_interfaces'
+[0.503s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.503s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.503s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.530s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake /home/alex/Diplomatiki/ros/src/my_interfaces -DCMAKE_INSTALL_PREFIX=/home/alex/Diplomatiki/ros/install/my_interfaces
+[3.681s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake /home/alex/Diplomatiki/ros/src/my_interfaces -DCMAKE_INSTALL_PREFIX=/home/alex/Diplomatiki/ros/install/my_interfaces
+[3.681s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6
+[28.579s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6
+[28.591s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/ros/build/my_interfaces
+[28.761s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(my_interfaces)
+[28.763s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/ros/build/my_interfaces
+[28.768s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces' for CMake module files
+[28.769s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces' for CMake config files
+[28.769s] Level 1:colcon.colcon_core.shell:create_environment_hook('my_interfaces', 'cmake_prefix_path')
+[28.770s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.ps1'
+[28.771s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.dsv'
+[28.771s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.sh'
+[28.772s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib'
+[28.772s] Level 1:colcon.colcon_core.shell:create_environment_hook('my_interfaces', 'ld_library_path_lib')
+[28.772s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.ps1'
+[28.773s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.dsv'
+[28.773s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.sh'
+[28.774s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/bin'
+[28.775s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib/pkgconfig/my_interfaces.pc'
+[28.775s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib/python3.10/site-packages'
+[28.776s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/bin'
+[28.776s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.ps1'
+[28.777s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.dsv'
+[28.778s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.sh'
+[28.779s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.bash'
+[28.780s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.zsh'
+[28.781s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/alex/Diplomatiki/ros/install/my_interfaces/share/colcon-core/packages/my_interfaces)
+[28.781s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(my_interfaces)
+[28.782s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces' for CMake module files
+[28.783s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces' for CMake config files
+[28.783s] Level 1:colcon.colcon_core.shell:create_environment_hook('my_interfaces', 'cmake_prefix_path')
+[28.784s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.ps1'
+[28.785s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.dsv'
+[28.785s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/cmake_prefix_path.sh'
+[28.786s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib'
+[28.786s] Level 1:colcon.colcon_core.shell:create_environment_hook('my_interfaces', 'ld_library_path_lib')
+[28.787s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.ps1'
+[28.787s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.dsv'
+[28.788s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/hook/ld_library_path_lib.sh'
+[28.788s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/bin'
+[28.788s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib/pkgconfig/my_interfaces.pc'
+[28.788s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/lib/python3.10/site-packages'
+[28.789s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/my_interfaces/bin'
+[28.789s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.ps1'
+[28.790s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.dsv'
+[28.791s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.sh'
+[28.791s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.bash'
+[28.792s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.zsh'
+[28.792s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/alex/Diplomatiki/ros/install/my_interfaces/share/colcon-core/packages/my_interfaces)
+[28.793s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/alex/Diplomatiki/ros/src/ergodic_exploration' with build type 'ament_python'
+[28.793s] Level 1:colcon.colcon_core.shell:create_environment_hook('ergodic_exploration', 'ament_prefix_path')
+[28.793s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/ament_prefix_path.ps1'
+[28.794s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/ament_prefix_path.dsv'
+[28.794s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/ament_prefix_path.sh'
+[28.795s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[28.795s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[29.165s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/alex/Diplomatiki/ros/src/ergodic_exploration'
+[29.166s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[29.166s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[29.685s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data
+[30.137s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration' for CMake module files
+[30.138s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration' for CMake config files
+[30.138s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib'
+[30.138s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration/bin'
+[30.138s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/pkgconfig/ergodic_exploration.pc'
+[30.139s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages'
+[30.139s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration' returned '0': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data
+[30.139s] Level 1:colcon.colcon_core.shell:create_environment_hook('ergodic_exploration', 'pythonpath')
+[30.140s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/pythonpath.ps1'
+[30.140s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/pythonpath.dsv'
+[30.140s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/hook/pythonpath.sh'
+[30.141s] Level 1:colcon.colcon_core.environment:checking '/home/alex/Diplomatiki/ros/install/ergodic_exploration/bin'
+[30.141s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ergodic_exploration)
+[30.142s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.ps1'
+[30.142s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.dsv'
+[30.143s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.sh'
+[30.144s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.bash'
+[30.144s] INFO:colcon.colcon_core.shell:Creating package script '/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.zsh'
+[30.145s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/colcon-core/packages/ergodic_exploration)
+[30.146s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[30.146s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[30.146s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[30.146s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[30.160s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[30.160s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[30.160s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[30.189s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[30.189s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/alex/Diplomatiki/ros/install/local_setup.ps1'
+[30.191s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/alex/Diplomatiki/ros/install/_local_setup_util_ps1.py'
+[30.194s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/alex/Diplomatiki/ros/install/setup.ps1'
+[30.199s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/alex/Diplomatiki/ros/install/local_setup.sh'
+[30.200s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/alex/Diplomatiki/ros/install/_local_setup_util_sh.py'
+[30.200s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/alex/Diplomatiki/ros/install/setup.sh'
+[30.202s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/alex/Diplomatiki/ros/install/local_setup.bash'
+[30.202s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/alex/Diplomatiki/ros/install/setup.bash'
+[30.203s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/alex/Diplomatiki/ros/install/local_setup.zsh'
+[30.204s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/alex/Diplomatiki/ros/install/setup.zsh'

@@ -1,4 +1,5 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/__init__.py
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/environment.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/agent_node.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/vis.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/model_dynamics.py
@@ -12,6 +13,7 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/obstacles.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/ergodic_controllers.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/__pycache__/__init__.cpython-310.pyc
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/__pycache__/environment.cpython-310.pyc
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/__pycache__/agent_node.cpython-310.pyc
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/__pycache__/vis.cpython-310.pyc
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/__pycache__/model_dynamics.cpython-310.pyc
@@ -37,3 +39,4 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info/requires.txt
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info/entry_points.txt
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration/agent_node
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration/environment_node

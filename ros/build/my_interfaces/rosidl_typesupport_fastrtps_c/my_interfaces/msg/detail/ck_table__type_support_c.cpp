@@ -35,8 +35,8 @@ extern "C"
 #endif
 
 #include "geometry_msgs/msg/detail/point__functions.h"  // position
-#include "rosidl_runtime_c/primitives_sequence.h"  // ck_values
-#include "rosidl_runtime_c/primitives_sequence_functions.h"  // ck_values
+#include "rosidl_runtime_c/primitives_sequence.h"  // ck_values, ck_values_average_in_range
+#include "rosidl_runtime_c/primitives_sequence_functions.h"  // ck_values, ck_values_average_in_range
 
 // forward declare type support functions
 ROSIDL_TYPESUPPORT_FASTRTPS_C_IMPORT_my_interfaces
@@ -79,6 +79,14 @@ static bool _CkTable__cdr_serialize(
     cdr.serializeArray(array_ptr, size);
   }
 
+  // Field name: ck_values_average_in_range
+  {
+    size_t size = ros_message->ck_values_average_in_range.size;
+    auto array_ptr = ros_message->ck_values_average_in_range.data;
+    cdr << static_cast<uint32_t>(size);
+    cdr.serializeArray(array_ptr, size);
+  }
+
   // Field name: total_erg_cost
   {
     cdr << ros_message->total_erg_cost;
@@ -87,6 +95,11 @@ static bool _CkTable__cdr_serialize(
   // Field name: total_erg_cost_in_range
   {
     cdr << ros_message->total_erg_cost_in_range;
+  }
+
+  // Field name: erg_cost_reduction_perc
+  {
+    cdr << ros_message->erg_cost_reduction_perc;
   }
 
   // Field name: position
@@ -136,6 +149,22 @@ static bool _CkTable__cdr_deserialize(
     cdr.deserializeArray(array_ptr, size);
   }
 
+  // Field name: ck_values_average_in_range
+  {
+    uint32_t cdrSize;
+    cdr >> cdrSize;
+    size_t size = static_cast<size_t>(cdrSize);
+    if (ros_message->ck_values_average_in_range.data) {
+      rosidl_runtime_c__double__Sequence__fini(&ros_message->ck_values_average_in_range);
+    }
+    if (!rosidl_runtime_c__double__Sequence__init(&ros_message->ck_values_average_in_range, size)) {
+      fprintf(stderr, "failed to create array for field 'ck_values_average_in_range'");
+      return false;
+    }
+    auto array_ptr = ros_message->ck_values_average_in_range.data;
+    cdr.deserializeArray(array_ptr, size);
+  }
+
   // Field name: total_erg_cost
   {
     cdr >> ros_message->total_erg_cost;
@@ -144,6 +173,11 @@ static bool _CkTable__cdr_deserialize(
   // Field name: total_erg_cost_in_range
   {
     cdr >> ros_message->total_erg_cost_in_range;
+  }
+
+  // Field name: erg_cost_reduction_perc
+  {
+    cdr >> ros_message->erg_cost_reduction_perc;
   }
 
   // Field name: position
@@ -194,6 +228,17 @@ size_t get_serialized_size_my_interfaces__msg__CkTable(
     current_alignment += array_size * item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
+  // field.name ck_values_average_in_range
+  {
+    size_t array_size = ros_message->ck_values_average_in_range.size;
+    auto array_ptr = ros_message->ck_values_average_in_range.data;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    (void)array_ptr;
+    size_t item_size = sizeof(array_ptr[0]);
+    current_alignment += array_size * item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
   // field.name total_erg_cost
   {
     size_t item_size = sizeof(ros_message->total_erg_cost);
@@ -203,6 +248,12 @@ size_t get_serialized_size_my_interfaces__msg__CkTable(
   // field.name total_erg_cost_in_range
   {
     size_t item_size = sizeof(ros_message->total_erg_cost_in_range);
+    current_alignment += item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // field.name erg_cost_reduction_perc
+  {
+    size_t item_size = sizeof(ros_message->erg_cost_reduction_perc);
     current_alignment += item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
@@ -259,6 +310,18 @@ size_t max_serialized_size_my_interfaces__msg__CkTable(
     current_alignment += array_size * sizeof(uint64_t) +
       eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
   }
+  // member: ck_values_average_in_range
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    is_plain = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
   // member: total_erg_cost
   {
     size_t array_size = 1;
@@ -268,6 +331,14 @@ size_t max_serialized_size_my_interfaces__msg__CkTable(
       eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
   }
   // member: total_erg_cost_in_range
+  {
+    size_t array_size = 1;
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
+  // member: erg_cost_reduction_perc
   {
     size_t array_size = 1;
 

@@ -6,6 +6,7 @@
 # Import statements for member types
 
 # Member 'ck_values'
+# Member 'ck_values_average_in_range'
 import array  # noqa: E402, I100
 
 import builtins  # noqa: E402, I100
@@ -66,22 +67,28 @@ class CkTable(metaclass=Metaclass_CkTable):
     __slots__ = [
         '_table_size',
         '_ck_values',
+        '_ck_values_average_in_range',
         '_total_erg_cost',
         '_total_erg_cost_in_range',
+        '_erg_cost_reduction_perc',
         '_position',
     ]
 
     _fields_and_field_types = {
         'table_size': 'int32',
         'ck_values': 'sequence<double>',
+        'ck_values_average_in_range': 'sequence<double>',
         'total_erg_cost': 'double',
         'total_erg_cost_in_range': 'double',
+        'erg_cost_reduction_perc': 'double',
         'position': 'geometry_msgs/Point',
     }
 
     SLOT_TYPES = (
         rosidl_parser.definition.BasicType('int32'),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
+        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
+        rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.NamespacedType(['geometry_msgs', 'msg'], 'Point'),  # noqa: E501
@@ -93,8 +100,10 @@ class CkTable(metaclass=Metaclass_CkTable):
             ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
         self.table_size = kwargs.get('table_size', int())
         self.ck_values = array.array('d', kwargs.get('ck_values', []))
+        self.ck_values_average_in_range = array.array('d', kwargs.get('ck_values_average_in_range', []))
         self.total_erg_cost = kwargs.get('total_erg_cost', float())
         self.total_erg_cost_in_range = kwargs.get('total_erg_cost_in_range', float())
+        self.erg_cost_reduction_perc = kwargs.get('erg_cost_reduction_perc', float())
         from geometry_msgs.msg import Point
         self.position = kwargs.get('position', Point())
 
@@ -131,9 +140,13 @@ class CkTable(metaclass=Metaclass_CkTable):
             return False
         if self.ck_values != other.ck_values:
             return False
+        if self.ck_values_average_in_range != other.ck_values_average_in_range:
+            return False
         if self.total_erg_cost != other.total_erg_cost:
             return False
         if self.total_erg_cost_in_range != other.total_erg_cost_in_range:
+            return False
+        if self.erg_cost_reduction_perc != other.erg_cost_reduction_perc:
             return False
         if self.position != other.position:
             return False
@@ -188,6 +201,34 @@ class CkTable(metaclass=Metaclass_CkTable):
         self._ck_values = array.array('d', value)
 
     @builtins.property
+    def ck_values_average_in_range(self):
+        """Message field 'ck_values_average_in_range'."""
+        return self._ck_values_average_in_range
+
+    @ck_values_average_in_range.setter
+    def ck_values_average_in_range(self, value):
+        if isinstance(value, array.array):
+            assert value.typecode == 'd', \
+                "The 'ck_values_average_in_range' array.array() must have the type code of 'd'"
+            self._ck_values_average_in_range = value
+            return
+        if __debug__:
+            from collections.abc import Sequence
+            from collections.abc import Set
+            from collections import UserList
+            from collections import UserString
+            assert \
+                ((isinstance(value, Sequence) or
+                  isinstance(value, Set) or
+                  isinstance(value, UserList)) and
+                 not isinstance(value, str) and
+                 not isinstance(value, UserString) and
+                 all(isinstance(v, float) for v in value) and
+                 all(not (val < -1.7976931348623157e+308 or val > 1.7976931348623157e+308) or math.isinf(val) for val in value)), \
+                "The 'ck_values_average_in_range' field must be a set or sequence and each value of type 'float' and each double in [-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000, 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000]"
+        self._ck_values_average_in_range = array.array('d', value)
+
+    @builtins.property
     def total_erg_cost(self):
         """Message field 'total_erg_cost'."""
         return self._total_erg_cost
@@ -216,6 +257,21 @@ class CkTable(metaclass=Metaclass_CkTable):
             assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
                 "The 'total_erg_cost_in_range' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
         self._total_erg_cost_in_range = value
+
+    @builtins.property
+    def erg_cost_reduction_perc(self):
+        """Message field 'erg_cost_reduction_perc'."""
+        return self._erg_cost_reduction_perc
+
+    @erg_cost_reduction_perc.setter
+    def erg_cost_reduction_perc(self, value):
+        if __debug__:
+            assert \
+                isinstance(value, float), \
+                "The 'erg_cost_reduction_perc' field must be of type 'float'"
+            assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
+                "The 'erg_cost_reduction_perc' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
+        self._erg_cost_reduction_perc = value
 
     @builtins.property
     def position(self):

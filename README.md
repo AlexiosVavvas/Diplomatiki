@@ -45,7 +45,9 @@ The system now leverages **ROS2 Humble** for inter-agent communication and real-
 ### Node Architecture
 - Each agent runs as an independent ROS2 node for true parallel execution
 - Topic-based communication enables real-time coordination
+- Environment node provides RViz visualization markers and system monitoring
 - Custom Python dashboard provides live system monitoring
+- Real-time Ck coefficient visualization for ergodic performance analysis
 
 <div align="center">
 <img src="images/images/ros/rqt_ros_topology.png" width="80%" alt="ROS2 Node Topology">
@@ -69,6 +71,13 @@ The system now leverages **ROS2 Humble** for inter-agent communication and real-
 <img src="images/images/ros/dashboard_ros_erg_cost_focused.png" width="80%" alt="Cooperative Ergodic Metric">
 </div>
 *Real-time plot of ergodic metric reduction via cooperative area coverage. The line at the bottom is the total ergodic metric*
+
+<br><br>
+
+<div align="center">
+<img src="images/images/ros/rviz_screenshot.png" width="80%" alt="RViz 3D Visualization">
+</div>
+*RViz 3D visualization showing multi-agent trajectories, target positions, and obstacle avoidance in real-time. The environment node publishes visualization markers for comprehensive 3D monitoring of the ergodic exploration system.*
 
 <br><br>
 
@@ -190,6 +199,9 @@ This approach guarantees that the agent remains in the safe set `{x : h(x) ≥ 0
   - Animation generation for ergodic coverage analysis
   - Potential field visualization for obstacle avoidance
   - Trajectory replay with time-series plotting
+- `dashboard_ros.py`: Real-time multi-agent dashboard for ROS2 systems
+- `vis_ck_erg.py`: Real-time Ck coefficient visualization and ergodic cost monitoring
+- **RViz Integration**: 3D visualization support with environment node for marker publishing
 
 ### Spectral Distribution Analysis
 - `ReconstructedPhi` and `ReconstructedPhiFromCk`: Classes for analyzing and reconstructing spatial distributions
@@ -263,6 +275,20 @@ In a separate terminal:
 
 # Launch the visualization dashboard
 python dashboard_ros.py
+```
+
+#### RViz Visualization
+For 3D visualization of the multi-agent system in RViz:
+```bash
+# Launch RViz with the custom configuration
+ros2 run rviz2 rviz2 -d rviz_configuration.rviz
+```
+
+#### Ck Coefficient Visualization
+For real-time visualization of ergodic cost and Ck coefficients:
+```bash
+# Visualize specific agent's ergodic performance (replace '1' with desired agent ID)
+python vis_ck_erg.py --mode realtime --plot-mode ros-only 1
 ```
 
 ### Library Usage

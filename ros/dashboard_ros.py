@@ -78,7 +78,7 @@ class LiveDashboard(Node):
         
         # Initialize animation with faster update rate
         self.anim = animation.FuncAnimation(
-            self.control_fig, self.update_plots, interval=100, blit=False
+            self.control_fig, self.update_plots, interval=50, blit=False
         )
         
         # Perform initial discovery
@@ -280,8 +280,9 @@ class LiveDashboard(Node):
             
             data['timestamps'].append(ros_time)
             data['simulation_times'].append(unified_sim_time)  # Store unified simulation time
-            data['states'].append(list(msg.states))  # Convert to list to avoid reference issues
-            data['inputs'].append(list(msg.inputs))  # Convert to list to avoid reference issues
+            # Use numpy arrays directly - no need to convert to list
+            data['states'].append(np.array(msg.states))
+            data['inputs'].append(np.array(msg.inputs))
             data['ergodic_costs'].append(msg.ergodic_cost)
             data['cbf_flags'].append(msg.active_cbf_flag)
             data['in_range_agents_ids'].append(list(msg.in_range_agents_ids))  # Store communication connections
@@ -428,36 +429,49 @@ class LiveDashboard(Node):
         self.ergodic_ax.clear()
         self.traj_ax.clear()
         
-        # Create a thread-safe copy of the data
+        # Create a thread-safe shallow copy of the data structure, but reference arrays directly
         with self.data_lock:
-            agent_data_copy = copy.deepcopy(self.agent_data)
+            agent_data_refs = {}
+            for agent_id, data in self.agent_data.items():
+                # Only copy the structure, not the large arrays
+                # Also limit to recent data points for performance
+                max_plot_points = 1000  # Limit plotting to last 1000 points
+                agent_data_refs[agent_id] = {
+                    'simulation_times': data['simulation_times'][-max_plot_points:],
+                    'inputs': data['inputs'][-max_plot_points:],
+                    'ergodic_costs': data['ergodic_costs'][-max_plot_points:],
+                    'cbf_flags': data['cbf_flags'][-max_plot_points:],
+                    'states': data['states'][-max_plot_points:],
+                    'in_range_agents_ids': data['in_range_agents_ids'][-max_plot_points:]
+                }
             
         # Plot 1: Control Inputs (multi-agent)
-        for agent_id in sorted(agent_data_copy.keys()):
-            data = agent_data_copy[agent_id]
+        for agent_id in sorted(agent_data_refs.keys()):
+            data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
                 color = self.agent_colors[agent_id % len(self.agent_colors)]
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
-                    time_array = np.array(data['simulation_times'])
-                    
-                    # Extract control inputs (assuming 2 inputs per agent)
-                    inputs_array = np.array(data['inputs'])
-                    
-                    # Ensure arrays have consistent lengths
-                    min_len = min(len(time_array), len(inputs_array))
-                    if min_len > 0:
-                        time_array = time_array[:min_len]
-                        inputs_array = inputs_array[:min_len]
+                    # Convert to numpy array only once
+                    if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
+                        time_array = np.array(data['simulation_times'])
+                        # Extract control inputs (assuming 2 inputs per agent)
+                        inputs_array = np.vstack(data['inputs']) if data['inputs'] else np.array([])
                         
-                        if inputs_array.size > 0 and inputs_array.ndim > 1 and inputs_array.shape[1] >= 2:
-                            self.control_ax.plot(time_array, inputs_array[:, 0], 
-                                               label=f'U1 - Agent {agent_id}', linewidth=2, 
-                                               color=color, linestyle='-')
-                            self.control_ax.plot(time_array, inputs_array[:, 1], 
-                                               label=f'U2 - Agent {agent_id}', linewidth=2, 
-                                               color=color, linestyle='--')
+                        # Ensure arrays have consistent lengths
+                        min_len = min(len(time_array), len(inputs_array)) if len(inputs_array) > 0 else 0
+                        if min_len > 0:
+                            time_array = time_array[:min_len]
+                            inputs_array = inputs_array[:min_len]
+                            
+                            if inputs_array.size > 0 and inputs_array.ndim > 1 and inputs_array.shape[1] >= 2:
+                                self.control_ax.plot(time_array, inputs_array[:, 0], 
+                                                   label=f'U1 - Agent {agent_id}', linewidth=2, 
+                                                   color=color, linestyle='-')
+                                self.control_ax.plot(time_array, inputs_array[:, 1], 
+                                                   label=f'U2 - Agent {agent_id}', linewidth=2, 
+                                                   color=color, linestyle='--')
                 except (ValueError, IndexError) as e:
                     # Skip this agent if data is inconsistent
                     continue
@@ -473,50 +487,57 @@ class LiveDashboard(Node):
         max_time = 0.0  # Track the maximum time across all data sources
         
         # Plot individual agent ergodic costs
-        for agent_id in sorted(agent_data_copy.keys()):
-            data = agent_data_copy[agent_id]
+        for agent_id in sorted(agent_data_refs.keys()):
+            data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
                 color = self.agent_colors[agent_id % len(self.agent_colors)]
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
-                    time_array = np.array(data['simulation_times'])
-                    
-                    ergodic_costs = np.array(data['ergodic_costs'])
-                    cbf_flags = np.array(data['cbf_flags'])
-                    
-                    # Ensure arrays have consistent lengths
-                    min_len = min(len(time_array), len(ergodic_costs), len(cbf_flags))
-                    if min_len > 0:
-                        time_array = time_array[:min_len]
-                        ergodic_costs = ergodic_costs[:min_len]
-                        cbf_flags = cbf_flags[:min_len]
+                    if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
+                        time_array = np.array(data['simulation_times'])
+                        ergodic_costs = np.array(data['ergodic_costs'])
+                        cbf_flags = np.array(data['cbf_flags'])
                         
-                        # Update max time
-                        if len(time_array) > 0:
-                            max_time = max(max_time, np.max(time_array))
-                        
-                        self.ergodic_ax.plot(time_array, ergodic_costs, 
-                                           label=f'Ergodic Cost - Agent {agent_id}', 
-                                           linewidth=2, color=color)
-                        
-                        # Scale CBF flags to be visible
-                        if len(ergodic_costs) > 0 and np.max(ergodic_costs) > 0:
-                            scale_factor = np.max(ergodic_costs)
-                            self.ergodic_ax.plot(time_array, cbf_flags * scale_factor, 
-                                               label=f'Active CBF - Agent {agent_id}', 
-                                               linewidth=1, color=color, linestyle=':', alpha=0.7)
+                        # Ensure arrays have consistent lengths
+                        min_len = min(len(time_array), len(ergodic_costs), len(cbf_flags))
+                        if min_len > 0:
+                            time_array = time_array[:min_len]
+                            ergodic_costs = ergodic_costs[:min_len]
+                            cbf_flags = cbf_flags[:min_len]
+                            
+                            # Update max time
+                            if len(time_array) > 0:
+                                max_time = max(max_time, np.max(time_array))
+                            
+                            self.ergodic_ax.plot(time_array, ergodic_costs, 
+                                               label=f'Ergodic Cost - Agent {agent_id}', 
+                                               linewidth=2, color=color)
+                            
+                            # Scale CBF flags to be visible
+                            if len(ergodic_costs) > 0 and np.max(ergodic_costs) > 0:
+                                scale_factor = np.max(ergodic_costs)
+                                self.ergodic_ax.plot(time_array, cbf_flags * scale_factor, 
+                                                   label=f'Active CBF - Agent {agent_id}', 
+                                                   linewidth=1, color=color, linestyle=':', alpha=0.7)
                 except (ValueError, IndexError) as e:
                     # Skip this agent if data is inconsistent
                     continue
         
         # Plot total_erg_cost from CK messages for each agent (dashed lines)
         with self.ck_lock:
-            ck_data_copy = copy.deepcopy(self.ck_data)
+            ck_data_refs = {}
+            for agent_id, data in self.ck_data.items():
+                # Only reference the arrays we need, and limit points for performance
+                max_plot_points = 1000
+                ck_data_refs[agent_id] = {
+                    'timestamps': data['timestamps'][-max_plot_points:],
+                    'total_erg_costs': data['total_erg_costs'][-max_plot_points:]
+                }
         
-        for agent_id in sorted(ck_data_copy.keys()):
-            if agent_id in agent_data_copy:  # Only plot if agent is active
-                ck_data = ck_data_copy[agent_id]
+        for agent_id in sorted(ck_data_refs.keys()):
+            if agent_id in agent_data_refs:  # Only plot if agent is active
+                ck_data = ck_data_refs[agent_id]
                 if len(ck_data['timestamps']) > 0 and len(ck_data['total_erg_costs']) > 0:
                     color = self.agent_colors[agent_id % len(self.agent_colors)]
                     
@@ -553,27 +574,28 @@ class LiveDashboard(Node):
         #     self.ergodic_ax.set_xlim(0, max_time * 1.05)  # Add 5% padding
             
         # Plot 3: Agent Trajectories (multi-agent)
-        for agent_id in sorted(agent_data_copy.keys()):
-            data = agent_data_copy[agent_id]
+        for agent_id in sorted(agent_data_refs.keys()):
+            data = agent_data_refs[agent_id]
             if len(data['states']) > 0:
                 color = self.agent_colors[agent_id % len(self.agent_colors)]
                 
                 try:
                     # Extract positions (assuming first two states are x, y)
-                    states_array = np.array(data['states'])
-                    if states_array.size > 0 and states_array.ndim > 1 and states_array.shape[1] >= 2:
-                        x_positions = states_array[:, 0]
-                        y_positions = states_array[:, 1]
-                        
-                        # Current position
-                        if len(x_positions) > 0:
-                            self.traj_ax.scatter(x_positions[-1], y_positions[-1], s=100, 
-                                               c=color, label=f'Agent {agent_id} Current', 
-                                               zorder=3, marker='o')
+                    if len(data['states']) > 0:
+                        states_array = np.vstack(data['states']) if data['states'] else np.array([])
+                        if states_array.size > 0 and states_array.ndim > 1 and states_array.shape[1] >= 2:
+                            x_positions = states_array[:, 0]
+                            y_positions = states_array[:, 1]
                             
-                            # Agent trajectory
-                            self.traj_ax.plot(x_positions, y_positions, linewidth=2, 
-                                            label=f'Agent {agent_id} Path', color=color, zorder=2)
+                            # Current position
+                            if len(x_positions) > 0:
+                                self.traj_ax.scatter(x_positions[-1], y_positions[-1], s=100, 
+                                                   c=color, label=f'Agent {agent_id} Current', 
+                                                   zorder=3, marker='o')
+                                
+                                # Agent trajectory
+                                self.traj_ax.plot(x_positions, y_positions, linewidth=2, 
+                                                label=f'Agent {agent_id} Path', color=color, zorder=2)
                 except (ValueError, IndexError) as e:
                     # Skip this agent if data is inconsistent
                     continue
@@ -583,7 +605,7 @@ class LiveDashboard(Node):
         self.traj_ax.set_title('Agent Trajectories')
         
         # Draw communication lines between agents (before obstacles and targets for proper layering)
-        self.draw_communication_lines(self.traj_ax, agent_data_copy)
+        self.draw_communication_lines(self.traj_ax, agent_data_refs)
         
         # Draw obstacles on the trajectory plot
         self.draw_obstacles(self.traj_ax)
@@ -604,11 +626,12 @@ class LiveDashboard(Node):
     def draw_obstacles(self, ax):
         """Draw obstacles on the given axis"""
         with self.obstacles_lock:
-            obstacles_copy = copy.deepcopy(self.obstacles_data)
+            # Just get a shallow reference to avoid deep copying
+            obstacles_refs = dict(self.obstacles_data)
         
         # Draw obstacles from any agent (we'll use the first available agent's obstacles)
         # In practice, obstacles should be the same across agents or you might want to merge them
-        for agent_id, obstacles in obstacles_copy.items():
+        for agent_id, obstacles in obstacles_refs.items():
             for obs in obstacles:
                 try:
                     if obs['type'] == 'circle':
@@ -692,10 +715,11 @@ class LiveDashboard(Node):
     def draw_target_estimates(self, ax):
         """Draw target estimates with ellipses and ground truth with black X marks"""
         with self.target_estimates_lock:
-            target_data_copy = copy.deepcopy(self.target_estimates_data)
+            # Just get shallow references to avoid deep copying
+            target_data_refs = dict(self.target_estimates_data)
         
         # Draw target estimates and ground truths from each agent
-        for agent_id, data in target_data_copy.items():
+        for agent_id, data in target_data_refs.items():
             color = self.agent_colors[agent_id % len(self.agent_colors)]
             
             try:                
@@ -719,7 +743,7 @@ class LiveDashboard(Node):
                         if nearest_gt is not None:
                             gt_pos = nearest_gt['position']
                             ax.scatter(gt_pos[0], gt_pos[1], c='black', s=50, marker='x', linewidth=1,
-                                     label='Ground Truth' if estimate == data['estimates'][0] and agent_id == min(target_data_copy.keys()) else "",
+                                     label='Ground Truth' if estimate == data['estimates'][0] and agent_id == min(target_data_refs.keys()) else "",
                                      zorder=5)
                             
                 # Draw target estimates as ellipses (uncertainty visualization)
@@ -768,7 +792,7 @@ class LiveDashboard(Node):
                 # Skip this agent's target data if there are issues with the covariance matrix
                 continue
         
-    def draw_communication_lines(self, ax, agent_data_copy):
+    def draw_communication_lines(self, ax, agent_data_refs):
         """Draw dotted communication lines between agents that can communicate with each other"""
         try:
             # Get current positions and communication connections for all agents
@@ -776,7 +800,7 @@ class LiveDashboard(Node):
             agent_connections = {}
             
             # Extract current positions and in-range agents for each agent
-            for agent_id, data in agent_data_copy.items():
+            for agent_id, data in agent_data_refs.items():
                 if len(data['states']) > 0 and len(data['in_range_agents_ids']) > 0:
                     # Get current position (last state)
                     current_state = data['states'][-1]

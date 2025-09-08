@@ -46,6 +46,7 @@ struct CkTable_
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
       this->total_erg_cost_in_range = 0.0;
+      this->erg_cost_reduction_perc = 0.0;
     }
   }
 
@@ -58,6 +59,7 @@ struct CkTable_
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
       this->total_erg_cost_in_range = 0.0;
+      this->erg_cost_reduction_perc = 0.0;
     }
   }
 
@@ -68,12 +70,18 @@ struct CkTable_
   using _ck_values_type =
     std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
   _ck_values_type ck_values;
+  using _ck_values_average_in_range_type =
+    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+  _ck_values_average_in_range_type ck_values_average_in_range;
   using _total_erg_cost_type =
     double;
   _total_erg_cost_type total_erg_cost;
   using _total_erg_cost_in_range_type =
     double;
   _total_erg_cost_in_range_type total_erg_cost_in_range;
+  using _erg_cost_reduction_perc_type =
+    double;
+  _erg_cost_reduction_perc_type erg_cost_reduction_perc;
   using _position_type =
     geometry_msgs::msg::Point_<ContainerAllocator>;
   _position_type position;
@@ -91,6 +99,12 @@ struct CkTable_
     this->ck_values = _arg;
     return *this;
   }
+  Type & set__ck_values_average_in_range(
+    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+  {
+    this->ck_values_average_in_range = _arg;
+    return *this;
+  }
   Type & set__total_erg_cost(
     const double & _arg)
   {
@@ -101,6 +115,12 @@ struct CkTable_
     const double & _arg)
   {
     this->total_erg_cost_in_range = _arg;
+    return *this;
+  }
+  Type & set__erg_cost_reduction_perc(
+    const double & _arg)
+  {
+    this->erg_cost_reduction_perc = _arg;
     return *this;
   }
   Type & set__position(
@@ -158,10 +178,16 @@ struct CkTable_
     if (this->ck_values != other.ck_values) {
       return false;
     }
+    if (this->ck_values_average_in_range != other.ck_values_average_in_range) {
+      return false;
+    }
     if (this->total_erg_cost != other.total_erg_cost) {
       return false;
     }
     if (this->total_erg_cost_in_range != other.total_erg_cost_in_range) {
+      return false;
+    }
+    if (this->erg_cost_reduction_perc != other.erg_cost_reduction_perc) {
       return false;
     }
     if (this->position != other.position) {

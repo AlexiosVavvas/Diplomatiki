@@ -1,0 +1,23 @@
+[0.854s] Invoking command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data
+[1.152s] running egg_info
+[1.153s] writing ../../build/ergodic_exploration/ergodic_exploration.egg-info/PKG-INFO
+[1.153s] writing dependency_links to ../../build/ergodic_exploration/ergodic_exploration.egg-info/dependency_links.txt
+[1.153s] writing entry points to ../../build/ergodic_exploration/ergodic_exploration.egg-info/entry_points.txt
+[1.154s] writing requirements to ../../build/ergodic_exploration/ergodic_exploration.egg-info/requires.txt
+[1.154s] writing top-level names to ../../build/ergodic_exploration/ergodic_exploration.egg-info/top_level.txt
+[1.158s] reading manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[1.158s] adding license file 'LICENSE'
+[1.159s] writing manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[1.159s] running build
+[1.159s] running build_py
+[1.161s] running install
+[1.162s] running install_lib
+[1.163s] running install_data
+[1.164s] running install_egg_info
+[1.166s] removing '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info' (and everything under it)
+[1.166s] Copying ../../build/ergodic_exploration/ergodic_exploration.egg-info to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info
+[1.167s] running install_scripts
+[1.191s] Installing agent_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration
+[1.191s] Installing environment_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration
+[1.192s] writing list of installed files to '/home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log'
+[1.226s] Invoked command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration' returned '0': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data

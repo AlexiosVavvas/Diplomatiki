@@ -82,7 +82,52 @@ void resize_function__CkTable__ck_values(void * untyped_member, size_t size)
   member->resize(size);
 }
 
-static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_message_member_array[5] = {
+size_t size_function__CkTable__ck_values_average_in_range(const void * untyped_member)
+{
+  const auto * member = reinterpret_cast<const std::vector<double> *>(untyped_member);
+  return member->size();
+}
+
+const void * get_const_function__CkTable__ck_values_average_in_range(const void * untyped_member, size_t index)
+{
+  const auto & member =
+    *reinterpret_cast<const std::vector<double> *>(untyped_member);
+  return &member[index];
+}
+
+void * get_function__CkTable__ck_values_average_in_range(void * untyped_member, size_t index)
+{
+  auto & member =
+    *reinterpret_cast<std::vector<double> *>(untyped_member);
+  return &member[index];
+}
+
+void fetch_function__CkTable__ck_values_average_in_range(
+  const void * untyped_member, size_t index, void * untyped_value)
+{
+  const auto & item = *reinterpret_cast<const double *>(
+    get_const_function__CkTable__ck_values_average_in_range(untyped_member, index));
+  auto & value = *reinterpret_cast<double *>(untyped_value);
+  value = item;
+}
+
+void assign_function__CkTable__ck_values_average_in_range(
+  void * untyped_member, size_t index, const void * untyped_value)
+{
+  auto & item = *reinterpret_cast<double *>(
+    get_function__CkTable__ck_values_average_in_range(untyped_member, index));
+  const auto & value = *reinterpret_cast<const double *>(untyped_value);
+  item = value;
+}
+
+void resize_function__CkTable__ck_values_average_in_range(void * untyped_member, size_t size)
+{
+  auto * member =
+    reinterpret_cast<std::vector<double> *>(untyped_member);
+  member->resize(size);
+}
+
+static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_message_member_array[7] = {
   {
     "table_size",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32,  // type
@@ -116,6 +161,23 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_messa
     fetch_function__CkTable__ck_values,  // fetch(index, &value) function pointer
     assign_function__CkTable__ck_values,  // assign(index, value) function pointer
     resize_function__CkTable__ck_values  // resize(index) function pointer
+  },
+  {
+    "ck_values_average_in_range",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::CkTable, ck_values_average_in_range),  // bytes offset in struct
+    nullptr,  // default value
+    size_function__CkTable__ck_values_average_in_range,  // size() function pointer
+    get_const_function__CkTable__ck_values_average_in_range,  // get_const(index) function pointer
+    get_function__CkTable__ck_values_average_in_range,  // get(index) function pointer
+    fetch_function__CkTable__ck_values_average_in_range,  // fetch(index, &value) function pointer
+    assign_function__CkTable__ck_values_average_in_range,  // assign(index, value) function pointer
+    resize_function__CkTable__ck_values_average_in_range  // resize(index) function pointer
   },
   {
     "total_erg_cost",  // name
@@ -152,6 +214,23 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_messa
     nullptr  // resize(index) function pointer
   },
   {
+    "erg_cost_reduction_perc",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::CkTable, erg_cost_reduction_perc),  // bytes offset in struct
+    nullptr,  // default value
+    nullptr,  // size() function pointer
+    nullptr,  // get_const(index) function pointer
+    nullptr,  // get(index) function pointer
+    nullptr,  // fetch(index, &value) function pointer
+    nullptr,  // assign(index, value) function pointer
+    nullptr  // resize(index) function pointer
+  },
+  {
     "position",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE,  // type
     0,  // upper bound of string
@@ -173,7 +252,7 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_messa
 static const ::rosidl_typesupport_introspection_cpp::MessageMembers CkTable_message_members = {
   "my_interfaces::msg",  // message namespace
   "CkTable",  // message name
-  5,  // number of fields
+  7,  // number of fields
   sizeof(my_interfaces::msg::CkTable),
   CkTable_message_member_array,  // message members
   CkTable_init_function,  // function to initialize message memory (memory has to be allocated)

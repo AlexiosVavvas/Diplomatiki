@@ -13,6 +13,7 @@
 
 // Include directives for member types
 // Member `ck_values`
+// Member `ck_values_average_in_range`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 // Member `position`
 #include "geometry_msgs/msg/detail/point__functions.h"
@@ -29,8 +30,14 @@ my_interfaces__msg__CkTable__init(my_interfaces__msg__CkTable * msg)
     my_interfaces__msg__CkTable__fini(msg);
     return false;
   }
+  // ck_values_average_in_range
+  if (!rosidl_runtime_c__double__Sequence__init(&msg->ck_values_average_in_range, 0)) {
+    my_interfaces__msg__CkTable__fini(msg);
+    return false;
+  }
   // total_erg_cost
   // total_erg_cost_in_range
+  // erg_cost_reduction_perc
   // position
   if (!geometry_msgs__msg__Point__init(&msg->position)) {
     my_interfaces__msg__CkTable__fini(msg);
@@ -48,8 +55,11 @@ my_interfaces__msg__CkTable__fini(my_interfaces__msg__CkTable * msg)
   // table_size
   // ck_values
   rosidl_runtime_c__double__Sequence__fini(&msg->ck_values);
+  // ck_values_average_in_range
+  rosidl_runtime_c__double__Sequence__fini(&msg->ck_values_average_in_range);
   // total_erg_cost
   // total_erg_cost_in_range
+  // erg_cost_reduction_perc
   // position
   geometry_msgs__msg__Point__fini(&msg->position);
 }
@@ -70,12 +80,22 @@ my_interfaces__msg__CkTable__are_equal(const my_interfaces__msg__CkTable * lhs, 
   {
     return false;
   }
+  // ck_values_average_in_range
+  if (!rosidl_runtime_c__double__Sequence__are_equal(
+      &(lhs->ck_values_average_in_range), &(rhs->ck_values_average_in_range)))
+  {
+    return false;
+  }
   // total_erg_cost
   if (lhs->total_erg_cost != rhs->total_erg_cost) {
     return false;
   }
   // total_erg_cost_in_range
   if (lhs->total_erg_cost_in_range != rhs->total_erg_cost_in_range) {
+    return false;
+  }
+  // erg_cost_reduction_perc
+  if (lhs->erg_cost_reduction_perc != rhs->erg_cost_reduction_perc) {
     return false;
   }
   // position
@@ -103,10 +123,18 @@ my_interfaces__msg__CkTable__copy(
   {
     return false;
   }
+  // ck_values_average_in_range
+  if (!rosidl_runtime_c__double__Sequence__copy(
+      &(input->ck_values_average_in_range), &(output->ck_values_average_in_range)))
+  {
+    return false;
+  }
   // total_erg_cost
   output->total_erg_cost = input->total_erg_cost;
   // total_erg_cost_in_range
   output->total_erg_cost_in_range = input->total_erg_cost_in_range;
+  // erg_cost_reduction_perc
+  output->erg_cost_reduction_perc = input->erg_cost_reduction_perc;
   // position
   if (!geometry_msgs__msg__Point__copy(
       &(input->position), &(output->position)))

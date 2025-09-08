@@ -29,6 +29,7 @@ setup(
     entry_points={
         'console_scripts': [
             'agent_node = ergodic_exploration.agent_node:main',
+            'environment_node = ergodic_exploration.environment:main',
         ],
     },
 )

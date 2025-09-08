@@ -146,16 +146,20 @@ EXECUTION ------------------
 	--ros-args --domain-id 42  # Set ROS domain ID
 	--ros-args -r __node:=new_node_name # Set node name
 	
-	ros2 run ergodic_exploration agent_node --agent_id 1 --init_pos 9 3
+	ros2 run ergodic_exploration agent_node --agent_id 1 --init_pos 9 3 --antenna_rad 6 --antenna_range_flag false
 	
 	# Clean old build
 	rm -rf build install log
 
 
+	# Rviz Visualisation Tool
+	ros2 run rviz2 rviz2 -d rviz_configuration.rviz
 
+	# Ck Visualisation Tool
+	python vis_ck_erg.py --mode realtime --plot-mode ros-only 1
 
-
-
+	
+	
 
 
 
