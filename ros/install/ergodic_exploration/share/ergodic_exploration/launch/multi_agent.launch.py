@@ -7,20 +7,14 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    # Declare launch arguments for customization
-    num_agents_arg = DeclareLaunchArgument(
-        'num_agents',
-        default_value='5',
-        description='Number of agents to launch'
-    )
     
     # Define agent configurations (agent_id, x_pos, y_pos)
     agent_configs = [
-        {'agent_id': '1', 'x_pos': '1', 'y_pos': '1', 'antenna_rad': '3.0', 'antenna_range_flag': 'false'},
-        {'agent_id': '2', 'x_pos': '3', 'y_pos': '2', 'antenna_rad': '3.0', 'antenna_range_flag': 'false'},
-        {'agent_id': '3', 'x_pos': '5', 'y_pos': '7', 'antenna_rad': '3.0', 'antenna_range_flag': 'false'},
-        {'agent_id': '4', 'x_pos': '7', 'y_pos': '8', 'antenna_rad': '3.0', 'antenna_range_flag': 'false'},
-        {'agent_id': '5', 'x_pos': '9', 'y_pos': '1', 'antenna_rad': '3.0', 'antenna_range_flag': 'false'},
+        {'agent_id': '1', 'x_pos': '1', 'y_pos': '1', 'antenna_rad': '3.0', 'antenna_range_flag': 'false', 'model_type': 'DoubleIntegrator'},
+        {'agent_id': '2', 'x_pos': '3', 'y_pos': '2', 'antenna_rad': '3.0', 'antenna_range_flag': 'false', 'model_type': 'DoubleIntegrator'},
+        {'agent_id': '3', 'x_pos': '5', 'y_pos': '7', 'antenna_rad': '3.0', 'antenna_range_flag': 'false', 'model_type': 'DoubleIntegrator'},
+        {'agent_id': '4', 'x_pos': '7', 'y_pos': '8', 'antenna_rad': '3.0', 'antenna_range_flag': 'false', 'model_type': 'SimpleBoatSecondOrder'},
+        {'agent_id': '5', 'x_pos': '9', 'y_pos': '1', 'antenna_rad': '3.0', 'antenna_range_flag': 'false', 'model_type': 'SimpleBoatSecondOrder'},
     ]
     
     # Create nodes list
@@ -39,6 +33,7 @@ def generate_launch_description():
             '--init_pos', config['x_pos'], config['y_pos'],
             '--antenna_rad', config['antenna_rad'],
             '--antenna_range_flag', config['antenna_range_flag'],
+            '--model_type', config['model_type'],
             '--ros-args', '--log-level', 'WARN'
             ],
             output='screen',
@@ -47,5 +42,5 @@ def generate_launch_description():
         nodes.append(agent_node)
     
     return LaunchDescription([
-        num_agents_arg,
+
     ] + nodes)

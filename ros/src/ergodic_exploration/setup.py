@@ -25,7 +25,9 @@ setup(
     maintainer_email='alexios.vavvas@gmail.com',
     description='TODO: Package description',
     license='MIT',
-    tests_require=['pytest'],
+    extras_require={
+        'test': ['pytest'],
+    },
     entry_points={
         'console_scripts': [
             'agent_node = ergodic_exploration.agent_node:main',

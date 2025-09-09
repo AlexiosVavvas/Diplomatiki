@@ -133,10 +133,10 @@ Kmax = 4
 L1 = 10 
 L2 = 10
 
-from src.ergodic_exploration.ergodic_exploration.agent_node import create_phi_func
+from src.ergodic_exploration.ergodic_exploration.agent_node import createPhiFunc
 
 # Create the phi function to match agent_node.py
-phi_func = create_phi_func(L1=10.0, L2=10.0)
+phi_func = createPhiFunc(L1=10.0, L2=10.0)
 
 def visualiseCoefficients(ck):
     import matplotlib.pyplot as plt

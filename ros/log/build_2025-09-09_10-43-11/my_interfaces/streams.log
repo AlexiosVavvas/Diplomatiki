@@ -1,0 +1,374 @@
+[0.013s] Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake /home/alex/Diplomatiki/ros/src/my_interfaces -DCMAKE_INSTALL_PREFIX=/home/alex/Diplomatiki/ros/install/my_interfaces
+[0.138s] -- The C compiler identification is GNU 11.4.0
+[0.252s] -- The CXX compiler identification is GNU 11.4.0
+[0.268s] -- Detecting C compiler ABI info
+[0.354s] -- Detecting C compiler ABI info - done
+[0.365s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.365s] -- Detecting C compile features
+[0.366s] -- Detecting C compile features - done
+[0.371s] -- Detecting CXX compiler ABI info
+[0.475s] -- Detecting CXX compiler ABI info - done
+[0.486s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.486s] -- Detecting CXX compile features
+[0.487s] -- Detecting CXX compile features - done
+[0.491s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.010s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.147s] -- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[1.153s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.161s] -- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.224s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.280s] -- Found std_msgs: 4.9.0 (/opt/ros/humble/share/std_msgs/cmake)
+[1.325s] -- Found geometry_msgs: 4.9.0 (/opt/ros/humble/share/geometry_msgs/cmake)
+[1.845s] -- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+[2.247s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.765s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[2.803s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+[2.805s] -- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+[2.847s] -- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+[2.847s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[2.847s] -- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+[2.847s] -- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+[2.881s] -- Found PythonExtra: .so  
+[2.989s] -- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[3.014s] -- Added test 'lint_cmake' to check CMake code style
+[3.016s] -- Added test 'xmllint' to check XML markup files
+[3.019s] -- Configuring done
+[3.074s] -- Generating done
+[3.091s] -- Build files have been written to: /home/alex/Diplomatiki/ros/build/my_interfaces
+[3.099s] Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake /home/alex/Diplomatiki/ros/src/my_interfaces -DCMAKE_INSTALL_PREFIX=/home/alex/Diplomatiki/ros/install/my_interfaces
+[3.101s] Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6
+[3.152s] [  1%] [34m[1mGenerating C code for ROS interfaces[0m
+[3.163s] [  2%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[3.173s] [  2%] Built target ament_cmake_python_copy_my_interfaces
+[3.448s] running egg_info
+[3.469s] creating my_interfaces.egg-info
+[3.469s] writing my_interfaces.egg-info/PKG-INFO
+[3.469s] writing dependency_links to my_interfaces.egg-info/dependency_links.txt
+[3.470s] writing top-level names to my_interfaces.egg-info/top_level.txt
+[3.470s] writing manifest file 'my_interfaces.egg-info/SOURCES.txt'
+[3.531s] reading manifest file 'my_interfaces.egg-info/SOURCES.txt'
+[3.532s] writing manifest file 'my_interfaces.egg-info/SOURCES.txt'
+[3.576s] [  2%] Built target ament_cmake_python_build_my_interfaces_egg
+[4.243s] [  2%] Built target my_interfaces__cpp
+[4.254s] [  5%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[4.258s] [  5%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[4.259s] [  7%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[4.286s] [  9%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o[0m
+[4.287s] [  9%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/agent_data__functions.c.o[0m
+[4.288s] [ 11%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__functions.c.o[0m
+[4.367s] [ 12%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.c.o[0m
+[4.367s] [ 14%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.c.o[0m
+[4.371s] [ 15%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.c.o[0m
+[4.432s] [ 16%] [32m[1mLinking C shared library libmy_interfaces__rosidl_generator_c.so[0m
+[4.484s] [ 16%] Built target my_interfaces__rosidl_generator_c
+[4.498s] [ 19%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[4.498s] [ 19%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[4.501s] [ 21%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[5.163s] [ 22%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/ck_table__type_support.cpp.o[0m
+[5.286s] [ 23%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/ck_table__type_support.cpp.o[0m
+[5.374s] [ 25%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/ck_table__type_support.cpp.o[0m
+[5.408s] [ 26%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp.o[0m
+[5.449s] [ 28%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/agent_data__type_support.cpp.o[0m
+[5.486s] [ 29%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_obstacle__type_support.cpp.o[0m
+[5.525s] [ 30%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_obstacles__type_support.cpp.o[0m
+[5.543s] [ 32%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/agent_data__type_support.cpp.o[0m
+[5.552s] [ 33%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/ck_table__type_support.c.o[0m
+[5.564s] [ 35%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_target_estimate__type_support.cpp.o[0m
+[5.602s] [ 38%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o[0m
+[5.602s] [ 38%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/agent_data__type_support.c.o[0m
+[5.623s] [ 39%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__type_support_c.cpp.o[0m
+[5.647s] [ 40%] [32m[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_c.so[0m
+[5.676s] [ 42%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_obstacle__type_support.c.o[0m
+[5.722s] [ 43%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_obstacles__type_support.c.o[0m
+[5.724s] [ 43%] Built target my_interfaces__rosidl_typesupport_c
+[5.737s] [ 45%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_obstacle__type_support.cpp.o[0m
+[5.776s] [ 46%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_target_estimate__type_support.c.o[0m
+[5.824s] [ 47%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_target_estimates__type_support.c.o[0m
+[5.840s] [ 49%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/agent_data__type_support.cpp.o[0m
+[5.877s] [ 50%] [32m[1mLinking C shared library libmy_interfaces__rosidl_typesupport_introspection_c.so[0m
+[5.898s] [ 52%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/agent_data__type_support.cpp.o[0m
+[5.925s] [ 52%] Built target my_interfaces__rosidl_typesupport_introspection_c
+[5.936s] [ 53%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_obstacle__type_support.cpp.o[0m
+[5.981s] [ 54%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_obstacles__type_support.cpp.o[0m
+[6.091s] [ 56%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__type_support_c.cpp.o[0m
+[6.118s] [ 57%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__type_support_c.cpp.o[0m
+[6.328s] [ 59%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_target_estimate__type_support.cpp.o[0m
+[6.439s] [ 60%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_obstacle__type_support.cpp.o[0m
+[6.478s] [ 61%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_obstacles__type_support.cpp.o[0m
+[6.535s] [ 63%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o[0m
+[6.537s] [ 64%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_target_estimate__type_support.cpp.o[0m
+[6.583s] [ 66%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__type_support_c.cpp.o[0m
+[6.661s] [ 67%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.cpp.o[0m
+[6.902s] [ 69%] [32m[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_cpp.so[0m
+[6.958s] [ 69%] Built target my_interfaces__rosidl_typesupport_cpp
+[6.970s] [ 70%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_obstacles__type_support.cpp.o[0m
+[7.007s] [ 71%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__type_support_c.cpp.o[0m
+[7.030s] [ 73%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__type_support_c.cpp.o[0m
+[7.039s] [ 74%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_target_estimate__type_support.cpp.o[0m
+[7.097s] [ 76%] [32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_target_estimates__type_support.cpp.o[0m
+[7.208s] [ 77%] [32m[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[7.348s] [ 77%] Built target my_interfaces__rosidl_typesupport_introspection_cpp
+[7.485s] [ 78%] [32m[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[7.597s] [ 78%] Built target my_interfaces__rosidl_typesupport_fastrtps_c
+[7.625s] [ 80%] [32m[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[7.724s] [ 80%] Built target my_interfaces__rosidl_typesupport_fastrtps_cpp
+[7.746s] [ 80%] Built target my_interfaces
+[7.765s] [ 81%] [34m[1mGenerating Python code for ROS interfaces[0m
+[8.895s] [ 81%] Built target my_interfaces__py
+[8.915s] [ 85%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c.o[0m
+[8.915s] [ 85%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_agent_data_s.c.o[0m
+[8.915s] [ 87%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c.o[0m
+[8.915s] [ 87%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c.o[0m
+[8.915s] [ 88%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c.o[0m
+[8.915s] [ 90%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c.o[0m
+[9.064s] [ 91%] [32m[1mLinking C shared library rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so[0m
+[9.106s] [ 91%] Built target my_interfaces__rosidl_generator_py
+[9.124s] [ 94%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[9.124s] [ 94%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[9.129s] [ 95%] [32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[9.227s] [ 97%] [32m[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so[0m
+[9.229s] [ 98%] [32m[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so[0m
+[9.230s] [100%] [32m[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so[0m
+[9.265s] [100%] Built target my_interfaces__rosidl_typesupport_introspection_c__pyext
+[9.267s] [100%] Built target my_interfaces__rosidl_typesupport_c__pyext
+[9.268s] [100%] Built target my_interfaces__rosidl_typesupport_fastrtps_c__pyext
+[9.280s] Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6
+[9.288s] Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/ros/build/my_interfaces
+[9.296s] -- Install configuration: ""
+[9.296s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/rosidl_interfaces/my_interfaces
+[9.297s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.297s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.297s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.h
+[9.297s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.h
+[9.297s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_c__visibility_control.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.h
+[9.298s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.c
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.h
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.c
+[9.299s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.h
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.c
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.c
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.c
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.h
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.h
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.h
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.c
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.h
+[9.300s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.h
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.h
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.h
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.h
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.h
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/library_path.sh
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/library_path.dsv
+[9.301s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so
+[9.301s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so" to ""
+[9.302s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.302s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.302s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[9.302s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.302s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h
+[9.302s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h
+[9.302s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h
+[9.302s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h
+[9.303s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h
+[9.303s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h
+[9.303s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so
+[9.303s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so" to ""
+[9.303s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.303s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.303s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_c.h
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_c.h
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_c.h
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_c.h
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.c
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_c.h
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.c
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.c
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.c
+[9.304s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_c.h
+[9.305s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.c
+[9.305s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.c
+[9.305s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[9.305s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so
+[9.305s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so" to ""
+[9.305s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so
+[9.305s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so" to ""
+[9.305s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.306s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.hpp
+[9.306s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp
+[9.306s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__builder.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__traits.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__builder.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__builder.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__traits.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.hpp
+[9.307s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__builder.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__traits.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__builder.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.hpp
+[9.308s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__traits.hpp
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.hpp
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__traits.hpp
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.hpp
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__builder.hpp
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.hpp
+[9.309s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.309s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.309s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[9.309s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/dds_fastrtps
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_cpp.hpp
+[9.310s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[9.310s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""
+[9.310s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces
+[9.311s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg
+[9.311s] -- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_cpp.hpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.cpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.cpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_cpp.hpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_cpp.hpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_cpp.hpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_cpp.hpp
+[9.311s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.cpp
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.cpp
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.cpp
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_cpp.hpp
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.cpp
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so
+[9.312s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so" to ""
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so
+[9.312s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so" to ""
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/pythonpath.sh
+[9.312s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/pythonpath.dsv
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/PKG-INFO
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/top_level.txt
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg
+[9.313s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data_s.c
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table_s.c
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles_s.c
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate_s.c
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle_s.c
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py
+[9.314s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates_s.c
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/libmy_interfaces__rosidl_generator_py.so
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[9.315s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[9.316s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[9.316s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[9.342s] Listing '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces'...
+[9.342s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py'...
+[9.342s] Listing '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py'...
+[9.343s] Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py'...
+[9.346s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[9.347s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" to ""
+[9.347s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[9.347s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so" to ""
+[9.348s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[9.348s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" to ""
+[9.348s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so
+[9.349s] -- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so" to ""
+[9.349s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/CkTable.idl
+[9.349s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/AgentData.idl
+[9.349s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.idl
+[9.350s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.idl
+[9.350s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.idl
+[9.350s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.idl
+[9.350s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/CkTable.msg
+[9.350s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/AgentData.msg
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.msg
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.msg
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.msg
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.msg
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/package_run_dependencies/my_interfaces
+[9.351s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/parent_prefix_path/my_interfaces
+[9.352s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.sh
+[9.352s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.dsv
+[9.352s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/path.sh
+[9.352s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/path.dsv
+[9.352s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.bash
+[9.353s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.sh
+[9.353s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.zsh
+[9.353s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.dsv
+[9.353s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.dsv
+[9.353s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/packages/my_interfaces
+[9.354s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport.cmake
+[9.354s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport-noconfig.cmake
+[9.354s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[9.354s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[9.354s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[9.355s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[9.355s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport.cmake
+[9.355s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[9.355s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cppExport.cmake
+[9.355s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[9.356s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[9.356s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[9.356s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[9.356s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport.cmake
+[9.357s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[9.357s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport.cmake
+[9.357s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[9.357s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake-extras.cmake
+[9.358s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[9.358s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[9.358s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[9.358s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[9.358s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[9.359s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[9.359s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig.cmake
+[9.359s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig-version.cmake
+[9.359s] -- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.xml
+[9.363s] Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/ros/build/my_interfaces

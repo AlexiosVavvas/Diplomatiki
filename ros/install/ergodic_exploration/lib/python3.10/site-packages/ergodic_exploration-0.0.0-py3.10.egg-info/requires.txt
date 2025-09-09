@@ -1,4 +1,7 @@
-matplotlib
+setuptools
 numpy
 scipy
-setuptools
+matplotlib
+
+[test]
+pytest

@@ -1,7 +1,7 @@
 # Ergodic Library
 from my_erg_lib.basis import Basis
 import numpy as np
-from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
+from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder
 from my_erg_lib.eid import Sensor, EKF
 import my_erg_lib.Utilities as utils
 import time
@@ -22,8 +22,9 @@ class Agent(Node):
         self.L1 = L1
         self.L2 = L2
         self.Kmax = Kmax
-        self.antenna_rad = antenna_rad  # Antenna radius in meters (for CK sharing among agents)
+        self.antenna_rad = antenna_rad      # Antenna radius in meters (for CK sharing among agents)
         self.antenna_range_flag = antenna_range_flag
+        self.limits_changed_flag = False    # We have the option to start with lower u_bounds. After a while change them to higher. This flags states whether the change has been made yet or not
         
         # Connecting model dynamics
         self.model = dynamics_model
@@ -648,7 +649,6 @@ class Agent(Node):
         h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
 
         PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
-        # PSI = h_ddot + alpha_1 * h_dot + alpha_2 * h
         beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
 
         if PSI >= 0:
@@ -658,9 +658,49 @@ class Agent(Node):
             if np.linalg.norm(beta) < 1e-6:
                 u_safe = np.zeros_like(udef_now)
             else:
-                u_safe = - beta.T / (np.linalg.norm(beta)**2) * PSI
-                pass
+                # If we have a boat, we need to prioritize rudder over thrust (to avoid using reverse thrust)
+                if isinstance(self.model, SimpleBoatSecondOrder):
+                    # Create weighting matrix to prioritize rudder over thrust
+                    # Assume control input order is [thrust, rudder]
+                    W = np.diag([1.0, self.model.rudder_priority])  # Higher weight on rudder
+                    
+                    # Weighted least squares solution for safety control
+                    beta_weighted = W @ beta.T
+                    u_safe_weighted = -beta_weighted / (np.linalg.norm(beta_weighted)**2) * PSI
+                    
+                    # Transform back to original control space
+                    u_safe = W @ u_safe_weighted
+                    
+                    # Additional constraint: don't allow thrust to go above maximum (less negative = less forward thrust)
+                    if len(u_safe) >= 1:  # Ensure we have thrust control
+                        # If the safety control would make total thrust positive (reverse), redistribute to rudder
+                        total_thrust = udef_now[0] + u_safe[0]
+                        
+                        if total_thrust > self.model.max_allowed_rev_thr:  # total_thrust becoming positive means reverse
+                            thrust_excess = total_thrust - self.model.max_allowed_rev_thr
+                            u_safe[0] = self.model.max_allowed_rev_thr - udef_now[0]  # Adjust thrust to maximum allowed (0 or negative)
 
+                            # If we have rudder control, increase rudder authority to compensate
+                            if len(u_safe) >= 2:
+                                # Choose redistribution sign robustly:
+                                if np.abs(beta[1]) > 1e-5:
+                                    sign_rudder = np.sign(beta[1])
+                                else:
+                                    # Fallback: use cross product of velocity and grad_h to pick turning side
+                                    v = f[:2]        # translational velocity (x,y)
+                                    g2 = grad_h[:2]  # gradient in x,y
+                                    cross = v[0]*g2[1] - v[1]*g2[0]
+                                    # If cross>0 -> turning in one direction, cross<0 -> the other
+                                    sign_rudder = np.sign(cross) if np.abs(cross) > 1e-6 else 1.0
+
+                                additional_rudder = -thrust_excess * sign_rudder * self.model.rudder_priority
+                                u_safe[1] += additional_rudder
+                else:
+                    # Standard least squares solution for safety control
+                    u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
+                    
+
+        # Apply control limits
         u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
 
 

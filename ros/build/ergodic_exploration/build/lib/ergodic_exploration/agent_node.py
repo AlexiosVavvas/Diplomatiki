@@ -9,7 +9,7 @@ import rclpy.parameter
 import argparse
 
 # TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
-def create_phi_func(L1=10.0, L2=10.0):
+def createPhiFunc(L1=10.0, L2=10.0):
     """Creates a normalized phi function with multiple Gaussian bumps"""
     
     # Bump configuration: (x_pos, y_pos, height, width)
@@ -20,7 +20,7 @@ def create_phi_func(L1=10.0, L2=10.0):
         (0.85 * L1, 0.6 * L2, 4.5, 6.3)
     ]
     
-    def phi_unnormalized(s):
+    def phiUnnormalized(s):
         x, y = s[0], s[1]
         bumps = sum(h * np.exp(-w * ((x-px)**2 + (y-py)**2)) 
                    for px, py, h, w in bumps_config)
@@ -28,30 +28,30 @@ def create_phi_func(L1=10.0, L2=10.0):
     
     # Calculate normalization constant
     from scipy.integrate import dblquad
-    _phi_integral, _ = dblquad(lambda x, y: phi_unnormalized((x, y)), 0, L1, lambda _: 0, lambda _: L2)
+    _phi_integral, _ = dblquad(lambda x, y: phiUnnormalized((x, y)), 0, L1, lambda _: 0, lambda _: L2)
     
     # Return normalized function
-    return lambda s: phi_unnormalized(s) / _phi_integral * 4
+    return lambda s: phiUnnormalized(s) / _phi_integral * 4
 
 # Create the phi function
-phi_func = create_phi_func(L1=10.0, L2=10.0)
+phi_func = createPhiFunc(L1=10.0, L2=10.0)
 
 # Global shutdown flag
 shutdown_flag = threading.Event()
 
-def signal_handler(signum, frame):
+def signalHandler(signum, frame):
     """Handle Ctrl+C gracefully"""
     print("\n\nReceived interrupt signal. Shutting down gracefully...")
     shutdown_flag.set()
 
 # Set up signal handler
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, signalHandler)
 
 # -----------------------------------------------------------------------------------
 def main(args=None):
     from my_erg_lib.agent import Agent
     from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter
+    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
@@ -64,11 +64,13 @@ def main(args=None):
     parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
     parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
     parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
+    parser.add_argument('--model_type',         type=str,            required=False, default='DoubleIntegrator', help='Dynamics model type (SingleIntegrator, DoubleIntegrator, SimpleBoatSecondOrder)')
     parsed_args, ros_args = parser.parse_known_args()  # Parse known args only, keep ROS args separate
     AGENT_ID = parsed_args.agent_id
     INIT_POS_2D = np.array(parsed_args.init_pos)
     ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
     ANTENNA_RADIUS = parsed_args.antenna_rad if ANTENNA_RANGE_FLAG else np.inf
+    MODEL_TYPE = parsed_args.model_type
 
     # System Read Only Parameters to set in ROS
     LOCALISE_TARGETS_FLAG = True
@@ -80,60 +82,102 @@ def main(args=None):
     
     # ===== Dynamics Model =====
     # Single integrator model ----
-    # SingleIntegrator(dt=0.002)
-    # u_limits = [[-1, 1], [-1, 1]]
-    # u_nominal = None
-    # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
-    # Q_ = 1
-    # R_ = 0.001
-    # PREDICTION_DT = 0.002 * 25
-    # RELAX_FACTOR = 1
-    # IMAX = 100e3
-    # TS = 0.01; T_H = 0.1; deltaT_ERG = 0.25 * 5
-    # BAR_WEIGHT = 0
-    # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-    # CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-    # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+    if MODEL_TYPE == "SingleIntegrator":
+        # SingleIntegrator(dt=0.002)
+        u_limits_init = np.array([[-1, 1], [-1, 1]])
+        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
+        u_nominal = None
+        INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
+        Q_ = 1
+        R_ = 0.001
+        PREDICTION_DT = 0.002 * 25
+        RELAX_FACTOR = 1
+        IMAX = 100e3
+        TS = 0.01; T_H = 0.1; deltaT_ERG = 0.25 * 5
+        BAR_WEIGHT = 0
+        UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
+        KAPPA_OBS = 1; RHO_OBS = 0.15
 
-    # Double integrator model ----
-    # DoubleIntegrator(dt=0.0012, x0=[9, 3, 0, 0], damping=2)
-    ULIM = 50 # 30
-    u_limits = [[-ULIM, ULIM], [-ULIM, ULIM]]
-    u_nominal = None
-    INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
-    Q_ = 8
-    R_ = 0.001
-    RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-    TS = 0.03; T_H = 0.5; deltaT_ERG = 3
-    PREDICTION_DT = 0.0012 * 5  # model dt * 5
-    BAR_WEIGHT = 0
-    UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-    CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-    DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+        dynamic_model = SingleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
+        
+        print("--> Using model: <SingleIntegrator>")
 
+    # # Double integrator model ----
+    elif MODEL_TYPE == "DoubleIntegrator":
+        # DoubleIntegrator(dt=0.0012, x0=[9, 3, 0, 0], damping=2)
+        ULIM = 50 # 30
+        u_limits_init = np.array([[-ULIM, ULIM], [-ULIM, ULIM]])
+        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
+        u_nominal = None
+        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
+        Q_ = 8
+        R_ = 0.001
+        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
+        TS = 0.03; T_H = 0.5; deltaT_ERG = 3
+        PREDICTION_DT = 0.0012 * 5  # model dt * 5
+        BAR_WEIGHT = 0
+        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
+        KAPPA_OBS = 1; RHO_OBS = 0.15
+        
+        dynamic_model = DoubleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
+
+        print("--> Using model: <DoubleIntegrator>")
+    
+    # Simple Boat Second Order model ----
+    elif MODEL_TYPE == "SimpleBoatSecondOrder":
+        # SimpleBoatSecondOrder(dt=0.001, x0=None, m=3.0, Iz=0.25, d_v=5.0, d_w=2.0, k_delta=4.0)
+        u_limits_init = np.array([[-1, 0], [-4, 4]])
+        u_limits = np.array([[-5, 0], [-4, 4]]); time_to_apply_ulimits = 10 # [s] after which to switch u_limits
+        u_nominal = None
+        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
+        Q_ = 8
+        R_ = 0.001
+        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
+        TS = 0.03; T_H = 0.5; deltaT_ERG = 3
+        PREDICTION_DT = 0.0012 * 5  # model dt * 5
+        BAR_WEIGHT = 0
+        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
+        KAPPA_OBS = 1; RHO_OBS = 0.6
+
+        dynamic_model = SimpleBoatSecondOrder(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
+    
+        print("--> Using model: <SimpleBoatSecondOrder>")
 
     # Quadrotor model -----------
-    # TODO: Quad not working well with CBFs yet, the others do for now
-    # x0 = [8, 4, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
-    # UP_MTR_LIM = 22         # Motor Upper Limit Thrust in [N]
-    # LOW_MTR_LIM = -22       # Motor Lower Limit Thrust in [N]
-    # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
-    # model = Quadcopter(dt=0.002, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"],
-    #                    mass=2, damping=3.5, R=np.diag([1, 1, 1, 1])*1)
-    # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
-    # TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
-    # deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
-    # Q_ = 8
-    # R_ = 0.001 * np.eye(model.num_of_inputs)
-    # u_limits = model.input_limits
-    # u_nominal = model.calcLQRcontrol
-    # PREDICTION_DT = model.dt * 40
-    # RELAX_FACTOR = 0.8
-    # IMAX = 20e3
-    # BAR_WEIGHT = 0 # 50
-    # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-    # CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-    # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+    elif MODEL_TYPE == "Quadcopter":
+        print("ERROR: Quadcopter model needs work, not available yet.")
+        # Stop the program, exit main
+        sys.exit(1)
+    else:
+        print("ERROR: Unsupported model type.")
+        sys.exit(2)
+        # TODO: Quad not working well with CBFs yet, the others do for now
+        # x0 = [8, 4, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
+        # UP_MTR_LIM = 22         # Motor Upper Limit Thrust in [N]
+        # LOW_MTR_LIM = -22       # Motor Lower Limit Thrust in [N]
+        # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
+        # model = Quadcopter(dt=0.002, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"],
+        #                    mass=2, damping=3.5, R=np.diag([1, 1, 1, 1])*1)
+        # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
+        # TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
+        # deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
+        # Q_ = 8
+        # R_ = 0.001 * np.eye(model.num_of_inputs)
+        # u_limits = model.input_limits
+        # u_nominal = model.calcLQRcontrol
+        # PREDICTION_DT = model.dt * 40
+        # RELAX_FACTOR = 0.8
+        # IMAX = 20e3
+        # BAR_WEIGHT = 0 # 50
+        # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        # CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
 
     # Agent - Ergodic Controller -------------
     # ROS Initialization
@@ -141,12 +185,12 @@ def main(args=None):
 
     # Generate Agent and connect to an ergodic controller object
     agent = Agent(L1=10.0, L2=10.0, Kmax=4, 
-                  dynamics_model=DoubleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2),
+                  dynamics_model=dynamic_model,
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
                   phi=lambda s: 1/100) # phi=phi_func
                 #   phi=phi_func)      # phi=phi_func
-
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_ * np.eye(agent.model.num_of_inputs), uLimits=u_limits,
+    
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_ * np.eye(agent.model.num_of_inputs), uLimits=u_limits_init,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
                                                  use_inf_buffer=INF_BUF_FLAG,
                                                  barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
@@ -160,6 +204,7 @@ def main(args=None):
     agent.declare_parameter('save_images_flag', SAVE_IMAGES_FLAG, descriptor=descriptor)
     agent.declare_parameter('imax', IMAX, descriptor=descriptor)
     agent.declare_parameter('init_position_2d', INIT_POS_2D.tolist(), descriptor=descriptor)
+    agent.declare_parameter('model_type', agent.model.type, descriptor=descriptor)
     
     # Declare antenna_radius parameter (not read-only) and update agent's antenna_rad
     agent.declare_parameter('antenna_radius', ANTENNA_RADIUS)
@@ -168,7 +213,7 @@ def main(args=None):
     agent.antenna_range_flag = agent.get_parameter('antenna_range_flag').value
 
     # Add parameter callback to update antenna_rad when parameter changes
-    def parameter_callback(params):
+    def parameterCallback(params):
         for param in params:
             if param.name == 'antenna_radius':
                 agent.antenna_rad = param.value
@@ -182,7 +227,7 @@ def main(args=None):
 
         return SetParametersResult(successful=True)
 
-    agent.add_on_set_parameters_callback(parameter_callback)
+    agent.add_on_set_parameters_callback(parameterCallback)
 
     # Avoiding Obstacles -------------------
     # Add obstacles and another controller to take them into account
@@ -216,14 +261,14 @@ def main(args=None):
         for j in range(grid_size):
             x_pos = margin_x + i * (agent.L1 - 2 * margin_x) / (grid_size - 1)
             y_pos = margin_y + j * (agent.L2 - 2 * margin_y) / (grid_size - 1)
-            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=1.3, obs_type='circle', kappa=1, rho0=0.15, obs_name=f"Obstacle {i*grid_size + j + 1}"))
+            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=1.3, obs_type='circle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name=f"Obstacle {i*grid_size + j + 1}"))
 
 
     # Avoiding Walls ----------------------
-    obs_walls  = [Obstacle(pos=[agent.L1/2, 0         ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Bottom Wall"),
-                  Obstacle(pos=[agent.L1/2, agent.L2  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Top Wall"   ),
-                  Obstacle(pos=[0,          agent.L2/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Left Wall"  ),
-                  Obstacle(pos=[agent.L1,   agent.L2/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_SAFE, rho0=RHO_SAFE, obs_name="Right Wall" )]
+    obs_walls  = [Obstacle(pos=[agent.L1/2, 0         ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
+                  Obstacle(pos=[agent.L1/2, agent.L2  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
+                  Obstacle(pos=[0,          agent.L2/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
+                  Obstacle(pos=[agent.L1,   agent.L2/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
 
     # Save obstacles to memory
     saveObstaclesToMemory(agent, obs_list=obs_grid)
@@ -245,7 +290,6 @@ def main(args=None):
     # --------------------------------------------------------------------------------------------------
 
     def _simulationFunction():
-        pass
         # Lists to store for plotting - now for single agent
         states_list = [agent.model.state.copy()]
         time_list = [0]  # Time vector
@@ -272,6 +316,11 @@ def main(args=None):
             #     agent.real_target_positions.append(np.array([0.1, 0.1, 0]))
                 
             # If multiple of Ts, calculate ergodic action
+            if not agent.limits_changed_flag and time_list[-1] >= time_to_apply_ulimits:
+                agent.erg_c.uLimits = u_limits
+                agent.limits_changed_flag = True
+                agent.get_logger().info(f"Switching to full u_limits: {u_limits} at t = {time_list[-1]:.2f} s")
+
             if i % Ts_iter == 0:
                 ti = time_list[i]; ti_indx = i
                 

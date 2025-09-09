@@ -4,11 +4,13 @@ import rclpy
 from rclpy.node import Node
 import re
 import numpy as np
+import math
 from my_interfaces.msg import AgentData, MultipleObstacles, SingleObstacle, MultipleTargetEstimates, SingleTargetEstimate
 from geometry_msgs.msg import Point, PoseStamped
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import ColorRGBA
 from nav_msgs.msg import OccupancyGrid, MapMetaData, Path
+from rcl_interfaces.srv import GetParameters
 import colorsys
 from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 
@@ -18,6 +20,13 @@ class EnvironmentNode(Node):
         
         # Dictionary to store agent positions {agent_id: (x, y, z)}
         self.agent_positions = {}
+        
+        # Dictionary to store agent orientations {agent_id: (x, y, psi, uvel, omegavel)}
+        # For boat agents: stores full state including orientation
+        self.agent_states = {}
+        
+        # Dictionary to store agent model types {agent_id: model_type}
+        self.agent_model_types = {}
         
         # Dictionary to store agent subscribers {agent_id: subscriber}
         self.agent_subscribers = {}
@@ -120,9 +129,47 @@ class EnvironmentNode(Node):
             self.get_logger().info(f'Active agents: {sorted(current_agents)}')
             self.discovered_agents = current_agents
 
+    def get_agent_model_type(self, agent_id):
+        """Query the model_type parameter from an agent node"""
+        try:
+            # Try to get the parameter using a simple approach
+            # We'll delay the parameter query and try it multiple times if needed
+            import subprocess
+            import time
+            
+            # Use ros2 param get command as a fallback to verify the approach
+            try:
+                result = subprocess.run([
+                    'ros2', 'param', 'get', f'agent_{agent_id}', 'model_type'
+                ], capture_output=True, text=True, timeout=5.0)
+                
+                if result.returncode == 0:
+                    # Parse the output: "String value is: SimpleBoatSecondOrder"
+                    output = result.stdout.strip()
+                    if "String value is:" in output:
+                        model_type = output.split("String value is:")[-1].strip()
+                        self.agent_model_types[agent_id] = model_type
+                        # self.get_logger().info(f'Agent {agent_id} model type: {model_type}')
+                        return model_type
+                else:
+                    self.get_logger().warn(f'Failed to get model_type parameter for agent_{agent_id}: {result.stderr}')
+                    
+            except subprocess.TimeoutExpired:
+                self.get_logger().warn(f'Timeout getting model_type for agent_{agent_id} via subprocess')
+            except Exception as e:
+                self.get_logger().warn(f'Subprocess error for agent_{agent_id}: {str(e)}')
+                
+        except Exception as e:
+            self.get_logger().error(f'Error getting model_type for agent_{agent_id}: {str(e)}')
+        
+        return None
+
     def create_agent_subscriber(self, agent_id):
         """Create a subscriber for a specific agent's data topic"""
         try:
+            # Get the agent's model type
+            self.get_agent_model_type(agent_id)
+            
             # Subscribe to agent data
             data_subscriber = self.create_subscription(
                 AgentData,
@@ -196,6 +243,14 @@ class EnvironmentNode(Node):
         if agent_id in self.agent_positions:
             del self.agent_positions[agent_id]
             
+        # Remove stored state data for this agent
+        if agent_id in self.agent_states:
+            del self.agent_states[agent_id]
+            
+        # Remove stored model type for this agent
+        if agent_id in self.agent_model_types:
+            del self.agent_model_types[agent_id]
+            
         # Remove stored obstacle data for this agent
         if agent_id in self.agent_obstacles:
             del self.agent_obstacles[agent_id]
@@ -257,6 +312,42 @@ class EnvironmentNode(Node):
                 
                 # Store agent position
                 self.agent_positions[agent_id] = (x, y, 0)
+                
+                # Check if this is a boat agent and store full state
+                model_type = self.agent_model_types.get(agent_id, None)
+                # print(f" Model tpye: {model_type}")
+                if model_type == "SimpleBoatSecondOrder" and len(msg.states) >= 5:
+                    # For boat: states are [x, y, psi, uvel, omegavel]
+                    psi = msg.states[2]  # Yaw angle
+                    uvel = msg.states[3]  # Linear velocity
+                    omegavel = msg.states[4]  # Angular velocity
+                    
+                    self.agent_states[agent_id] = {
+                        'x': x,
+                        'y': y, 
+                        'psi': psi,
+                        'uvel': uvel,
+                        'omegavel': omegavel,
+                        'is_boat': True
+                    }
+                    
+                    # Debug logging for boat detection
+                    # self.get_logger().info(f'Agent {agent_id} detected as boat - model_type: {model_type}, psi: {psi:.2f}')
+                    
+                else:
+                    # For non-boat agents, store basic position info
+                    self.agent_states[agent_id] = {
+                        'x': x,
+                        'y': y,
+                        'psi': 0.0,  # No orientation
+                        'is_boat': False
+                    }
+                    
+                    # Debug logging for non-boat detection
+                    # if model_type:
+                    #     self.get_logger().info(f'Agent {agent_id} detected as non-boat - model_type: {model_type}')
+                    # else:
+                    #     self.get_logger().info(f'Agent {agent_id} model_type not yet determined')
                 
                 # Update and publish agent path
                 self.update_agent_path(agent_id, x, y, msg.header)
@@ -805,38 +896,80 @@ class EnvironmentNode(Node):
         
         return color
 
+    def yaw_to_quaternion(self, yaw):
+        """Convert yaw angle to quaternion"""
+        # Convert yaw to quaternion (rotation around z-axis)
+        half_yaw = yaw * 0.5
+        qz = math.sin(half_yaw)
+        qw = math.cos(half_yaw)
+        return 0.0, 0.0, qz, qw  # qx, qy, qz, qw
+
     def publish_agent_markers(self):
         """Publish MarkerArray with cylinder markers for each active agent"""
         marker_array = MarkerArray()
         
         # Create a marker for each active agent with position data
         for agent_id in sorted(self.discovered_agents):
-            if agent_id in self.agent_positions:
+            if agent_id in self.agent_positions and agent_id in self.agent_states:
                 position = self.agent_positions[agent_id]
+                state = self.agent_states[agent_id]
                 
                 marker = Marker()
                 marker.header.frame_id = "map"  # Change this to your desired frame
                 marker.header.stamp = self.get_clock().now().to_msg()
                 marker.ns = "agents"
                 marker.id = agent_id
-                marker.type = Marker.CYLINDER
                 marker.action = Marker.ADD
                 
                 # Set position
                 marker.pose.position.x = float(position[0])
                 marker.pose.position.y = float(position[1])
-                marker.pose.position.z = float(position[2]) + 0.5  # Raise cylinder slightly above ground
+                marker.pose.position.z = float(position[2]) + 0.5  # Raise marker slightly above ground
                 
-                # Set orientation (no rotation)
-                marker.pose.orientation.x = 0.0
-                marker.pose.orientation.y = 0.0
-                marker.pose.orientation.z = 0.0
-                marker.pose.orientation.w = 1.0
+                # Debug logging
+                is_boat = state.get('is_boat', False)
+                model_type = self.agent_model_types.get(agent_id, 'Unknown')
+                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}')
                 
-                # Set scale (cylinder dimensions)
-                marker.scale.x = 0.3  # Diameter
-                marker.scale.y = 0.3  # Diameter
-                marker.scale.z = 1.0  # Height
+                # Check if this is a boat agent
+                if is_boat:
+                    # Use rectangle/arrow marker for boats to show orientation
+                    marker.type = Marker.ARROW
+                    
+                    # Set arrow orientation based on yaw angle (psi)
+                    psi = state['psi'] + np.pi
+                    qx, qy, qz, qw = self.yaw_to_quaternion(psi)
+                    marker.pose.orientation.x = qx
+                    marker.pose.orientation.y = qy
+                    marker.pose.orientation.z = qz
+                    marker.pose.orientation.w = qw
+                    
+                    # Set arrow scale (length, width, height)
+                    marker.scale.x = 0.6  # Length of arrow
+                    marker.scale.y = 0.2  # Width of arrow
+                    marker.scale.z = 0.1  # Height of arrow
+                    
+                    # Adjust z position for arrow
+                    marker.pose.position.z = float(position[2]) + 0.1
+                    
+                    # self.get_logger().info(f'Agent {agent_id}: Using ARROW marker, psi={psi:.2f} rad')
+                    
+                else:
+                    # Use cylinder for non-boat agents
+                    marker.type = Marker.CYLINDER
+                    
+                    # Set orientation (no rotation)
+                    marker.pose.orientation.x = 0.0
+                    marker.pose.orientation.y = 0.0
+                    marker.pose.orientation.z = 0.0
+                    marker.pose.orientation.w = 1.0
+                    
+                    # Set scale (cylinder dimensions)
+                    marker.scale.x = 0.3  # Diameter
+                    marker.scale.y = 0.3  # Diameter
+                    marker.scale.z = 1.0  # Height
+                    
+                    # self.get_logger().info(f'Agent {agent_id}: Using CYLINDER marker')
                 
                 # Set color based on agent ID
                 marker.color = self.get_agent_color(agent_id)
@@ -883,10 +1016,18 @@ class EnvironmentNode(Node):
         self.get_logger().info(f'Active agents: {sorted(self.discovered_agents)}')
         for agent_id in sorted(self.discovered_agents):
             pos = self.agent_positions.get(agent_id, 'No position data')
+            model_type = self.agent_model_types.get(agent_id, 'Unknown')
+            state = self.agent_states.get(agent_id, {})
+            
             if isinstance(pos, tuple):
-                self.get_logger().info(f'  Agent {agent_id}: ({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})')
+                position_str = f'({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})'
+                if state.get('is_boat', False):
+                    psi = state.get('psi', 0.0)
+                    self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, yaw: {psi:.2f} rad ({math.degrees(psi):.1f}°)')
+                else:
+                    self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}')
             else:
-                self.get_logger().info(f'  Agent {agent_id}: {pos}')
+                self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {pos}')
 
 
 def main(args=None):

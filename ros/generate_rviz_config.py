@@ -266,6 +266,33 @@ def generate_color(agent_id, max_agents=10):
     
     return f"{r_int}; {g_int}; {b_int}"
 
+def get_color_rgb_tuple(agent_id, max_agents=10):
+    """Get RGB color tuple for an agent."""
+    # Use golden angle to distribute colors evenly around the color wheel
+    hue = (agent_id * 137.5) % 360  # Golden angle: 360 * (3 - sqrt(5)) / 2
+    saturation = 0.8
+    value = 0.9
+    
+    # Convert HSV to RGB
+    r, g, b = colorsys.hsv_to_rgb(hue / 360.0, saturation, value)
+    
+    # Convert to RGB values in range 0-255
+    r_int = int(r * 255)
+    g_int = int(g * 255)
+    b_int = int(b * 255)
+    
+    return (r_int, g_int, b_int)
+
+def create_colored_box(r, g, b, text=""):
+    """Create a colored box using ANSI escape codes."""
+    # ANSI escape code for background color
+    return f"\033[48;2;{r};{g};{b}m  \033[0m {text}"
+
+def create_colored_text(r, g, b, text):
+    """Create colored text using ANSI escape codes."""
+    # ANSI escape code for foreground color
+    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+
 def discover_active_agents():
     """
     Attempt to discover active agents in the ROS2 network.
@@ -461,11 +488,18 @@ Examples:
             print(f"  rviz2 -d {args.output}")
             print(f"\nOr load it manually in RViz: File -> Open Config -> {args.output}")
             
-            # Print color mappings
+            # Print color mappings with visual colors
             print(f"\nAgent color mappings:")
+            print("  (Colors as they will appear in RViz)")
             for agent_id in agent_ids:
-                color = generate_color(agent_id)
-                print(f"  Agent {agent_id}: RGB({color})")
+                color_str = generate_color(agent_id)
+                r, g, b = get_color_rgb_tuple(agent_id)
+                
+                # Create colored box and text
+                colored_box = create_colored_box(r, g, b)
+                colored_agent_text = create_colored_text(r, g, b, f"Agent {agent_id}")
+                
+                print(f"  {colored_box} {colored_agent_text}: RGB({color_str})")
         
         return 0
         

@@ -1,6 +1,114 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
-class SingleIntegrator():
+class DynamicsBase(ABC):
+    """
+    Base class for all dynamics models providing common functionality.
+    """
+    
+    def __init__(self, dt=0.001, x0=None, num_of_states=None, num_of_inputs=None, state_names=None):
+        self.dt = dt
+        self.num_of_states = num_of_states
+        self.num_of_inputs = num_of_inputs
+        self.state_names = state_names if state_names is not None else [f"x{i}" for i in range(num_of_states)]
+        self.reset(x0)
+    
+    def reset(self, state=None):
+        """Reset the system to initial state."""
+        if state is None:
+            # random seed for reproducibility
+            np.random.seed(0)
+            self.state = np.random.uniform(0., 1., size=(self.num_of_states,))
+        else:
+            assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
+            self.state = np.array(state.copy())
+        return self.state.copy()
+    
+    @abstractmethod
+    def f(self, x, u):
+        """Continuous time dynamics - must be implemented by subclasses."""
+        pass
+    
+    @abstractmethod
+    def f_x(self, x, u):
+        """Jacobian of dynamics with respect to state - must be implemented by subclasses."""
+        pass
+    
+    @abstractmethod
+    def f_u(self, x):
+        """Jacobian of dynamics with respect to input - must be implemented by subclasses."""
+        pass
+    
+    def g(self, x):
+        """
+        Affine Dynamics, States Part
+        x' = f(x) = g(x) + h(x) u
+        Default implementation assumes f(x, 0) = g(x)
+        """
+        return self.f(x, np.zeros((self.num_of_inputs,)))
+    
+    def h(self, x):
+        """
+        Affine Dynamics Control Part
+        x' = f(x) = g(x) + h(x) u
+        Default implementation returns f_u(x)
+        """
+        return self.f_u(x)
+    
+    def step(self, x, u, dt=None):
+        """Euler integration step."""
+        dt = self.dt if dt is None else dt
+        self.state = self.state + self.f(self.state, u) * dt
+        return self.state
+    
+    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
+        """
+        Simulate the system forward in time from ti -> ti+T
+        """
+        dt = self.dt if dt is None else dt
+        t = ti
+        x = x0.copy()
+        x_traj = []
+        u_traj = []
+        t_traj = []
+        
+        # Check for callable udef
+        assert callable(udef) or udef is None, "udef must be a callable function or None."
+
+        # Reset the model with the initial state and simulate forward
+        self.reset(x0)
+        while t < ti + T:
+            udef_ = udef(x, t) if callable(udef) else np.zeros((self.num_of_inputs,))
+            x = self.step(x=x, u=udef_, dt=dt)
+            x_traj.append(x.copy())
+            u_traj.append(udef_.copy())
+            t_traj.append(t)
+            t += dt  # Increment time by the model's time step
+        
+        self.reset(x0)  # Reset the model to the initial state after simulation
+        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
+    
+    def convertForcesToInputs(self, F):
+        """
+        Convert forces to control inputs - default implementation for 2D forces.
+        Override in subclasses for more complex conversions.
+        """
+        fx, fy = F
+        return np.array([fx, fy])
+    
+    @property
+    def ergodic_state(self):
+        """Return the ergodic state (typically position). Default: first 2 elements."""
+        return self.state[:2].copy()
+    
+    @property
+    @abstractmethod
+    def state_string(self):
+        """String representation of current state - must be implemented by subclasses."""
+        pass
+
+
+class SingleIntegrator(DynamicsBase):
     '''
     Basic First Order Dynamics Model ----
     Model: 
@@ -12,10 +120,10 @@ class SingleIntegrator():
         u = [u1, u2]
     '''
     def __init__(self, dt=0.001, x0=None):
-        self.dt = dt
-        self.num_of_states = 2
-        self.num_of_inputs = 2
+        super().__init__(dt=dt, x0=x0, num_of_states=2, num_of_inputs=2, 
+                        state_names=["x", "y"])
 
+        self.type = "SingleIntegrator"
         self.A = np.array([
                 [0., 0.],
                 [0., 0.]
@@ -25,21 +133,6 @@ class SingleIntegrator():
                 [1.0, 0.],
                 [0., 1.0]
         ])
-
-        self.reset(x0)
-
-        # State names for plotting purposes
-        self.state_names = ["x", "y"]
-
-    def reset(self, state=None):
-        if state is None:
-            # random seed for reproducibility
-            np.random.seed(0)
-            self.state = np.random.uniform(0., 1., size=(self.num_of_states,))
-        else:
-            assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
-            self.state = np.array(state.copy())
-        return self.state.copy()
     
     def f(self, x, u):
         '''
@@ -59,7 +152,6 @@ class SingleIntegrator():
         '''
         return self.B.copy()
 
-    # TODO: To verify if this is correct
     def g(self, x):
         """
         Affine Dynamics, States Part
@@ -67,66 +159,13 @@ class SingleIntegrator():
         """
         return self.A @ x 
     
-    def h(self, x):
-        '''
-        Affine Dynamics Control Part
-        x' = f(x) = g(x) + h(x) u
-        '''
-        return self.f_u(x)
-
-
-    def step(self, x, u, dt=None):
-        dt = self.dt if dt is None else dt
-        self.state = self.state + self.f(self.state, u) * dt
-        return self.state
-    
-    # Simulates default input and returns full state trajectory
-    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
-        """
-        Simulate the system forward in time'
-        From ti -> ti+T
-        """
-        dt = self.dt if dt is None else dt
-        t = ti
-        x = x0.copy()
-        x_traj = []
-        u_traj = []
-        t_traj = []
-        
-        # Check for callable udef
-        assert callable(udef) or udef is None, "udef must be a callable function or None."
-
-        # Reset the model with the initial state and simulate forward
-        self.reset(x0)
-        while t < ti + T:
-            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
-            x = self.step(x=x, u=udef_, dt=dt)
-            x_traj.append(x.copy())
-            u_traj.append(udef_.copy())
-            t_traj.append(t)
-            t += dt  # Increment time by the model's time step
-        
-        self.reset(x0)  # Reset the model to the initial state after simulation
-        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
-    
-    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
-    def convertForcesToInputs(self, F):
-        # F -> (Fx, Fy)
-        fx, fy = F
-
-        return np.array([fx, fy])
-    
-    @property
-    def ergodic_state(self):
-        return self.state.copy()
-    
     @property
     def state_string(self):
         return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}"
     
 
 
-class DoubleIntegrator():
+class DoubleIntegrator(DynamicsBase):
     '''
     Basic Second Order Dynamics Model ----
     Model: 
@@ -145,10 +184,10 @@ class DoubleIntegrator():
     Note: By design of my code, the ergodic states should ALWAYS be the first two elements of the state vector.
     '''
     def __init__(self, mass=1, dt=0.001, x0=None, damping=0):
+        super().__init__(dt=dt, x0=x0, num_of_states=4, num_of_inputs=2, 
+                        state_names=["x", "y", "x'", "y'"])
         
-        self.dt = dt
-        self.num_of_states = 4
-        self.num_of_inputs = 2
+        self.type = "DoubleIntegrator"
         self.m = mass
         self.b = damping
         # v' + b/m * v = u/m : First order LTI in velocity, so τ = m/b
@@ -167,21 +206,6 @@ class DoubleIntegrator():
                 [1.0, 0.],
                 [0., 1.0]
         ]) / self.m
-        
-        self.reset(x0)
-
-        # State Names for plotting purposes
-        self.state_names = ["x", "y", "x'", "y'"]
-
-    def reset(self, state=None):
-        if state is None:
-            # random seed for reproducibility
-            np.random.seed(0)
-            self.state = np.random.uniform(0., 1., size=(self.num_of_states,))
-        else:
-            assert len(state) == self.num_of_states, f"Reset Input state must be of length: {self.num_of_states}."
-            self.state = np.array(state.copy())
-        return self.state.copy()
 
     def f(self, x, u):
         '''
@@ -201,74 +225,21 @@ class DoubleIntegrator():
         '''
         return self.B.copy()
 
-    # TODO: To verify if this is correct
     def g(self, x):
         """
         Affine Dynamics, States Part
         x' = f(x) = g(x) + h(x) u
         """
         return self.A @ x 
-    
-    def h(self, x):
-        '''
-        Affine Dynamics Control Part
-        x' = f(x) = g(x) + h(x) u
-        '''
-        return self.f_u(x)
 
-
-    def step(self, x, u, dt=None):
-        dt = self.dt if dt is None else dt
-        self.state = self.state + self.f(self.state, u) * dt
-        return self.state
-    
-    # Simulates default input and returns full state trajectory
-    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
-        """
-        Simulate the system forward in time'
-        From ti -> ti+T
-        """
-        dt = self.dt if dt is None else dt
-        t = ti
-        x = x0.copy()
-        x_traj = []
-        u_traj = []
-        t_traj = []
-        
-        # Check for callable udef
-        assert callable(udef) or udef is None, "udef must be a callable function or None."
-
-        # Reset the model with the initial state and simulate forward
-        self.reset(x0)
-        while t < ti + T:
-            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
-            x = self.step(x=x, u=udef_, dt=dt)
-            x_traj.append(x.copy())
-            u_traj.append(udef_.copy())
-            t_traj.append(t)
-            t += dt  # Increment time by the model's time step
-        
-        self.reset(x0)  # Reset the model to the initial state after simulation
-        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
-    
-    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
-    def convertForcesToInputs(self, F):
-        # F -> (Fx, Fy)
-        fx, fy = F
-
-        return np.array([fx, fy])
-
-    @property
-    def ergodic_state(self):
-        return self.state[:2].copy()
-    
     @property
     def state_string(self):
         return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, | x': {self.state[2]:.2f}, y': {self.state[3]:.2f}"
 
 
 from scipy.linalg import solve_continuous_are
-class Quadcopter():
+
+class Quadcopter(DynamicsBase):
     '''
     Basic Quadcopter Dynamics Model ----
     Model:
@@ -295,9 +266,10 @@ class Quadcopter():
     '''
 
     def __init__(self, dt=0.001, x0=None, mass=0.1, damping=0, Q=None, R=None, z_target=1, motor_limits=None, zero_out_states=None):
-        self.dt = dt
-        self.num_of_states = 12
-        self.num_of_inputs = 4
+        super().__init__(dt=dt, x0=x0, num_of_states=12, num_of_inputs=4, 
+                        state_names=["x", "y", "z", "ψ", "θ", "φ", "x'", "y'", "z'", "ψ'", "θ'", "φ'"])
+
+        self.type = "Quadcopter"
         self.m = mass
         self.damping = damping
         self.A = np.zeros((self.num_of_states, self.num_of_states)) +  np.diag([1.0]*6, 6)
@@ -311,13 +283,9 @@ class Quadcopter():
         self.state_target_modified = False
         self.f_command_to_controller = None
 
-        self.reset(x0)
-
         # Lets now set the motor limits
         self.input_limits, self.motor_limits = self.convertMotorLimitsToInputLimits(motor_limits)
 
-        # State Names for plotting purposes etc
-        self.state_names = ["x", "y", "z", "ψ", "θ", "φ", "x'", "y'", "z'", "ψ'", "θ'", "φ'"]
         # Dictionary of state_names and positions
         self._state_names_dict = {name: i for i, name in enumerate(self.state_names)}
 
@@ -333,7 +301,6 @@ class Quadcopter():
         self.k_lqr = self._calculateLqrControlGain(self.Q, self.R)
         # Lets have also a Q for obstacle avoidance if nesessary [x,    y,    z,   psi,  theta, phi,  x',   y',   z',  psidot, thetadot, phidot]
         self.Q_obs = np.asarray(Q) if Q is not None else np.diag([0.01, 0.01, 100, 0.01, 0.1,   0.1,  150,  150,  1,  0.1,    0.1,      0.1])
-
 
     def reset(self, state=None):
         if state is None:
@@ -461,7 +428,6 @@ class Quadcopter():
         
         return self.rk4Step(self.f, x, dt, *(u,))
     
-
     def _calculateLqrControlGain(self, Q, R):
         """
         Calculate the LQR control gain matrix K using the continuous-time algebraic Riccati equation.
@@ -487,12 +453,12 @@ class Quadcopter():
             indices = [self._state_names_dict[state_name] for state_name in self.zero_out_states if state_name in self._state_names_dict]
             K[:, indices] = 0
 
-
         return K
 
-    # This is the Nominal Input we use to the ergodic controller
     def calcLQRcontrol(self, x, t, state_target=None):
-        
+        """
+        This is the Nominal Input we use to the ergodic controller
+        """
         state_target = self._state_target.copy() if state_target is None else state_target
 
         # Reset the state target flag to let future controllers change it if nesessary
@@ -509,7 +475,6 @@ class Quadcopter():
         u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
         
         return u
-
 
     def convertInputToMotorCommands(self, u):
         """
@@ -569,7 +534,6 @@ class Quadcopter():
         
         return np.array([thrust, yaw, pitch, roll])
 
-
     def convertMotorLimitsToInputLimits(self, motor_limits=None):
         # TODO: The limits are not converted properly. A mapping of the limits cant be made, we need a convert -> clip -> convert approach
         if motor_limits is None:
@@ -625,14 +589,12 @@ class Quadcopter():
         else:
             r_min = m_min[0] - m_max[1] - m_max[2] + m_min[3]
 
-
         u_limits = np.array([[t_min, t_max], [y_min, y_max], [p_min, p_max], [r_min, r_max]])
         # print limits
         print("Motor Limits: \n", motor_limits)
         print("Input Limits: \n", u_limits)
         return u_limits, motor_limits
-
-    # We need to be able to convert wanted forces in x and y directio to inputs for obstacle avoidance
+    
     def convertForcesToInputs(self, F):
         # F -> (Fx, Fy)
         fx, fy = F
@@ -654,44 +616,79 @@ class Quadcopter():
         m3 = - fx * m3_pos[0] - fy * m3_pos[1]
         m4 = - fx * m4_pos[0] - fy * m4_pos[1]
 
-
         return self.convertMotorCommandsToInput(np.array([m1, m2, m3, m4]))
 
-
-    # Simulates default input and returns full state trajectory
-    def simulateForward(self, x0, ti, udef=None, T=1.0, dt=None):
-        """
-        Simulate the system forward in time'
-        From ti -> ti+T
-        """
-        dt = self.dt if dt is None else dt
-        t = ti
-        x = x0.copy()
-        x_traj = []
-        u_traj = []
-        t_traj = []
-        
-        # Check for callable udef
-        assert callable(udef) or udef is None, "udef must be a callable function or None."
-
-        # Reset the model with the initial state and simulate forward
-        self.reset(x0)
-        while t < ti + T:
-            udef_ = udef(x, t) if callable(udef) else np.zeros((self.model.num_of_inputs,))
-            x = self.step(x=x, u=udef_, dt=dt)
-            x_traj.append(x.copy())
-            u_traj.append(udef_.copy())
-            t_traj.append(t)
-            t += dt  # Increment time by the model's time step
-        
-        self.reset(x0)  # Reset the model to the initial state after simulation
-        return np.array(x_traj), np.array(u_traj), np.array(t_traj)
-
-
-    @property
-    def ergodic_state(self):
-        return self.state[:2].copy()
-    
     @property
     def state_string(self):
         return f"x: {self.state[0]:.2f}, y: {self.state[1]:.2f}, z: {self.state[2]:.2f}, | ψ: {self.state[3]*180/np.pi:.2f}, θ: {self.state[4]*180/np.pi:.2f}, φ: {self.state[5]*180/np.pi:.2f}, | x': {self.state[6]:.2f}, y': {self.state[7]:.2f}, z': {self.state[8]:.2f}, | ψ': {self.state[9]*180/np.pi:.2f}, θ': {self.state[10]*180/np.pi:.2f}, φ': {self.state[11]*180/np.pi:.2f} [angles -> DEG]"
+    
+
+class SimpleBoatSecondOrder(DynamicsBase):
+    def __init__(
+        self,
+        dt=0.001,
+        x0=None,
+        m=3.0,                  # 3 kg: typical for small robotic hull
+        Iz=0.25,                # kg*m^2 (order: m*L^2 / 12, with L≈0.6 m)
+        d_v=5.0,                # increased surge drag, SI units (N/(m/s)^2)
+        d_w=2.0,                # increased yaw drag, SI units (N*m/(rad/s)^2)
+        k_delta=4.0,            # rudder effectiveness, in typical range for small boats
+        max_allowed_rev_thr=0,  # Negative thrust is allowed. Max 0 means no reverse.
+                                # If max =  2, we only allow reverse thrust up to 2 N
+                                # If max = -2, we dont allow forward thrust to get below 2 N 
+        rudder_priority=4       # Used to prioritize rudder over thrust when the latter is saturated (Cant reverse thrust in the corner)
+    ):
+        super().__init__(dt=dt, x0=x0, num_of_states=5, num_of_inputs=2, 
+                        state_names=["x", "y", "psi", "v", "omega"])
+
+        self.type = "SimpleBoatSecondOrder"
+        self.m = m
+        self.Iz = Iz
+        self.d_v = d_v
+        self.d_w = d_w
+        self.k_delta = k_delta
+        self.input_names = ["thrust", "rudder"]
+        self.max_allowed_rev_thr = max_allowed_rev_thr
+        self.rudder_priority = rudder_priority
+
+    def f(self, x, u):
+        x_, y_, psi, v, omega = x
+        thrust, rudder = u
+        dx = v * np.cos(psi)
+        dy = v * np.sin(psi)
+        dpsi = omega
+        dv = (thrust - self.d_v * v * abs(v)) / self.m
+        domega = (self.k_delta * v * rudder - self.d_w * omega * abs(omega)) / self.Iz
+        return np.array([dx, dy, dpsi, dv, domega])
+    
+    def f_x(self, x, u):
+        '''
+        Jacobian of the dynamics with respect to x
+        '''
+        fx = np.zeros((self.num_of_states, self.num_of_states))
+        x_, y_, psi, v, omega = x
+        thrust, rudder = u
+        fx[0, 2] = -v * np.sin(psi)  # ∂(dx)/∂(psi)
+        fx[0, 3] = np.cos(psi)       # ∂(dx)/∂(v)
+        fx[1, 2] = v * np.cos(psi)   # ∂(dy)/∂(psi)
+        fx[1, 3] = np.sin(psi)       # ∂(dy)/∂(v)
+        fx[2, 4] = 1.0               # ∂(dpsi)/∂(omega)
+        fx[3, 3] = -2 * self.d_v * abs(v) / self.m  # ∂(dv)/∂(v)
+        fx[4, 4] = -2 * self.d_w * abs(omega) / self.Iz  # ∂(domega)/∂(omega)
+    
+        return fx.copy()
+
+    def f_u(self, x):
+        '''
+        Jacobian of the dynamics with respect to u
+        '''
+        fu = np.zeros((self.num_of_states, self.num_of_inputs))
+        x_, y_, psi, v, omega = x
+        fu[3, 0] = 1.0 / self.m          # ∂(dv)/∂(thrust)
+        fu[4, 1] = self.k_delta * v / self.Iz  # ∂(domega)/∂(rudder)
+        return fu.copy()
+
+    @property
+    def state_string(self):
+        x, y, psi, v, omega = self.state
+        return f"x={x:.2f} y={y:.2f} psi={psi:.2f} v={v:.2f} omega={omega:.2f}"

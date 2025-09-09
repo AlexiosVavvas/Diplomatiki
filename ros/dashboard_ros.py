@@ -5,6 +5,7 @@ import pandas as pd
 from matplotlib.widgets import Button
 from matplotlib.patches import Circle, Rectangle, Polygon
 import os
+import colorsys
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
@@ -16,6 +17,33 @@ import time
 import copy
 import re
 from matplotlib.patches import Ellipse
+
+def generateAgentColor(agent_id, max_agents=10):
+    """Generate a distinct color for each agent using HSV color space."""
+    # Use golden angle to distribute colors evenly around the color wheel
+    hue = (agent_id * 137.5) % 360  # Golden angle: 360 * (3 - sqrt(5)) / 2
+    saturation = 0.8
+    value = 0.9
+    
+    # Convert HSV to RGB
+    r, g, b = colorsys.hsv_to_rgb(hue / 360.0, saturation, value)
+    
+    return (r, g, b)  # Return as tuple for matplotlib
+
+def getAgentColorRgb255(agent_id, max_agents=10):
+    """Get RGB color values in 0-255 range for an agent."""
+    r, g, b = generateAgentColor(agent_id, max_agents)
+    return (int(r * 255), int(g * 255), int(b * 255))
+
+def createColoredBox(r, g, b, text=""):
+    """Create a colored box using ANSI escape codes."""
+    # ANSI escape code for background color
+    return f"\033[48;2;{r};{g};{b}m  \033[0m {text}"
+
+def createColoredText(r, g, b, text):
+    """Create colored text using ANSI escape codes."""
+    # ANSI escape code for foreground color
+    return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
 
 class LiveDashboard(Node):
     def __init__(self):
@@ -44,9 +72,6 @@ class LiveDashboard(Node):
         self.auto_refresh = True
         self._shutdown_requested = False  # Flag to track shutdown state
         
-        # Colors for different agents
-        self.agent_colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray', 'cyan', 'magenta']
-        
         # Data storage for each agent (dynamic)
         self.agent_data = {}
         self.data_lock = threading.Lock()  # Thread safety lock
@@ -71,22 +96,44 @@ class LiveDashboard(Node):
         self.discovered_agents = set()
         
         # Timer for periodic agent discovery
-        self.discovery_timer = self.create_timer(2.0, self.discover_agents)  # Check every 2 seconds
+        self.discovery_timer = self.create_timer(2.0, self.discoverAgents)  # Check every 2 seconds
         
         # Set up key press event on agent trajectory figure
-        self.traj_fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.traj_fig.canvas.mpl_connect('key_press_event', self.onKeyPress)
         
         # Initialize animation with faster update rate
         self.anim = animation.FuncAnimation(
-            self.control_fig, self.update_plots, interval=50, blit=False
+            self.control_fig, self.updatePlots, interval=50, blit=False, cache_frame_data=False
         )
         
         # Perform initial discovery
-        self.discover_agents()
+        self.discoverAgents()
         
         self.get_logger().info('Dashboard initialized - discovering agents dynamically')
 
-    def discover_agents(self):
+    def display_agent_colors(self):
+        """Display discovered agents with their color mappings"""
+        if not self.discovered_agents:
+            return
+            
+        print("\n" + "="*60)
+        print("🎨 Agent Color Mappings (Dashboard & RViz consistent)")
+        print("="*60)
+        
+        for agent_id in sorted(self.discovered_agents):
+            r, g, b = getAgentColorRgb255(agent_id)
+            
+            # Create colored box and text
+            colored_box = createColoredBox(r, g, b)
+            colored_agent_text = createColoredText(r, g, b, f"Agent {agent_id}")
+            
+            print(f"  {colored_box} {colored_agent_text}: RGB({r}, {g}, {b})")
+        
+        print("="*60)
+        print("Colors will appear consistently in both dashboard plots and RViz visualization")
+        print("="*60 + "\n")
+
+    def discoverAgents(self):
         """Discover active agent nodes and create subscribers for them"""
         if self._shutdown_requested:
             return
@@ -107,23 +154,26 @@ class LiveDashboard(Node):
                     
                     # Create subscriber if this is a new agent
                     if agent_id not in self.discovered_agents:
-                        self.create_agent_subscriber(agent_id)
+                        self.createAgentSubscriber(agent_id)
             
             # Remove subscribers for agents that are no longer active
             inactive_agents = self.discovered_agents - current_agents
             for agent_id in inactive_agents:
-                self.remove_agent_subscriber(agent_id)
+                self.removeAgentSubscriber(agent_id)
             
             # Update discovered agents
             if current_agents != self.discovered_agents:
                 self.get_logger().info(f'Active agents: {sorted(current_agents)}')
                 self.discovered_agents = current_agents
+                
+                # Display colored agent mappings
+                self.display_agent_colors()
         except Exception as e:
             # Don't log errors if the node is being shut down
             if not self._shutdown_requested and self.get_logger() is not None:
                 self.get_logger().warn(f'Error during agent discovery: {e}')
 
-    def create_agent_subscriber(self, agent_id):
+    def createAgentSubscriber(self, agent_id):
         """Create a subscriber for a specific agent"""
         if self._shutdown_requested:
             return
@@ -163,7 +213,7 @@ class LiveDashboard(Node):
         subscriber = self.create_subscription(
             AgentData,
             f'agent_{agent_id}/data',
-            lambda msg, aid=agent_id: self.agent_data_callback(msg, aid),
+            lambda msg, aid=agent_id: self.agentDataCallback(msg, aid),
             self.best_effort_qos
         )
         self.subscribers[agent_id] = subscriber
@@ -172,7 +222,7 @@ class LiveDashboard(Node):
         obstacle_subscriber = self.create_subscription(
             MultipleObstacles,
             f'agent_{agent_id}/known_obstacles',
-            lambda msg, aid=agent_id: self.obstacles_callback(msg, aid),
+            lambda msg, aid=agent_id: self.obstaclesCallback(msg, aid),
             self.best_effort_qos
         )
         self.obstacle_subscribers[agent_id] = obstacle_subscriber
@@ -181,7 +231,7 @@ class LiveDashboard(Node):
         target_subscriber = self.create_subscription(
             MultipleTargetEstimates,
             f'agent_{agent_id}/target_estimates',
-            lambda msg, aid=agent_id: self.target_estimates_callback(msg, aid),
+            lambda msg, aid=agent_id: self.targetEstimatesCallback(msg, aid),
             self.best_effort_qos
         )
         self.target_estimate_subscribers[agent_id] = target_subscriber
@@ -190,7 +240,7 @@ class LiveDashboard(Node):
         ck_subscriber = self.create_subscription(
             CkTable,
             f'agent_{agent_id}/ck',
-            lambda msg, aid=agent_id: self.ck_callback(msg, aid),
+            lambda msg, aid=agent_id: self.ckCallback(msg, aid),
             self.best_effort_qos
         )
         self.ck_subscribers[agent_id] = ck_subscriber
@@ -200,7 +250,7 @@ class LiveDashboard(Node):
             offset = self.agent_data[agent_id]['simulation_time_offset']
             self.get_logger().info(f'Created subscribers for agent {agent_id} with time offset: {offset:.3f}s')
 
-    def remove_agent_subscriber(self, agent_id):
+    def removeAgentSubscriber(self, agent_id):
         """Remove subscriber and data for an inactive agent"""
         try:
             if agent_id in self.subscribers:
@@ -259,7 +309,7 @@ class LiveDashboard(Node):
         except Exception as e:
             self.get_logger().error(f'Error removing subscribers for agent {agent_id}: {e}')
 
-    def agent_data_callback(self, msg, agent_id):
+    def agentDataCallback(self, msg, agent_id):
         """Callback function for agent data messages"""
         if self._shutdown_requested:
             return
@@ -294,7 +344,7 @@ class LiveDashboard(Node):
                     if key != 'simulation_time_offset':  # Don't truncate the offset value
                         data[key] = data[key][-max_points:]
 
-    def obstacles_callback(self, msg, agent_id):
+    def obstaclesCallback(self, msg, agent_id):
         """Callback function for obstacle data messages"""
         if self._shutdown_requested:
             return
@@ -315,7 +365,7 @@ class LiveDashboard(Node):
                 }
                 self.obstacles_data[agent_id].append(obstacle)
 
-    def target_estimates_callback(self, msg, agent_id):
+    def targetEstimatesCallback(self, msg, agent_id):
         """Callback function for target estimates data messages"""
         if self._shutdown_requested:
             return
@@ -344,7 +394,7 @@ class LiveDashboard(Node):
                 }
                 self.target_estimates_data[agent_id]['ground_truths'].append(ground_truth)
         
-    def ck_callback(self, msg, agent_id):
+    def ckCallback(self, msg, agent_id):
         """Callback function for CK table data messages"""
         if self._shutdown_requested:
             return
@@ -382,22 +432,22 @@ class LiveDashboard(Node):
                 for key in ['timestamps', 'ck_tables', 'total_erg_costs']:
                     self.ck_data[agent_id][key] = self.ck_data[agent_id][key][-max_points:]
             
-    def on_key_press(self, event):
+    def onKeyPress(self, event):
         if event.key == 'e':
             print("Manual refresh triggered")
-            self.update_plots(None)
+            self.updatePlots(None)
         elif event.key == 'a':
             self.auto_refresh = not self.auto_refresh
             status = 'ON' if self.auto_refresh else 'OFF'
             print(f"Auto-refresh: {status}")
         elif event.key == 'c':
             print("Clearing all plots")
-            self.clear_plots()
+            self.clearPlots()
         elif event.key == 'q':
             print("Closing all windows")
             plt.close('all')
     
-    def clear_plots(self):
+    def clearPlots(self):
         """Clear all plot lines while maintaining axes structure"""
         # Clear all axes
         self.control_ax.clear()
@@ -420,7 +470,7 @@ class LiveDashboard(Node):
         for fig in [self.control_fig, self.ergodic_fig, self.traj_fig]:
             fig.canvas.draw()
             
-    def update_plots(self, frame):
+    def updatePlots(self, frame):
         if not self.auto_refresh and frame is not None:
             return
             
@@ -449,7 +499,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
-                color = self.agent_colors[agent_id % len(self.agent_colors)]
+                color = generateAgentColor(agent_id)
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
@@ -490,7 +540,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
-                color = self.agent_colors[agent_id % len(self.agent_colors)]
+                color = generateAgentColor(agent_id)
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
@@ -539,7 +589,7 @@ class LiveDashboard(Node):
             if agent_id in agent_data_refs:  # Only plot if agent is active
                 ck_data = ck_data_refs[agent_id]
                 if len(ck_data['timestamps']) > 0 and len(ck_data['total_erg_costs']) > 0:
-                    color = self.agent_colors[agent_id % len(self.agent_colors)]
+                    color = generateAgentColor(agent_id)
                     
                     try:
                         time_array = np.array(ck_data['timestamps'])
@@ -577,7 +627,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['states']) > 0:
-                color = self.agent_colors[agent_id % len(self.agent_colors)]
+                color = generateAgentColor(agent_id)
                 
                 try:
                     # Extract positions (assuming first two states are x, y)
@@ -590,7 +640,7 @@ class LiveDashboard(Node):
                             # Current position
                             if len(x_positions) > 0:
                                 self.traj_ax.scatter(x_positions[-1], y_positions[-1], s=100, 
-                                                   c=color, label=f'Agent {agent_id} Current', 
+                                                   color=color, label=f'Agent {agent_id} Current', 
                                                    zorder=3, marker='o')
                                 
                                 # Agent trajectory
@@ -605,13 +655,13 @@ class LiveDashboard(Node):
         self.traj_ax.set_title('Agent Trajectories')
         
         # Draw communication lines between agents (before obstacles and targets for proper layering)
-        self.draw_communication_lines(self.traj_ax, agent_data_refs)
+        self.drawCommunicationLines(self.traj_ax, agent_data_refs)
         
         # Draw obstacles on the trajectory plot
-        self.draw_obstacles(self.traj_ax)
+        self.drawObstacles(self.traj_ax)
         
         # Draw target estimates and ground truths on the trajectory plot
-        self.draw_target_estimates(self.traj_ax)
+        self.drawTargetEstimates(self.traj_ax)
         
         # if self.traj_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
         #     self.traj_ax.legend()
@@ -623,7 +673,7 @@ class LiveDashboard(Node):
         for fig in [self.control_fig, self.ergodic_fig, self.traj_fig]:
             fig.canvas.draw()
     
-    def draw_obstacles(self, ax):
+    def drawObstacles(self, ax):
         """Draw obstacles on the given axis"""
         with self.obstacles_lock:
             # Just get a shallow reference to avoid deep copying
@@ -712,7 +762,7 @@ class LiveDashboard(Node):
             # (assuming all agents share the same obstacle map)
             break
     
-    def draw_target_estimates(self, ax):
+    def drawTargetEstimates(self, ax):
         """Draw target estimates with ellipses and ground truth with black X marks"""
         with self.target_estimates_lock:
             # Just get shallow references to avoid deep copying
@@ -720,7 +770,7 @@ class LiveDashboard(Node):
         
         # Draw target estimates and ground truths from each agent
         for agent_id, data in target_data_refs.items():
-            color = self.agent_colors[agent_id % len(self.agent_colors)]
+            color = generateAgentColor(agent_id)
             
             try:                
                 # Draw ground truth positions as black X marks - only the nearest one to each estimate
@@ -742,7 +792,7 @@ class LiveDashboard(Node):
                         # Plot only the nearest ground truth
                         if nearest_gt is not None:
                             gt_pos = nearest_gt['position']
-                            ax.scatter(gt_pos[0], gt_pos[1], c='black', s=50, marker='x', linewidth=1,
+                            ax.scatter(gt_pos[0], gt_pos[1], color='black', s=50, marker='x', linewidth=1,
                                      label='Ground Truth' if estimate == data['estimates'][0] and agent_id == min(target_data_refs.keys()) else "",
                                      zorder=5)
                             
@@ -784,7 +834,7 @@ class LiveDashboard(Node):
                     ax.add_patch(ellipse)
                     
                     # Add center point
-                    ax.scatter(pos[0], pos[1], c=color, s=50, marker='x', 
+                    ax.scatter(pos[0], pos[1], color=color, s=50, marker='x', 
                              label=f'Target Est. Agent {agent_id}' if estimate == data['estimates'][0] else "",
                              zorder=4)
                     
@@ -792,7 +842,7 @@ class LiveDashboard(Node):
                 # Skip this agent's target data if there are issues with the covariance matrix
                 continue
         
-    def draw_communication_lines(self, ax, agent_data_refs):
+    def drawCommunicationLines(self, ax, agent_data_refs):
         """Draw dotted communication lines between agents that can communicate with each other"""
         try:
             # Get current positions and communication connections for all agents
@@ -817,7 +867,7 @@ class LiveDashboard(Node):
                     continue
                     
                 agent_pos = agent_positions[agent_id]
-                agent_color = self.agent_colors[agent_id % len(self.agent_colors)]
+                agent_color = generateAgentColor(agent_id)
                 
                 # Draw dotted lines to each agent this agent can communicate with
                 for connected_agent_id in connections:
@@ -853,7 +903,7 @@ class LiveDashboard(Node):
             # Remove all agent subscribers
             agent_ids_to_remove = list(self.discovered_agents)
             for agent_id in agent_ids_to_remove:
-                self.remove_agent_subscriber(agent_id)
+                self.removeAgentSubscriber(agent_id)
             
             self.get_logger().info('Dashboard cleanup completed')
         except Exception as e:
@@ -862,7 +912,7 @@ class LiveDashboard(Node):
     def show(self):
         plt.show()
 
-def ros_spin_thread(dashboard, shutdown_event):
+def rosSpinThread(dashboard, shutdown_event):
     """Thread function to spin the ROS node"""
     executor = MultiThreadedExecutor()
     executor.add_node(dashboard)
@@ -901,7 +951,7 @@ def main():
         signal.signal(signal.SIGINT, handle_sigint)
 
         # Start ROS spinning in a separate thread
-        ros_thread = threading.Thread(target=ros_spin_thread, args=(dashboard, shutdown_event))
+        ros_thread = threading.Thread(target=rosSpinThread, args=(dashboard, shutdown_event))
         ros_thread.daemon = True
         ros_thread.start()
 
@@ -912,6 +962,8 @@ def main():
         print("- Press 'q' to quit")
         print("- Agents, obstacles, and target estimates will be automatically discovered from running nodes")
         print("- Target estimates shown as colored ellipses (2-sigma confidence), ground truth as black X marks")
+        print("- Agent colors are consistent between dashboard and RViz (use same color generation)")
+        print("\nWaiting for agent discovery...")
 
         try:
             dashboard.show()
