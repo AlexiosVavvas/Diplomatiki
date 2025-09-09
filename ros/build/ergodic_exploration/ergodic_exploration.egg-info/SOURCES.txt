@@ -15,6 +15,9 @@ ergodic_exploration/environment.py
 launch/multi_agent.launch.py
 launch/multi_agent.launch.yaml
 launch/three_agents.launch.py
+meshes/boat.stl
+meshes/car.stl
+meshes/hermes.stl
 my_erg_lib/Utilities.py
 my_erg_lib/__init__.py
 my_erg_lib/agent.py

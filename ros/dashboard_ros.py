@@ -569,7 +569,7 @@ class LiveDashboard(Node):
                                 scale_factor = np.max(ergodic_costs)
                                 self.ergodic_ax.plot(time_array, cbf_flags * scale_factor, 
                                                    label=f'Active CBF - Agent {agent_id}', 
-                                                   linewidth=1, color=color, linestyle=':', alpha=0.7)
+                                                   linewidth=1, color=color, linestyle='--', alpha=0.85)
                 except (ValueError, IndexError) as e:
                     # Skip this agent if data is inconsistent
                     continue

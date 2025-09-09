@@ -692,3 +692,129 @@ class SimpleBoatSecondOrder(DynamicsBase):
     def state_string(self):
         x, y, psi, v, omega = self.state
         return f"x={x:.2f} y={y:.2f} psi={psi:.2f} v={v:.2f} omega={omega:.2f}"
+
+
+class SimpleCarSecondOrder(DynamicsBase):
+    def __init__(
+        self,
+        dt=0.001,
+        x0=None,
+        m=8.0,                  # kg: typical small UGV mass
+        L=0.9,                  # m: wheelbase
+        b_v=1.0,                # viscous surge damping (N/(m/s))
+        d_v=5.0,                # quadratic surge drag (N/(m/s)^2)
+        k_delta=20.0,           # steering actuator bandwidth (1/s)
+        k_steer=5.0,            # steering -> yaw torque gain (tuneable)
+        Iz=0.8,                 # yaw inertia (kg*m^2) - tune to vehicle size
+        d_r=1.0,                # yaw damping coefficient
+        u_epsilon=1e-2,         # small speed floor for smoothing
+        max_allowed_rev_thr=-1, # same semantics as in the boat class
+        steer_priority=0.004
+    ):
+        # now 6 states: x, y, psi, u, delta, omega
+        super().__init__(dt=dt, x0=x0, num_of_states=6, num_of_inputs=2,
+                         state_names=["x", "y", "psi", "u", "delta", "omega"])
+
+        self.type = "SimpleCarSecondOrder"
+        self.m = m
+        self.L = L
+        self.b_v = b_v
+        self.d_v = d_v
+        self.k_delta = k_delta
+        self.k_steer = k_steer
+        self.Iz = Iz
+        self.d_r = d_r
+        self.u_epsilon = u_epsilon
+
+        self.input_names = ["drive", "steer_cmd"]
+        self.max_allowed_rev_thr = max_allowed_rev_thr
+        self.steer_priority = steer_priority
+
+    def f(self, x, u):
+        """
+        States: x = [x, y, psi, u, delta, omega]
+        Inputs: u = [drive_force, steer_cmd]
+        """
+        x_pos, y_pos, psi, u_speed, delta, omega = x
+        drive_force, steer_cmd = u
+
+        # position kinematics
+        dx = u_speed * np.cos(psi)
+        dy = u_speed * np.sin(psi)
+
+        # yaw kinematics now uses omega directly
+        dpsi = omega
+
+        # longitudinal dynamics: viscous + quadratic drag
+        du = (drive_force - self.b_v * u_speed - self.d_v * u_speed * abs(u_speed)) / self.m
+
+        # steering actuator (first-order)
+        ddelta = -self.k_delta * (delta - steer_cmd)
+
+        # yaw dynamics: steering (via delta) produces yaw torque proportional to u * delta
+        # similar in spirit to boat's rudder torque: torque ≈ k_steer * u * delta
+        domega = (self.k_steer * u_speed * delta - self.d_r * omega * abs(omega)) / self.Iz
+
+        return np.array([dx, dy, dpsi, du, ddelta, domega])
+
+    def f_x(self, x, u):
+        """
+        Jacobian of f w.r.t. state x (6x6 matrix)
+        """
+        fx = np.zeros((self.num_of_states, self.num_of_states))
+        x_pos, y_pos, psi, u_speed, delta, omega = x
+        drive_force, steer_cmd = u
+
+        # ∂(dx)/∂psi and ∂(dx)/∂u
+        fx[0, 2] = -u_speed * np.sin(psi)
+        fx[0, 3] = np.cos(psi)
+
+        # ∂(dy)/∂psi and ∂(dy)/∂u
+        fx[1, 2] = u_speed * np.cos(psi)
+        fx[1, 3] = np.sin(psi)
+
+        # ∂(dpsi)/∂omega
+        fx[2, 5] = 1.0
+
+        # longitudinal accel derivative wrt u_speed: -(b_v + 2*d_v*abs(u))/m
+        fx[3, 3] = -(self.b_v + 2.0 * self.d_v * abs(u_speed)) / self.m
+
+        # steering actuator derivative wrt delta
+        fx[4, 4] = -self.k_delta
+
+        # yaw accel derivatives:
+        # domega = (k_steer * u_speed * delta - d_r * omega * abs(omega)) / Iz
+        # ∂domega/∂u_speed = (k_steer * delta) / Iz
+        fx[5, 3] = (self.k_steer * delta) / max(self.Iz, 1e-9)
+        # ∂domega/∂delta = (k_steer * u_speed) / Iz
+        fx[5, 4] = (self.k_steer * u_speed) / max(self.Iz, 1e-9)
+        # ∂domega/∂omega = -2 * d_r * abs(omega) / Iz
+        fx[5, 5] = -2.0 * self.d_r * abs(omega) / max(self.Iz, 1e-9)
+
+        return fx.copy()
+
+    def f_u(self, x):
+        """
+        Jacobian of f w.r.t. inputs u (6x2 matrix)
+        Inputs are [drive_force, steer_cmd]
+        """
+        fu = np.zeros((self.num_of_states, self.num_of_inputs))
+        x_pos, y_pos, psi, u_speed, delta, omega = x
+
+        # ∂(du)/∂(drive_force) = 1/m
+        fu[3, 0] = 1.0 / self.m
+
+        # ∂(ddelta)/∂(steer_cmd) = k_delta (steering actuator)
+        fu[4, 1] = self.k_delta
+
+        # steer_cmd affects domega only indirectly (via delta dynamics),
+        # so no direct term for domega here. The solver/CBF will see influence
+        # through f_x (domega/∂delta) and fu[4,1].
+
+        return fu.copy()
+
+    @property
+    def state_string(self):
+        x_pos, y_pos, psi, u_speed, delta, omega = self.state
+        return f"x={x_pos:.2f} y={y_pos:.2f} psi={psi:.2f} u={u_speed:.2f} delta={delta:.2f} omega={omega:.2f}"
+

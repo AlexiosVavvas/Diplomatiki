@@ -1,7 +1,7 @@
 # Ergodic Library
 from my_erg_lib.basis import Basis
 import numpy as np
-from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder
+from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder
 from my_erg_lib.eid import Sensor, EKF
 import my_erg_lib.Utilities as utils
 import time
@@ -684,17 +684,57 @@ class Agent(Node):
                             if len(u_safe) >= 2:
                                 # Choose redistribution sign robustly:
                                 if np.abs(beta[1]) > 1e-5:
-                                    sign_rudder = np.sign(beta[1])
+                                    sign_steer = np.sign(beta[1])
                                 else:
                                     # Fallback: use cross product of velocity and grad_h to pick turning side
                                     v = f[:2]        # translational velocity (x,y)
                                     g2 = grad_h[:2]  # gradient in x,y
                                     cross = v[0]*g2[1] - v[1]*g2[0]
                                     # If cross>0 -> turning in one direction, cross<0 -> the other
-                                    sign_rudder = np.sign(cross) if np.abs(cross) > 1e-6 else 1.0
+                                    sign_steer = np.sign(cross) if np.abs(cross) > 1e-6 else 1.0
 
-                                additional_rudder = -thrust_excess * sign_rudder * self.model.rudder_priority
-                                u_safe[1] += additional_rudder
+                                additional_steer = -thrust_excess * sign_steer * self.model.rudder_priority
+                                u_safe[1] += additional_steer
+                                
+                elif isinstance(self.model, SimpleCarSecondOrder):
+                    # Create weighting matrix to prioritize steering over thrust
+                    # Assume control input order is [thrust, steering]
+                    W = np.diag([1.0, self.model.steer_priority])  # Higher weight on steering
+                    
+                    # Weighted least squares solution for safety control
+                    beta_weighted = W @ beta.T
+                    u_safe_weighted = -beta_weighted / (np.linalg.norm(beta_weighted)**2) * PSI
+                    
+                    # Transform back to original control space
+                    u_safe = W @ u_safe_weighted
+
+                    # print(f"--> Car Safety Control: PSI={PSI:.4f}, beta={beta}, u_safe_initial={u_safe}")
+
+                    # Additional constraint: don't allow thrust to go above maximum (less negative = less forward thrust)
+                    if len(u_safe) >= 1:  # Ensure we have thrust control
+                        # If the safety control would make total thrust positive (reverse), redistribute to rudder
+                        total_thrust = udef_now[0] + u_safe[0]
+                        
+                        if total_thrust > self.model.max_allowed_rev_thr:  # total_thrust becoming positive means reverse
+                            thrust_excess = total_thrust - self.model.max_allowed_rev_thr
+                            u_safe[0] = self.model.max_allowed_rev_thr - udef_now[0]  # Adjust thrust to maximum allowed (0 or negative)
+
+                            # If we have rudder control, increase rudder authority to compensate
+                            if len(u_safe) >= 2:
+                                # Choose redistribution sign robustly:
+                                if np.abs(beta[1]) > 1e-5:
+                                    sign_steer = np.sign(beta[1])
+                                else:
+                                    # Fallback: use cross product of velocity and grad_h to pick turning side
+                                    # use cross product between velocity vector and gradient to pick side
+                                    v = f[:2]         # translational velocity (x,y) -> car: (u*cos, u*sin)
+                                    g2 = grad_h[:2]
+                                    cross = v[0]*g2[1] - v[1]*g2[0]
+                                    sign_steer = np.sign(cross) if np.abs(cross) > 1e-6 else np.sign(beta[1]) if np.abs(beta[1])>1e-6 else 1.0
+
+                                additional_steer = -thrust_excess * sign_steer * self.model.steer_priority
+                                u_safe[1] += additional_steer
+
                 else:
                     # Standard least squares solution for safety control
                     u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI

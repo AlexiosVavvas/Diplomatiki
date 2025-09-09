@@ -328,24 +328,47 @@ class EnvironmentNode(Node):
                         'psi': psi,
                         'uvel': uvel,
                         'omegavel': omegavel,
-                        'is_boat': True
+                        'is_boat': True,
+                        'is_car': False
                     }
                     
                     # Debug logging for boat detection
                     # self.get_logger().info(f'Agent {agent_id} detected as boat - model_type: {model_type}, psi: {psi:.2f}')
                     
+                elif model_type == "SimpleCarSecondOrder" and len(msg.states) >= 6:
+                    # For car: states are [x, y, psi, u, delta, omega]
+                    psi = msg.states[2]    # Yaw angle
+                    u_speed = msg.states[3]    # Forward velocity
+                    delta = msg.states[4]  # Steering angle
+                    omega = msg.states[5]  # Angular velocity
+                    
+                    self.agent_states[agent_id] = {
+                        'x': x,
+                        'y': y, 
+                        'psi': psi,
+                        'u_speed': u_speed,
+                        'delta': delta,
+                        'omega': omega,
+                        'is_boat': False,
+                        'is_car': True
+                    }
+                    
+                    # Debug logging for car detection
+                    # self.get_logger().info(f'Agent {agent_id} detected as car - model_type: {model_type}, psi: {psi:.2f}')
+                    
                 else:
-                    # For non-boat agents, store basic position info
+                    # For non-boat, non-car agents, store basic position info
                     self.agent_states[agent_id] = {
                         'x': x,
                         'y': y,
                         'psi': 0.0,  # No orientation
-                        'is_boat': False
+                        'is_boat': False,
+                        'is_car': False
                     }
                     
-                    # Debug logging for non-boat detection
+                    # Debug logging for non-boat, non-car detection
                     # if model_type:
-                    #     self.get_logger().info(f'Agent {agent_id} detected as non-boat - model_type: {model_type}')
+                    #     self.get_logger().info(f'Agent {agent_id} detected as non-boat/non-car - model_type: {model_type}')
                     # else:
                     #     self.get_logger().info(f'Agent {agent_id} model_type not yet determined')
                 
@@ -928,15 +951,19 @@ class EnvironmentNode(Node):
                 
                 # Debug logging
                 is_boat = state.get('is_boat', False)
+                is_car = state.get('is_car', False)
                 model_type = self.agent_model_types.get(agent_id, 'Unknown')
-                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}')
+                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}, is_car={is_car}')
                 
                 # Check if this is a boat agent
                 if is_boat:
-                    # Use rectangle/arrow marker for boats to show orientation
-                    marker.type = Marker.ARROW
+                    # Use STL mesh marker for boats to show orientation
+                    marker.type = Marker.MESH_RESOURCE
                     
-                    # Set arrow orientation based on yaw angle (psi)
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/boat.stl"
+                    
+                    # Set mesh orientation based on yaw angle (psi)
                     psi = state['psi'] + np.pi
                     qx, qy, qz, qw = self.yaw_to_quaternion(psi)
                     marker.pose.orientation.x = qx
@@ -944,15 +971,49 @@ class EnvironmentNode(Node):
                     marker.pose.orientation.z = qz
                     marker.pose.orientation.w = qw
                     
-                    # Set arrow scale (length, width, height)
-                    marker.scale.x = 0.6  # Length of arrow
-                    marker.scale.y = 0.2  # Width of arrow
-                    marker.scale.z = 0.1  # Height of arrow
-                    
-                    # Adjust z position for arrow
+                    # Set mesh scale (start with small scale to ensure visibility)
+                    marker.scale.x = 1.0  # Small scale to test visibility
+                    marker.scale.y = 1.0  # Small scale to test visibility
+                    marker.scale.z = 1.0  # Small scale to test visibility
+
+                    # Adjust z position for mesh
                     marker.pose.position.z = float(position[2]) + 0.1
                     
-                    # self.get_logger().info(f'Agent {agent_id}: Using ARROW marker, psi={psi:.2f} rad')
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # Debug logging for mesh marker
+                    # self.get_logger().info(f'Agent {agent_id}: Using BOAT MESH marker, mesh_resource={marker.mesh_resource}, scale={marker.scale.x}')
+                    
+                # Check if this is a car agent
+                elif is_car:
+                    # Use STL mesh marker for cars to show orientation
+                    marker.type = Marker.MESH_RESOURCE
+                    
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/car.stl"
+                    
+                    # Set mesh orientation based on yaw angle (psi)
+                    psi = state['psi'] + np.pi
+                    qx, qy, qz, qw = self.yaw_to_quaternion(psi)
+                    marker.pose.orientation.x = qx
+                    marker.pose.orientation.y = qy
+                    marker.pose.orientation.z = qz
+                    marker.pose.orientation.w = qw
+                    
+                    # Set mesh scale (start with small scale to ensure visibility)
+                    marker.scale.x = 1.0  # Small scale to test visibility
+                    marker.scale.y = 1.0  # Small scale to test visibility
+                    marker.scale.z = 1.0  # Small scale to test visibility
+
+                    # Adjust z position for mesh
+                    marker.pose.position.z = float(position[2]) + 0.1
+                    
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # Debug logging for mesh marker
+                    # self.get_logger().info(f'Agent {agent_id}: Using CAR MESH marker, mesh_resource={marker.mesh_resource}, scale={marker.scale.x}')
                     
                 else:
                     # Use cylinder for non-boat agents
@@ -1022,6 +1083,9 @@ class EnvironmentNode(Node):
             if isinstance(pos, tuple):
                 position_str = f'({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})'
                 if state.get('is_boat', False):
+                    psi = state.get('psi', 0.0)
+                    self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, yaw: {psi:.2f} rad ({math.degrees(psi):.1f}°)')
+                elif state.get('is_car', False):
                     psi = state.get('psi', 0.0)
                     self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, yaw: {psi:.2f} rad ({math.degrees(psi):.1f}°)')
                 else:

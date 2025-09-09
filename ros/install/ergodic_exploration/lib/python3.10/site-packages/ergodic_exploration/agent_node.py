@@ -51,7 +51,7 @@ signal.signal(signal.SIGINT, signalHandler)
 def main(args=None):
     from my_erg_lib.agent import Agent
     from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder
+    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
@@ -137,17 +137,43 @@ def main(args=None):
         Q_ = 8
         R_ = 0.001
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-        TS = 0.03; T_H = 0.5; deltaT_ERG = 3
-        PREDICTION_DT = 0.0012 * 5  # model dt * 5
+        TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
+        SIMUL_DT = 0.0012
+        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
         BAR_WEIGHT = 0
         UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.6
 
-        dynamic_model = SimpleBoatSecondOrder(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
-    
+        dynamic_model = SimpleBoatSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
+
         print("--> Using model: <SimpleBoatSecondOrder>")
+
+    # Simple Car Second Order model ----
+    elif MODEL_TYPE == "SimpleCarSecondOrder":
+        # SimpleCarSecondOrder(dt=0.001, x0=None, m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, max_allowed_rev_thr=-1, steer_priority=0.004)
+        u_limits_init = np.array([[-1, 0], [-10, 10]])
+        u_limits = np.array([[-10, 0], [-10, 10]]); time_to_apply_ulimits = 15 # [s] after which to switch u_limits
+        u_nominal = None
+        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
+        Q_ = 8
+        R_ = 0.001
+        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
+        TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
+        SIMUL_DT = 0.0012 * 4
+        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
+        BAR_WEIGHT = 0
+        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
+        KAPPA_OBS = 1; RHO_OBS = 0.75
+
+        dynamic_model = SimpleCarSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0, 0],
+                                                m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, 
+                                                max_allowed_rev_thr=-1, steer_priority=0.004) # max = -0.5
+
+        print("--> Using model: <SimpleCarSecondOrder>")
 
     # Quadrotor model -----------
     elif MODEL_TYPE == "Quadcopter":

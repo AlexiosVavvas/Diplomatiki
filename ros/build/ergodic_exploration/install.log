@@ -31,6 +31,9 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/three_agents.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.yaml
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/car.stl
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/hermes.stl
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/boat.stl
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info/SOURCES.txt
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info/dependency_links.txt
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info/zip-safe
