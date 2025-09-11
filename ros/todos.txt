@@ -5,9 +5,9 @@ Features
     - Airplance dynamics
     - change boundaries service, change kmax service (maybe have many precomputed to chose from)
     - instead of a talk_alike flag, i could define teams that one can talk to another only if they are on the same team
-    - agents shouldnt collide with others
     - Ck vis bar maybe not updating (same on plotPhi)
     - Wall obstacles only 10 meters long by default? change that for Rviz etc
+    - Somehow move obstacles outside agent_node. In a configuration file or smth
 
 
 Today
@@ -23,6 +23,7 @@ Today
 Done
     - Eachone working on a part of the workspace
     - make Kmax global, not only agent
+    - agents shouldnt collide with others
 
 
 

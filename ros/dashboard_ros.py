@@ -24,6 +24,8 @@ from matplotlib.patches import Ellipse
 L1_BOUNDS = [0.0, 1.0]
 L2_BOUNDS = [0.0, 1.0]
 
+VISUALISE_VIRTUAL_OBS = False # Whether to visualize virtual obstacles in the dashboard
+
 # Thread-safe lock for bounds updates
 BOUNDS_LOCK = threading.Lock()
 
@@ -411,7 +413,9 @@ class LiveDashboard(Node):
                     'kappa': obs_msg.kappa,
                     'rho0': obs_msg.rho0
                 }
-                self.obstacles_data[agent_id].append(obstacle)
+                # Append only if name not of the form "agent_{id}"
+                if VISUALISE_VIRTUAL_OBS or not re.match(r'agent[_\-]?(\d+)', obstacle['name'], re.IGNORECASE):
+                    self.obstacles_data[agent_id].append(obstacle)
 
     def targetEstimatesCallback(self, msg, agent_id):
         """Callback function for target estimates data messages"""

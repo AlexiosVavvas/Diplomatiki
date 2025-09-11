@@ -111,6 +111,7 @@ def main(args=None):
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.15
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.4    # Parameters for avoiding other agents
 
         dynamic_model = SingleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
         
@@ -135,6 +136,7 @@ def main(args=None):
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.15
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.4    # Parameters for avoiding other agents
         
         dynamic_model = DoubleIntegrator(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
 
@@ -158,6 +160,7 @@ def main(args=None):
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.6
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 1    # Parameters for avoiding other agents
 
         dynamic_model = SimpleBoatSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
 
@@ -181,6 +184,7 @@ def main(args=None):
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.75
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.75    # Parameters for avoiding other agents
 
         dynamic_model = SimpleCarSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0, 0],
                                                 m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, 
@@ -226,7 +230,7 @@ def main(args=None):
     agent = Agent(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS, Kmax=KMAX, 
                   dynamics_model=dynamic_model,
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
-                  same_l_bounds_flag=SAME_L_BOUNDS_FLAG,
+                  same_l_bounds_flag=SAME_L_BOUNDS_FLAG, KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL,
                   phi=lambda s: 1/100) 
                 #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
 
@@ -276,12 +280,16 @@ def main(args=None):
                     agent.get_logger().info("Enabling Talk Alike for this agent...")
                 else:
                     agent.get_logger().info("Disabling Talk Alike for this agent...")
+                # Update virtual obstacles based on new compatibility settings
+                agent.updateVirtualObstaclesBasedOnCompatibility()
             if param.name == 'same_l_bounds_flag':
                 agent.same_l_bounds_flag = param.value
                 if param.value == True:
                     agent.get_logger().info("Enabling Same L Bounds filtering for this agent...")
                 else:
                     agent.get_logger().info("Disabling Same L Bounds filtering for this agent...")
+                # Update virtual obstacles based on new compatibility settings
+                agent.updateVirtualObstaclesBasedOnCompatibility()
 
         return SetParametersResult(successful=True)
 

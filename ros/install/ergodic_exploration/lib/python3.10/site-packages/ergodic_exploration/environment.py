@@ -449,7 +449,9 @@ class EnvironmentNode(Node):
                     'kappa': obs_msg.kappa,
                     'rho0': obs_msg.rho0
                 }
-                obstacles.append(obstacle_info)
+                # Append only if name not of the form "agent_{id}"
+                if not re.match(r'agent[_\-]?(\d+)', obstacle_info['name'], re.IGNORECASE):
+                    obstacles.append(obstacle_info)
             
             # Store obstacles for this agent
             self.agent_obstacles[agent_id] = obstacles

@@ -5,6 +5,7 @@ from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadco
 from my_erg_lib.eid import Sensor, EKF
 import my_erg_lib.Utilities as utils
 import time
+from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory, removeObstaclesFromMemory, updateObstaclePositionInMemory
 
 # ROS Library
 from rclpy.node import Node
@@ -12,7 +13,9 @@ from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstac
 import re
 
 class Agent(Node):
-    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True):
+    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True,
+                 KAPPA_OBS_VIRTUAL=1, RHO_OBS_VIRTUAL=0.75):
+        
         self.agent_id = agent_id if agent_id is not None else 0
         self.time_since_start = 0.0
 
@@ -65,6 +68,9 @@ class Agent(Node):
 
         # Initialise obstacle list
         self.obstacle_list = []
+        # Parameters for virtual obstacles (other agents etc)
+        self.KAPPA_OBS_VIRTUAL = KAPPA_OBS_VIRTUAL
+        self.RHO_OBS_VIRTUAL = RHO_OBS_VIRTUAL
 
         # Initialize the basis object
         self.basis = Basis(L1_BOUNDS, L2_BOUNDS, Kmax, phi_=phi, precalc_phik_coeff=False, num_gauss_points=22)
@@ -931,6 +937,12 @@ class Agent(Node):
         )
         self.ck_subscribers[agent_id] = subscriber
         self.get_logger().info(f'Created subscriber for agent_{agent_id}/ck')
+
+        # Lets add a virtual obstacle in a safe initial position (far from current agent) to avoid colliding with one another
+        # This will be updated to the correct position when the first message is received
+        safe_initial_pos = [self.model.state[0] + 1000.0, self.model.state[1] + 1000.0]  # Far away initial position
+        virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+        saveObstaclesToMemory(self, [virtual_obs])
         
 
     def removeAgentSubscriber(self, agent_id):
@@ -960,6 +972,9 @@ class Agent(Node):
         # Remove from in-range agents
         self.in_range_agents.discard(agent_id)
 
+        # Lets remove the virtual obstacle in the position of the discoverd agent in memory
+        removeObstaclesFromMemory(self, [f"agent_{agent_id}"])
+
     def agentCkCallback(self, msg, agent_id):
         """Callback function to handle CK data from other agents"""
         try:
@@ -988,7 +1003,21 @@ class Agent(Node):
             
             # Store agent position from the message
             self.agent_positions[agent_id] = (msg.position.x, msg.position.y)
+
+            # Find the obstacle with name "agent_{id}" and update virtual obstacle position in memory (list: self.obstacle_list)
+            # If the virtual obstacle doesn't exist yet, create it
+            obstacle_found = False
+            for obs in self.obstacle_list:
+                if obs.name_id == f"agent_{agent_id}":
+                    obs.pos = np.asarray([msg.position.x, msg.position.y])
+                    obstacle_found = True
+                    break
             
+            if not obstacle_found:
+                # Create virtual obstacle if it doesn't exist
+                virtual_obs = Obstacle(pos=[msg.position.x, msg.position.y], dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                saveObstaclesToMemory(self, [virtual_obs])
+
             # Convert flattened row-major form back to table
             table_size = msg.table_size
             ck_flat = np.array(msg.ck_values)
@@ -1098,4 +1127,67 @@ class Agent(Node):
             compatible_agents.add(aid)
         
         return sorted(list(compatible_agents))
+
+    def updateVirtualObstaclesBasedOnCompatibility(self):
+        """
+        Update virtual obstacles based on current compatibility flags.
+        Remove obstacles for incompatible agents and ensure obstacles exist for compatible agents.
+        """
+        # Get currently compatible agents
+        compatible_agents = set()
+        for aid in self.discovered_agents:
+            if aid == self.agent_id:
+                continue
+                
+            # Check talk_alike_flag compatibility
+            if self.talk_alike_flag:
+                if self.agent_model_types.get(aid, None) != self.model.type:
+                    continue
+            
+            # Check same_l_bounds_flag compatibility
+            if self.same_l_bounds_flag:
+                my_l_bounds = [self.L1_min, self.L1_max, self.L2_min, self.L2_max]
+                if self.agent_l_bounds.get(aid, None) != my_l_bounds:
+                    continue
+            
+            compatible_agents.add(aid)
+        
+        # Find existing virtual obstacles for agents
+        existing_virtual_obstacles = set()
+        obstacles_to_remove = []
+        
+        for obs in self.obstacle_list:
+            if obs.name_id and obs.name_id.startswith("agent_"):
+                try:
+                    agent_id_str = obs.name_id.replace("agent_", "")
+                    agent_id = int(agent_id_str)
+                    existing_virtual_obstacles.add(agent_id)
+                    
+                    # If this agent is no longer compatible, mark obstacle for removal
+                    if agent_id not in compatible_agents:
+                        obstacles_to_remove.append(obs.name_id)
+                        self.get_logger().info(f'Removing virtual obstacle for incompatible agent_{agent_id}')
+                except ValueError:
+                    # Not a valid agent ID format, skip
+                    pass
+        
+        # Remove obstacles for incompatible agents
+        if obstacles_to_remove:
+            removeObstaclesFromMemory(self, obstacles_to_remove)
+        
+        # Create obstacles for compatible agents that don't have them yet
+        for agent_id in compatible_agents:
+            if agent_id not in existing_virtual_obstacles:
+                # Create virtual obstacle if we have position data for this agent
+                if agent_id in self.agent_positions:
+                    pos = self.agent_positions[agent_id]
+                    virtual_obs = Obstacle(pos=[pos[0], pos[1]], dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                    saveObstaclesToMemory(self, [virtual_obs])
+                    self.get_logger().info(f'Created virtual obstacle for compatible agent_{agent_id} at position {pos}')
+                else:
+                    # Create at safe initial position if no position data yet
+                    safe_initial_pos = [self.model.state[0] + 1000.0, self.model.state[1] + 1000.0]
+                    virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                    saveObstaclesToMemory(self, [virtual_obs])
+                    self.get_logger().info(f'Created virtual obstacle for compatible agent_{agent_id} at safe initial position')
             

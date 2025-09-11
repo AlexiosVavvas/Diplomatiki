@@ -1,6 +1,9 @@
 import numpy as np
-from my_erg_lib.agent import Agent
 import my_erg_lib.model_dynamics as model_dynamics
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from my_erg_lib.agent import Agent
 
 class Obstacle():
     """
@@ -50,7 +53,10 @@ class Obstacle():
 
             # Gradient function: ∇ρ(x) = (x - pos) / ||x - pos||
             def _gradRhoFunc(x):
-                return (x - self.pos) / np.linalg.norm(x - self.pos)
+                norm = np.linalg.norm(x - self.pos)
+                if norm < 1e-8:  # Avoid division by zero
+                    return np.zeros_like(x - self.pos)
+                return (x - self.pos) / norm
             self.gradRhoFunc = _gradRhoFunc
 
         elif obs_type == 'rectangle':
@@ -252,7 +258,7 @@ class Obstacle():
 
         return -self.kappa / (rho**2) * (1 / rho - 1 / self.rho0) * grad_rho
 
-def saveObstaclesToMemory(agent: Agent, obs_list):
+def saveObstaclesToMemory(agent: "Agent", obs_list):
     # Make sure the list is not empty
     assert len(obs_list) > 0, "Obstacle list is empty. Please provide a list of obstacles."
 
@@ -263,3 +269,14 @@ def saveObstaclesToMemory(agent: Agent, obs_list):
     # Lets append obstacles to the agent list
     for obstacle in obs_list:
         agent.obstacle_list.append(obstacle)
+
+def removeObstaclesFromMemory(agent: "Agent", obs_name_list):
+    agent.obstacle_list = [obs for obs in agent.obstacle_list if obs.name_id not in obs_name_list]
+
+def updateObstaclePositionInMemory(agent: "Agent", obs_name, new_pos):
+    for obs in agent.obstacle_list:
+        if obs.name_id == obs_name:
+            obs.pos = np.asarray(new_pos)
+            return
+    # If we reach here, the obstacle was not found
+    agent.get_logger().warning(f"Obstacle with name {obs_name} not found in memory. Cannot update position. (new_pos: {new_pos})")
