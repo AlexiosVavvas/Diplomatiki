@@ -12,6 +12,9 @@
 
 
 // Include directives for member types
+// Member `model_type`
+#include "rosidl_runtime_c/string_functions.h"
+// Member `l_bounds`
 // Member `ck_values`
 // Member `ck_values_average_in_range`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
@@ -22,6 +25,16 @@ bool
 my_interfaces__msg__CkTable__init(my_interfaces__msg__CkTable * msg)
 {
   if (!msg) {
+    return false;
+  }
+  // model_type
+  if (!rosidl_runtime_c__String__init(&msg->model_type)) {
+    my_interfaces__msg__CkTable__fini(msg);
+    return false;
+  }
+  // l_bounds
+  if (!rosidl_runtime_c__double__Sequence__init(&msg->l_bounds, 0)) {
+    my_interfaces__msg__CkTable__fini(msg);
     return false;
   }
   // table_size
@@ -52,6 +65,10 @@ my_interfaces__msg__CkTable__fini(my_interfaces__msg__CkTable * msg)
   if (!msg) {
     return;
   }
+  // model_type
+  rosidl_runtime_c__String__fini(&msg->model_type);
+  // l_bounds
+  rosidl_runtime_c__double__Sequence__fini(&msg->l_bounds);
   // table_size
   // ck_values
   rosidl_runtime_c__double__Sequence__fini(&msg->ck_values);
@@ -68,6 +85,18 @@ bool
 my_interfaces__msg__CkTable__are_equal(const my_interfaces__msg__CkTable * lhs, const my_interfaces__msg__CkTable * rhs)
 {
   if (!lhs || !rhs) {
+    return false;
+  }
+  // model_type
+  if (!rosidl_runtime_c__String__are_equal(
+      &(lhs->model_type), &(rhs->model_type)))
+  {
+    return false;
+  }
+  // l_bounds
+  if (!rosidl_runtime_c__double__Sequence__are_equal(
+      &(lhs->l_bounds), &(rhs->l_bounds)))
+  {
     return false;
   }
   // table_size
@@ -113,6 +142,18 @@ my_interfaces__msg__CkTable__copy(
   my_interfaces__msg__CkTable * output)
 {
   if (!input || !output) {
+    return false;
+  }
+  // model_type
+  if (!rosidl_runtime_c__String__copy(
+      &(input->model_type), &(output->model_type)))
+  {
+    return false;
+  }
+  // l_bounds
+  if (!rosidl_runtime_c__double__Sequence__copy(
+      &(input->l_bounds), &(output->l_bounds)))
+  {
     return false;
   }
   // table_size

@@ -37,6 +37,51 @@ void CkTable_fini_function(void * message_memory)
   typed_message->~CkTable();
 }
 
+size_t size_function__CkTable__l_bounds(const void * untyped_member)
+{
+  const auto * member = reinterpret_cast<const std::vector<double> *>(untyped_member);
+  return member->size();
+}
+
+const void * get_const_function__CkTable__l_bounds(const void * untyped_member, size_t index)
+{
+  const auto & member =
+    *reinterpret_cast<const std::vector<double> *>(untyped_member);
+  return &member[index];
+}
+
+void * get_function__CkTable__l_bounds(void * untyped_member, size_t index)
+{
+  auto & member =
+    *reinterpret_cast<std::vector<double> *>(untyped_member);
+  return &member[index];
+}
+
+void fetch_function__CkTable__l_bounds(
+  const void * untyped_member, size_t index, void * untyped_value)
+{
+  const auto & item = *reinterpret_cast<const double *>(
+    get_const_function__CkTable__l_bounds(untyped_member, index));
+  auto & value = *reinterpret_cast<double *>(untyped_value);
+  value = item;
+}
+
+void assign_function__CkTable__l_bounds(
+  void * untyped_member, size_t index, const void * untyped_value)
+{
+  auto & item = *reinterpret_cast<double *>(
+    get_function__CkTable__l_bounds(untyped_member, index));
+  const auto & value = *reinterpret_cast<const double *>(untyped_value);
+  item = value;
+}
+
+void resize_function__CkTable__l_bounds(void * untyped_member, size_t size)
+{
+  auto * member =
+    reinterpret_cast<std::vector<double> *>(untyped_member);
+  member->resize(size);
+}
+
 size_t size_function__CkTable__ck_values(const void * untyped_member)
 {
   const auto * member = reinterpret_cast<const std::vector<double> *>(untyped_member);
@@ -127,7 +172,41 @@ void resize_function__CkTable__ck_values_average_in_range(void * untyped_member,
   member->resize(size);
 }
 
-static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_message_member_array[7] = {
+static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_message_member_array[9] = {
+  {
+    "model_type",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::CkTable, model_type),  // bytes offset in struct
+    nullptr,  // default value
+    nullptr,  // size() function pointer
+    nullptr,  // get_const(index) function pointer
+    nullptr,  // get(index) function pointer
+    nullptr,  // fetch(index, &value) function pointer
+    nullptr,  // assign(index, value) function pointer
+    nullptr  // resize(index) function pointer
+  },
+  {
+    "l_bounds",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::CkTable, l_bounds),  // bytes offset in struct
+    nullptr,  // default value
+    size_function__CkTable__l_bounds,  // size() function pointer
+    get_const_function__CkTable__l_bounds,  // get_const(index) function pointer
+    get_function__CkTable__l_bounds,  // get(index) function pointer
+    fetch_function__CkTable__l_bounds,  // fetch(index, &value) function pointer
+    assign_function__CkTable__l_bounds,  // assign(index, value) function pointer
+    resize_function__CkTable__l_bounds  // resize(index) function pointer
+  },
   {
     "table_size",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32,  // type
@@ -252,7 +331,7 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember CkTable_messa
 static const ::rosidl_typesupport_introspection_cpp::MessageMembers CkTable_message_members = {
   "my_interfaces::msg",  // message namespace
   "CkTable",  // message name
-  7,  // number of fields
+  9,  // number of fields
   sizeof(my_interfaces::msg::CkTable),
   CkTable_message_member_array,  // message members
   CkTable_init_function,  // function to initialize message memory (memory has to be allocated)

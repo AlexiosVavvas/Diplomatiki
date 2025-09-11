@@ -57,8 +57,10 @@ CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupp
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h \
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/string.h \
  /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/string_functions.h \
  /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/point.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__functions.h \

@@ -29,8 +29,6 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages/ergodic_exploration
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.xml
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.py
-/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/three_agents.launch.py
-/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.yaml
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/car.stl
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/hermes.stl
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/boat.stl

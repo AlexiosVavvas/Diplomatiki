@@ -13,8 +13,6 @@ ergodic_exploration/__init__.py
 ergodic_exploration/agent_node.py
 ergodic_exploration/environment.py
 launch/multi_agent.launch.py
-launch/multi_agent.launch.yaml
-launch/three_agents.launch.py
 meshes/boat.stl
 meshes/car.stl
 meshes/hermes.stl

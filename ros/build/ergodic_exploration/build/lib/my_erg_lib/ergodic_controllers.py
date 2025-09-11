@@ -43,8 +43,8 @@ class DecentralisedErgodicController():
             self.uLimits = np.asarray(uLimits)
 
         # Set barrier to avoid going outside the exploration space
-        self.barrier = Barrier(L1=agent.L1, L2=agent.L2, weight=barrier_weight, eps_=barrier_eps, pow_=barrier_pow)
-        
+        self.barrier = Barrier(L1_BOUNDS=[agent.L1_min, agent.L1_max], L2_BOUNDS=[agent.L2_min, agent.L2_max], weight=barrier_weight, eps_=barrier_eps, pow_=barrier_pow)
+
         # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
         assert self.R.shape[0] == self.R.shape[1] == agent.model.num_of_inputs, "R must be a square matrix of size (num_of_inputs, num_of_inputs)"

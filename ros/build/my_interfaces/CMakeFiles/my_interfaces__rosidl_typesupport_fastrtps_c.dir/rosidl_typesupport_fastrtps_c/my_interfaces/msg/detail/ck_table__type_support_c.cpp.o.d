@@ -183,10 +183,12 @@ CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_f
  /usr/include/c++/11/bits/ostream.tcc /usr/include/c++/11/istream \
  /usr/include/c++/11/bits/istream.tcc /usr/include/malloc.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h \
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/string.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__struct.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h \
  /usr/include/c++/11/stdlib.h \
  /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/rosidl_generator_c__visibility_control.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/detail/point__functions.h \
  /opt/ros/humble/include/geometry_msgs/geometry_msgs/msg/rosidl_generator_c__visibility_control.h \
- /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h \
+ /opt/ros/humble/include/rosidl_runtime_c/rosidl_runtime_c/string_functions.h

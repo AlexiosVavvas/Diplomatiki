@@ -5,8 +5,8 @@ from my_erg_lib.obstacles import Obstacle
 def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False, ck_total=None, agent_list=None):
     phi_original = agent.basis.phi
 
-    x1 = np.linspace(0, agent.L1, grid_res)
-    x2 = np.linspace(0, agent.L2, grid_res)
+    x1 = np.linspace(agent.L1_min, agent.L1_max, grid_res)
+    x2 = np.linspace(agent.L2_min, agent.L2_max, grid_res)
 
     # Plot in a 1x3 matplotlib figure as heatmap colors
     import matplotlib.pyplot as plt
@@ -41,7 +41,7 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     fig = plt.figure(figsize=(18, 5))
     
     ax1 = fig.add_subplot(131)
-    im1 = ax1.imshow(Z_original, extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
+    im1 = ax1.imshow(Z_original, extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), origin='lower', cmap=cm.viridis)
     ax1.set_title('Original Function Φ')
     ax1.set_xlabel('x1')
     ax1.set_ylabel('x2')
@@ -50,7 +50,7 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
 
     ax2 = fig.add_subplot(132)
     im2 = ax2.imshow(Z_agent_fourier_rec,
-                     extent=(0, agent.L1, 0, agent.L2), origin='lower', cmap=cm.viridis)
+                     extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), origin='lower', cmap=cm.viridis)
     ax2.set_title(f'Fourier Reconstruction (Kmax = {agent.Kmax})')
     ax2.set_xlabel('x1')
     ax2.set_ylabel('x2')
@@ -64,10 +64,10 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
 
     ax3 = fig.add_subplot(133)
     if clip_to_min_max:
-        im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), 
+        im3 = ax3.imshow(Z_rec_from_ck, extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), 
                         origin='lower', cmap=cm.viridis, vmin=min_val, vmax=max_val)
     else:
-        im3 = ax3.imshow(Z_rec_from_ck, extent=(0, agent.L1, 0, agent.L2), 
+        im3 = ax3.imshow(Z_rec_from_ck, extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), 
                         origin='lower', cmap=cm.viridis)
     
     # Update title based on whether ck_total is used
@@ -78,9 +78,9 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
     ax3.set_xlabel('x1')
     ax3.set_ylabel('x2')
     ax3.set_aspect('auto')
-    # x and y lims to 0 -> agent.L1 and 0 -> agent.L2
-    ax3.set_xlim(0, agent.L1)
-    ax3.set_ylim(0, agent.L2)
+    # x and y lims to agent.L1_min -> agent.L1_max and agent.L2_min -> agent.L2_max
+    ax3.set_xlim(agent.L1_min, agent.L1_max)
+    ax3.set_ylim(agent.L2_min, agent.L2_max)
     plt.colorbar(im3, ax=ax3, label='Function Value')
     
     # Plot obstacles as circles if they exist
@@ -90,21 +90,20 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
                 if isinstance(obstacle, Obstacle):
                     if obstacle.type == 'circle':
                         # Draw circle representing the obstacle
-                        circle = plt.Circle((obstacle.pos[0]+agent.L1/(grid_res+1)/2, obstacle.pos[1]), 
-                                        obstacle.r, 
-                                        color='black', fill=False, linestyle='--', linewidth=1)
+                        circle = plt.Circle((obstacle.pos[0]+agent.L1_size/(grid_res+1)/2, obstacle.pos[1]), 
+                                        obstacle.r, color='black', fill=False, linestyle='--', linewidth=1)
                         ax.add_patch(circle)
                     elif obstacle.type == 'rectangle':
                         # Draw rectangle representing the obstacle
-                        rect = plt.Rectangle((obstacle.bottom_left[0]+agent.L1/(grid_res+1)/2, obstacle.bottom_left[1]), 
+                        rect = plt.Rectangle((obstacle.bottom_left[0]+agent.L1_size/(grid_res+1)/2, obstacle.bottom_left[1]), 
                                             obstacle.width, obstacle.height, 
                                             color='black', fill=False, linestyle='--', linewidth=1)
                         ax.add_patch(rect)
 
         # Lets also visualise the barrier
         W = 0
-        ax.add_patch(plt.Rectangle((0, 0), agent.L1, agent.L2, color='black', fill=False, linestyle='--', linewidth=1))
-        ax.add_patch(plt.Rectangle((W, W), agent.L1-2*W, agent.L2-2*W, color='black', fill=False, linestyle='--', linewidth=1))
+        ax.add_patch(plt.Rectangle((agent.L1_min, agent.L2_min), agent.L1_size, agent.L2_size, color='black', fill=False, linestyle='--', linewidth=1))
+        ax.add_patch(plt.Rectangle((agent.L1_min + W, agent.L2_min + W), agent.L1_size - 2*W, agent.L2_size - 2*W, color='black', fill=False, linestyle='--', linewidth=1))
 
     # In ax3 i want to plot the ellipse of the target pos estimate, with center at agent.a, and sigma = agent.ekf.sigma_k_1
     ag_lst = [agent] if agent_list is None else agent_list
@@ -188,12 +187,81 @@ def plotPhi(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=
 
     plt.tight_layout()
 
+def plotPhiOnlyOriginalAndReconstructed(agent, phi_rec_from_agent, grid_res=50, clip_to_min_max=False):
+    phi_original = agent.basis.phi
+
+    x1 = np.linspace(agent.L1_min, agent.L1_max, grid_res)
+    x2 = np.linspace(agent.L2_min, agent.L2_max, grid_res)
+
+    # Plot in a 1x3 matplotlib figure as heatmap colors
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+
+    Z_original = np.zeros((len(x1), len(x2)))
+    Z_agent_fourier_rec = np.zeros((len(x1), len(x2)))
+    Z_rec_from_ck = np.zeros((len(x1), len(x2)))
+
+    # Use ck_total for the third plot if provided, otherwise use the original phi_rec_from_ck
+    for i in range(len(x1)):
+        for j in range(len(x2)):
+            Z_original[j, i] = phi_original([x1[i], x2[j]])
+            Z_agent_fourier_rec[j, i] = phi_rec_from_agent([x1[i], x2[j]])
+    
+    fig = plt.figure(figsize=(12, 5))
+    
+    ax1 = fig.add_subplot(121)
+    im1 = ax1.imshow(Z_original, extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), origin='lower', cmap=cm.viridis)
+    ax1.set_title('Original Function Φ')
+    ax1.set_xlabel('x1')
+    ax1.set_ylabel('x2')
+    ax1.set_aspect('equal')
+    plt.colorbar(im1, ax=ax1, label='Function Value')
+
+    ax2 = fig.add_subplot(122)
+    im2 = ax2.imshow(Z_agent_fourier_rec,
+                     extent=(agent.L1_min, agent.L1_max, agent.L2_min, agent.L2_max), origin='lower', cmap=cm.viridis)
+    ax2.set_title(f'Fourier Reconstruction (Kmax = {agent.Kmax})')
+    ax2.set_xlabel('x1')
+    ax2.set_ylabel('x2')
+    ax2.set_aspect('equal')
+    plt.colorbar(im2, ax=ax2, label='Function Value')
+
+    # min and max of Z_agent_fourier_rec
+    if clip_to_min_max:
+        min_val = np.min(Z_agent_fourier_rec)
+        max_val = np.max(Z_agent_fourier_rec)
+
+    # Plot obstacles as circles if they exist
+    for ax in [ax1, ax2]:
+        if hasattr(agent, 'obstacle_list') and agent.obstacle_list:
+            for obstacle in agent.obstacle_list:
+                if isinstance(obstacle, Obstacle):
+                    if obstacle.type == 'circle':
+                        # Draw circle representing the obstacle
+                        circle = plt.Circle((obstacle.pos[0]+agent.L1_size/(grid_res+1)/2, obstacle.pos[1]), 
+                                        obstacle.r, color='black', fill=False, linestyle='--', linewidth=1)
+                        ax.add_patch(circle)
+                    elif obstacle.type == 'rectangle':
+                        # Draw rectangle representing the obstacle
+                        rect = plt.Rectangle((obstacle.bottom_left[0]+agent.L1_size/(grid_res+1)/2, obstacle.bottom_left[1]), 
+                                            obstacle.width, obstacle.height, 
+                                            color='black', fill=False, linestyle='--', linewidth=1)
+                        ax.add_patch(rect)
+
+        # Lets also visualise the barrier
+        W = 0
+        ax.add_patch(plt.Rectangle((agent.L1_min, agent.L2_min), agent.L1_size, agent.L2_size, color='black', fill=False, linestyle='--', linewidth=1))
+        ax.add_patch(plt.Rectangle((agent.L1_min + W, agent.L2_min + W), agent.L1_size - 2*W, agent.L2_size - 2*W, color='black', fill=False, linestyle='--', linewidth=1))
+
+
+    plt.tight_layout()
 
 def plotPhi3D(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_res=50, clip_to_min_max=False):
     phi_original = agent.basis.phi
 
-    x1 = np.linspace(0, agent.L1, grid_res)
-    x2 = np.linspace(0, agent.L2, grid_res)
+    # Use actual bounds instead of hardcoded 0 to L1/L2
+    x1 = np.linspace(agent.L1_min, agent.L1_max, grid_res)
+    x2 = np.linspace(agent.L2_min, agent.L2_max, grid_res)
     X1, X2 = np.meshgrid(x1, x2)
 
     # Plot in a 1x3 matplotlib figure as 3D surface plots
@@ -248,8 +316,8 @@ def plotPhi3D(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_re
     ax3.set_xlabel('X Position [m]')
     ax3.set_ylabel('Y Position [m]')
     ax3.set_zlabel('Probability Density')
-    ax3.set_xlim(0, agent.L1)
-    ax3.set_ylim(0, agent.L2)
+    ax3.set_xlim(agent.L1_min, agent.L1_max)
+    ax3.set_ylim(agent.L2_min, agent.L2_max)
     ax3.set_zlim(0, 15)
     fig.colorbar(surf3, ax=ax3, label='Probability Density', shrink=0.5)
     
@@ -294,13 +362,13 @@ def plotPhi3D(agent, phi_rec_from_ck, phi_rec_from_agent, all_traj=None, grid_re
                         ax.plot_surface(X_face2, Y_face2, np.full_like(X_face2, z_coords[0]), color='gray', alpha=0.6)
                         ax.plot_surface(X_face2, Y_face2, np.full_like(X_face2, z_coords[1]), color='gray', alpha=0.6)
 
-        # Visualize domain boundaries as wireframe
+        # Visualize domain boundaries as wireframe using actual bounds
         z_min = 0
         z_max = 15
         
         # Draw domain boundary wireframe
-        boundary_x = [0, agent.L1, agent.L1, 0, 0]
-        boundary_y = [0, 0, agent.L2, agent.L2, 0]
+        boundary_x = [agent.L1_min, agent.L1_max, agent.L1_max, agent.L1_min, agent.L1_min]
+        boundary_y = [agent.L2_min, agent.L2_min, agent.L2_max, agent.L2_max, agent.L2_min]
         
         # Bottom and top boundaries
         for z_level in [z_min, z_max]:
@@ -720,8 +788,8 @@ def visPotentialFields(agent):
     # Filter the obstacle list to only keep circle obstacles
     obs_list = [obs for obs in agent.obstacle_list if (obs.type == 'circle' or obs.type == "rectangle")] if hasattr(agent, 'obstacle_list') else []
 
-    x = np.linspace(0, agent.L1, 100)
-    y = np.linspace(0, agent.L2, 100)
+    x = np.linspace(agent.L1_min, agent.L1_max, 100)
+    y = np.linspace(agent.L2_min, agent.L2_max, 100)
     X, Y = np.meshgrid(x, y)
     skip = 2  # Skip points for better visualization
 
@@ -994,7 +1062,7 @@ def visPotentialFields(agent):
         # Draw the obstacles
         draw_obstacles(plt.gca(), obs_list)
         
-        plt.title('Obstacle Avoidance Field (Combined X-Y directions)')
+        plt.title('Obstacle Avoidance Field (Combined X-Y Directions)')
         plt.xlabel('X-axis')
         plt.ylabel('Y-axis')
         plt.grid(True)
@@ -1236,18 +1304,18 @@ def plotMeasurementsAndTargets(agent, measurements, associated_measurements=None
     plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.axis('equal')
     
-    # Add domain boundaries
-    plt.axhline(0, color='black', lw=1, ls='-', alpha=0.5)
-    plt.axvline(0, color='black', lw=1, ls='-', alpha=0.5)
-    plt.axhline(agent.L2, color='black', lw=1, ls='-', alpha=0.5)
-    plt.axvline(agent.L1, color='black', lw=1, ls='-', alpha=0.5)
+    # Add domain boundaries using actual bounds
+    plt.axhline(agent.L2_min, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axvline(agent.L1_min, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axhline(agent.L2_max, color='black', lw=1, ls='-', alpha=0.5)
+    plt.axvline(agent.L1_max, color='black', lw=1, ls='-', alpha=0.5)
     
     plt.tight_layout()
     
     # Draw and display the figure
     plt.draw()
-    plt.xlim(0, agent.L1)
-    plt.ylim(0, agent.L2)
+    plt.xlim(agent.L1_min, agent.L1_max)
+    plt.ylim(agent.L2_min, agent.L2_max)
     
     # Pause for T_SHOW seconds if specified
     if T_SHOW is not None:
@@ -1297,9 +1365,9 @@ def visHfield(agent, L_limits, delta, num_of_points):
     ax1.set_ylabel('Y Position')
     ax1.set_title('Potential Field - 2D View')
     plt.colorbar(im1, ax=ax1, label='Potential Field Value')
-    # Plot a red dashed rectangle 0->agent.L1, 0->agent.L2
-    ax1.add_patch(plt.Rectangle((0, 0), agent.L1, agent.L2, fill=False, edgecolor='red', linestyle='--', linewidth=2))
-    
+    # Plot a red dashed rectangle agent.L1_min->agent.L1_max, agent.L2_min->agent.L2_max
+    ax1.add_patch(plt.Rectangle((agent.L1_min, agent.L2_min), agent.L1_max - agent.L1_min, agent.L2_max - agent.L2_min, fill=False, edgecolor='red', linestyle='--', linewidth=2))
+
     # 3D surface plot
     ax2 = fig.add_subplot(122, projection='3d')
     surf = ax2.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8)

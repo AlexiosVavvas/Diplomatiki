@@ -4,9 +4,23 @@ import time
 
 class Basis():
 
-    def __init__(self, L1, L2, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
-        self.L1 = L1
-        self.L2 = L2
+    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
+        
+        # Assert bounds are valid
+        assert isinstance(L1_BOUNDS, (list, tuple)) and len(L1_BOUNDS) == 2, "L1_BOUNDS must be a list or tuple of 2 elements [min, max]."
+        assert isinstance(L2_BOUNDS, (list, tuple)) and len(L2_BOUNDS) == 2, "L2_BOUNDS must be a list or tuple of 2 elements [min, max]."
+        assert L1_BOUNDS[0] < L1_BOUNDS[1], "L1_BOUNDS are not valid. Lower bound must be less than upper bound."
+        assert L2_BOUNDS[0] < L2_BOUNDS[1], "L2_BOUNDS are not valid. Lower bound must be less than upper bound."
+
+        self.L1_min = L1_BOUNDS[0]
+        self.L1_max = L1_BOUNDS[1]
+        self.L2_min = L2_BOUNDS[0]
+        self.L2_max = L2_BOUNDS[1]
+        
+        # Calculate domain sizes
+        self.L1_size = self.L1_max - self.L1_min
+        self.L2_size = self.L2_max - self.L2_min
+        
         self.Kmax = Kmax
         self.ck = np.zeros((Kmax+1, Kmax+1))         # Last computed ck for sharing with others
         self.ck_bar_old = np.zeros((Kmax+1, Kmax+1)) # Cumulative Ck values from previous iterations (used for infinite buffer + avoiding infinite integration)
@@ -48,13 +62,17 @@ class Basis():
     # Basis Functions ---------------------------------------------------------
     # xv: [x1, x2] (2D point) - Ergodic dimensions
     def Fk(self, xv, k1, k2, hk):
-        Fk = np.cos(k1*np.pi*xv[0]/self.L1) * np.cos(k2*np.pi*xv[1]/self.L2) / hk
+        # Normalize position to [0, domain_size] by subtracting the minimum bound
+        x_norm = [(xv[0] - self.L1_min), (xv[1] - self.L2_min)]
+        Fk = np.cos(k1*np.pi*x_norm[0]/self.L1_size) * np.cos(k2*np.pi*x_norm[1]/self.L2_size) / hk
         return Fk
     
     def dFk_dx(self, xv, k1, k2, hk):
+        # Normalize position to [0, domain_size] by subtracting the minimum bound
+        x_norm = [(xv[0] - self.L1_min), (xv[1] - self.L2_min)]
         Fk_x = np.zeros((2,))
-        Fk_x[0] = -np.sin(k1*np.pi*xv[0]/self.L1) * np.cos(k2*np.pi*xv[1]/self.L2) / hk * (k1*np.pi/self.L1)
-        Fk_x[1] = -np.cos(k1*np.pi*xv[0]/self.L1) * np.sin(k2*np.pi*xv[1]/self.L2) / hk * (k2*np.pi/self.L2)
+        Fk_x[0] = -np.sin(k1*np.pi*x_norm[0]/self.L1_size) * np.cos(k2*np.pi*x_norm[1]/self.L2_size) / hk * (k1*np.pi/self.L1_size)
+        Fk_x[1] = -np.cos(k1*np.pi*x_norm[0]/self.L1_size) * np.sin(k2*np.pi*x_norm[1]/self.L2_size) / hk * (k2*np.pi/self.L2_size)
         return Fk_x
 
     # Precalculations ---------------------------------------------------------
@@ -87,8 +105,11 @@ class Basis():
         # Check if the value is already computed
         if (k1, k2) in self.hk_cache:
             return self.hk_cache[(k1, k2)]
-        
-        L1 = self.L1; L2 = self.L2
+
+        # Use domain sizes instead of max values
+        L1 = self.L1_size
+        L2 = self.L2_size
+
         # Calculation of hk based on their paper (Something is Wrong - Implementation Fault??)
         # if k1==0 and k2==0:
         #     hk = L1 * L2
@@ -115,15 +136,12 @@ class Basis():
     def calcPhikCoeff(self, k1, k2, save_to_cache=True):
 
         assert self._phi != None, "Target distribution phi is not set."
-        # print(f"Inside: Calculating Phi Coefficient for k1={k1}, k2={k2}...", end="")
 
         # Check if the value is already computed
         if (k1, k2) in self.phi_coeff_cache:
             return self.phi_coeff_cache[(k1, k2)]
-        # print(f"Calculating Phi Coefficient for k1={k1}, k2={k2}...") 
-        t_ = time.time()
 
-        # print(f"Inside: Calculating hk...")
+        t_ = time.time()
         hk = self.calcHk(k1, k2)
 
         if self.integration_method == 'gauss':
@@ -131,11 +149,11 @@ class Basis():
             x1_points, x1_weights = np.polynomial.legendre.leggauss(self.num_gauss_points)
             x2_points, x2_weights = np.polynomial.legendre.leggauss(self.num_gauss_points)
             
-            # Transform from [-1,1] to [0,L1] and [0,L2]
-            x1_points = 0.5 * self.L1 * (x1_points + 1)
-            x2_points = 0.5 * self.L2 * (x2_points + 1)
-            x1_weights = 0.5 * self.L1 * x1_weights
-            x2_weights = 0.5 * self.L2 * x2_weights
+            # Transform from [-1,1] to [L1_min,L1_max] and [L2_min,L2_max]
+            x1_points = 0.5 * self.L1_size * (x1_points + 1) + self.L1_min
+            x2_points = 0.5 * self.L2_size * (x2_points + 1) + self.L2_min
+            x1_weights = 0.5 * self.L1_size * x1_weights
+            x2_weights = 0.5 * self.L2_size * x2_weights
             
             # Compute the integral
             # TODO: Maybe vectorize this part
@@ -147,12 +165,11 @@ class Basis():
             
             phi_k = result
         elif self.integration_method == 'nquad':
-            # Use nquad for numerical integration
+            # Use nquad for numerical integration over the actual bounds
             phi_k, _ = nquad(lambda x1, x2: self._phi([x1, x2]) * self.Fk([x1, x2], k1, k2, hk),
-                [[0, self.L1], [0, self.L2]])
+                [[self.L1_min, self.L1_max], [self.L2_min, self.L2_max]])
         else:
             raise ValueError("Invalid method. Use 'gauss' or 'nquad'.")
-
 
         if save_to_cache:
             # Save the computed value to the cache
@@ -161,7 +178,7 @@ class Basis():
         if time.time() - t_ > 0.1:
             print(f"Phi Coefficient calculated for k1={k1}, k2={k2}." + (f" \t [{time.time()-t_:.2f} s]" if time.time()-t_ > 0.1 else ""))
         return phi_k
-    
+
     # Recursively calculate the coefficients Ck
     def calcCkCoeffRecursive(self, x_traj, ti, T, ts, t0_erg, x_buffer, update_ck_old=True):
         # Calculate integral from ti -> ti + T
@@ -211,9 +228,12 @@ class Basis():
             for k2 in range(self.Kmax+1):
                 hk = self.calcHk(k1, k2)
 
+                # Normalize trajectory points relative to domain bounds
+                x_norm = x_traj - np.array([self.L1_min, self.L2_min])
+                
                 # Vectorized Fk calculation
-                cos_k1 = np.cos(k1*np.pi/self.L1*x_traj[:, 0])
-                cos_k2 = np.cos(k2*np.pi/self.L2*x_traj[:, 1])
+                cos_k1 = np.cos(k1*np.pi/self.L1_size*x_norm[:, 0])
+                cos_k2 = np.cos(k2*np.pi/self.L2_size*x_norm[:, 1])
                 
                 # Evaluate Fk at each trajectory point
                 fk_values = cos_k1 * cos_k2 / hk
@@ -252,8 +272,8 @@ class Basis():
         '''
         Create a copy of the current object with the same parameters and target distribution.
         '''
-        new_basis = Basis(self.L1, self.L2, self.Kmax, precalc_hk_coeff=False, phi_=self._phi, precalc_phik_coeff=False, num_gauss_points=self.num_gauss_points, integration_method=self.integration_method)
-        
+        new_basis = Basis(L1_BOUNDS=[self.L1_min, self.L1_max], L2_BOUNDS=[self.L2_min, self.L2_max], Kmax=self.Kmax, precalc_hk_coeff=False, phi_=self._phi, precalc_phik_coeff=False, num_gauss_points=self.num_gauss_points, integration_method=self.integration_method)
+
         new_basis.hk_cache = self.hk_cache.copy()
         new_basis.phi_coeff_cache = self.phi_coeff_cache.copy()
         # print("Coefficients copied.")
@@ -263,6 +283,7 @@ class Basis():
 
 
 class ReconstructedPhi():
+
     def __init__(self, base: Basis, precalc_phik=True):
         self.base = base.copy()
 

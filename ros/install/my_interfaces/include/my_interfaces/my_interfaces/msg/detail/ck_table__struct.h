@@ -18,6 +18,9 @@ extern "C"
 // Constants defined in the message
 
 // Include directives for member types
+// Member 'model_type'
+#include "rosidl_runtime_c/string.h"
+// Member 'l_bounds'
 // Member 'ck_values'
 // Member 'ck_values_average_in_range'
 #include "rosidl_runtime_c/primitives_sequence.h"
@@ -31,6 +34,10 @@ extern "C"
  */
 typedef struct my_interfaces__msg__CkTable
 {
+  /// Model type
+  rosidl_runtime_c__String model_type;
+  /// [x_min, x_max, y_min, y_max] L1, L2 boundaries for ergodic search in space
+  rosidl_runtime_c__double__Sequence l_bounds;
   /// Size of the square table (size x size)
   int32_t table_size;
   /// Flattened array of float values (row-major order)

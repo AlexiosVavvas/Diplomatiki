@@ -29,6 +29,31 @@ inline void to_flow_style_yaml(
   std::ostream & out)
 {
   out << "{";
+  // member: model_type
+  {
+    out << "model_type: ";
+    rosidl_generator_traits::value_to_yaml(msg.model_type, out);
+    out << ", ";
+  }
+
+  // member: l_bounds
+  {
+    if (msg.l_bounds.size() == 0) {
+      out << "l_bounds: []";
+    } else {
+      out << "l_bounds: [";
+      size_t pending_items = msg.l_bounds.size();
+      for (auto item : msg.l_bounds) {
+        rosidl_generator_traits::value_to_yaml(item, out);
+        if (--pending_items > 0) {
+          out << ", ";
+        }
+      }
+      out << "]";
+    }
+    out << ", ";
+  }
+
   // member: table_size
   {
     out << "table_size: ";
@@ -105,6 +130,36 @@ inline void to_block_style_yaml(
   const CkTable & msg,
   std::ostream & out, size_t indentation = 0)
 {
+  // member: model_type
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    out << "model_type: ";
+    rosidl_generator_traits::value_to_yaml(msg.model_type, out);
+    out << "\n";
+  }
+
+  // member: l_bounds
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    if (msg.l_bounds.size() == 0) {
+      out << "l_bounds: []\n";
+    } else {
+      out << "l_bounds:\n";
+      for (auto item : msg.l_bounds) {
+        if (indentation > 0) {
+          out << std::string(indentation, ' ');
+        }
+        out << "- ";
+        rosidl_generator_traits::value_to_yaml(item, out);
+        out << "\n";
+      }
+    }
+  }
+
   // member: table_size
   {
     if (indentation > 0) {

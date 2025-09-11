@@ -56,6 +56,12 @@ cdr_serialize(
   const my_interfaces::msg::CkTable & ros_message,
   eprosima::fastcdr::Cdr & cdr)
 {
+  // Member: model_type
+  cdr << ros_message.model_type;
+  // Member: l_bounds
+  {
+    cdr << ros_message.l_bounds;
+  }
   // Member: table_size
   cdr << ros_message.table_size;
   // Member: ck_values
@@ -85,6 +91,14 @@ cdr_deserialize(
   eprosima::fastcdr::Cdr & cdr,
   my_interfaces::msg::CkTable & ros_message)
 {
+  // Member: model_type
+  cdr >> ros_message.model_type;
+
+  // Member: l_bounds
+  {
+    cdr >> ros_message.l_bounds;
+  }
+
   // Member: table_size
   cdr >> ros_message.table_size;
 
@@ -127,6 +141,20 @@ get_serialized_size(
   (void)padding;
   (void)wchar_size;
 
+  // Member: model_type
+  current_alignment += padding +
+    eprosima::fastcdr::Cdr::alignment(current_alignment, padding) +
+    (ros_message.model_type.size() + 1);
+  // Member: l_bounds
+  {
+    size_t array_size = ros_message.l_bounds.size();
+
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    size_t item_size = sizeof(ros_message.l_bounds[0]);
+    current_alignment += array_size * item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
   // Member: table_size
   {
     size_t item_size = sizeof(ros_message.table_size);
@@ -199,6 +227,32 @@ max_serialized_size_CkTable(
   full_bounded = true;
   is_plain = true;
 
+
+  // Member: model_type
+  {
+    size_t array_size = 1;
+
+    full_bounded = false;
+    is_plain = false;
+    for (size_t index = 0; index < array_size; ++index) {
+      current_alignment += padding +
+        eprosima::fastcdr::Cdr::alignment(current_alignment, padding) +
+        1;
+    }
+  }
+
+  // Member: l_bounds
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    is_plain = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
 
   // Member: table_size
   {

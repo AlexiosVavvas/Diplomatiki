@@ -76,8 +76,6 @@ copying resource/ergodic_exploration -> /home/alex/Diplomatiki/ros/install/ergod
 copying package.xml -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration
 creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
-copying launch/three_agents.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
-copying launch/multi_agent.launch.yaml -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
 creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
 copying meshes/car.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
 copying meshes/hermes.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes

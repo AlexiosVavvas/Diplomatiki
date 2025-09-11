@@ -65,8 +65,8 @@ class EnvironmentNode(Node):
         self.map_publisher = self.create_publisher(OccupancyGrid, 'obstacle_map', 10)
         
         # Map parameters
-        self.map_width = 10.0      # Map width in meters (0 to 10)
-        self.map_height = 10.0     # Map height in meters (0 to 10)
+        self.map_width = 20.0      # Map width in meters (0 to 20)
+        self.map_height = 20.0     # Map height in meters (0 to 20)
         self.map_resolution = 0.05 # Grid resolution in meters/pixel (20 pixels per meter)
         self.grid_width = int(self.map_width / self.map_resolution)
         self.grid_height = int(self.map_height / self.map_resolution)
@@ -89,7 +89,7 @@ class EnvironmentNode(Node):
         self.get_logger().info(f'Environment node initialized with map size: {self.grid_width}x{self.grid_height} pixels')
 
         # Create a basis
-        self.basis = Basis(self.map_width, self.map_height, Kmax=4, phi_=lambda s: 1/100, precalc_phik_coeff=True, num_gauss_points=22)
+        # self.base = Basis(self.map_width, self.map_height, Kmax=4, phi_=lambda s: 1/100, precalc_phik_coeff=True, num_gauss_points=22)
 
 
     def discover_agents(self):

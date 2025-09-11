@@ -1,3 +1,4 @@
+import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -17,6 +18,14 @@ import time
 import copy
 import re
 from matplotlib.patches import Ellipse
+
+# Here used only to set axis limits for visualization
+# Those are the initial bounds, they are about to change when agents arrive
+L1_BOUNDS = [0.0, 1.0]
+L2_BOUNDS = [0.0, 1.0]
+
+# Thread-safe lock for bounds updates
+BOUNDS_LOCK = threading.Lock()
 
 def generateAgentColor(agent_id, max_agents=10):
     """Generate a distinct color for each agent using HSV color space."""
@@ -44,6 +53,37 @@ def createColoredText(r, g, b, text):
     """Create colored text using ANSI escape codes."""
     # ANSI escape code for foreground color
     return f"\033[38;2;{r};{g};{b}m{text}\033[0m"
+
+def updateGlobalBounds(l_bounds_list):
+    """Update global L1_BOUNDS and L2_BOUNDS based on all agents' bounds"""
+    global L1_BOUNDS, L2_BOUNDS
+    
+    if not l_bounds_list:
+        return
+    
+    with BOUNDS_LOCK:
+        # Initialize with first agent's bounds or keep current if no agents
+        if len(l_bounds_list) > 0:
+            # Find the minimum of all l1_min and l2_min, maximum of all l1_max and l2_max
+            l1_mins = [bounds[0] for bounds in l_bounds_list if len(bounds) >= 4]
+            l1_maxs = [bounds[1] for bounds in l_bounds_list if len(bounds) >= 4]
+            l2_mins = [bounds[2] for bounds in l_bounds_list if len(bounds) >= 4]
+            l2_maxs = [bounds[3] for bounds in l_bounds_list if len(bounds) >= 4]
+            
+            if l1_mins and l1_maxs and l2_mins and l2_maxs:
+                new_l1_bounds = [min(l1_mins), max(l1_maxs)]
+                new_l2_bounds = [min(l2_mins), max(l2_maxs)]
+                
+                # Only update if bounds have changed significantly (avoid tiny fluctuations)
+                if (abs(new_l1_bounds[0] - L1_BOUNDS[0]) > 1e-6 or 
+                    abs(new_l1_bounds[1] - L1_BOUNDS[1]) > 1e-6 or
+                    abs(new_l2_bounds[0] - L2_BOUNDS[0]) > 1e-6 or 
+                    abs(new_l2_bounds[1] - L2_BOUNDS[1]) > 1e-6):
+                    
+                    L1_BOUNDS = new_l1_bounds
+                    L2_BOUNDS = new_l2_bounds
+                    
+                    print(f"Updated global bounds: L1=[{L1_BOUNDS[0]:.3f}, {L1_BOUNDS[1]:.3f}], L2=[{L2_BOUNDS[0]:.3f}, {L2_BOUNDS[1]:.3f}]")
 
 class LiveDashboard(Node):
     def __init__(self):
@@ -111,7 +151,7 @@ class LiveDashboard(Node):
         
         self.get_logger().info('Dashboard initialized - discovering agents dynamically')
 
-    def display_agent_colors(self):
+    def displayAgentColors(self):
         """Display discovered agents with their color mappings"""
         if not self.discovered_agents:
             return
@@ -167,7 +207,7 @@ class LiveDashboard(Node):
                 self.discovered_agents = current_agents
                 
                 # Display colored agent mappings
-                self.display_agent_colors()
+                self.displayAgentColors()
         except Exception as e:
             # Don't log errors if the node is being shut down
             if not self._shutdown_requested and self.get_logger() is not None:
@@ -206,7 +246,8 @@ class LiveDashboard(Node):
                 'timestamps': [],
                 'ck_tables': [],
                 'table_size': None,
-                'total_erg_costs': []
+                'total_erg_costs': [],
+                'l_bounds': []  # Store l_bounds for dynamic boundary updates
             }
         
         # Create agent data subscriber
@@ -299,6 +340,13 @@ class LiveDashboard(Node):
                 with self.ck_lock:
                     if agent_id in self.ck_data:
                         del self.ck_data[agent_id]
+                        
+                        # Update global bounds after removing this agent
+                        all_remaining_bounds = []
+                        for aid, ck_data in self.ck_data.items():
+                            if len(ck_data.get('l_bounds', [])) > 0:
+                                all_remaining_bounds.append(ck_data['l_bounds'][-1])
+                        updateGlobalBounds(all_remaining_bounds)
                 
                 # Remove agent data
                 with self.data_lock:
@@ -414,13 +462,29 @@ class LiveDashboard(Node):
                     'timestamps': [],
                     'ck_tables': [],
                     'table_size': None,
-                    'total_erg_costs': []
+                    'total_erg_costs': [],
+                    'l_bounds': []
                 }
             
             # Store CK table data
             self.ck_data[agent_id]['timestamps'].append(sim_time)
             self.ck_data[agent_id]['table_size'] = msg.table_size
             self.ck_data[agent_id]['total_erg_costs'].append(msg.total_erg_cost_in_range)
+            
+            # Store l_bounds if available
+            if hasattr(msg, 'l_bounds') and len(msg.l_bounds) >= 4:
+                self.ck_data[agent_id]['l_bounds'].append(list(msg.l_bounds))
+                
+                # Update global bounds with all current agent bounds
+                all_current_bounds = []
+                for aid, ck_data in self.ck_data.items():
+                    if len(ck_data['l_bounds']) > 0:
+                        # Use the latest bounds from each agent
+                        all_current_bounds.append(ck_data['l_bounds'][-1])
+                
+                # Update global bounds
+                # TODO: Maybe dont update every time, maybe once in a while if we see performance issues
+                updateGlobalBounds(all_current_bounds)
             
             # Reshape the flattened array to a square matrix
             ck_table = np.array(msg.ck_values).reshape(msg.table_size, msg.table_size)
@@ -429,8 +493,9 @@ class LiveDashboard(Node):
             # Keep only the last 10000 data points to avoid memory issues
             max_points = 10000
             if len(self.ck_data[agent_id]['timestamps']) > max_points:
-                for key in ['timestamps', 'ck_tables', 'total_erg_costs']:
-                    self.ck_data[agent_id][key] = self.ck_data[agent_id][key][-max_points:]
+                for key in ['timestamps', 'ck_tables', 'total_erg_costs', 'l_bounds']:
+                    if key in self.ck_data[agent_id]:
+                        self.ck_data[agent_id][key] = self.ck_data[agent_id][key][-max_points:]
             
     def onKeyPress(self, event):
         if event.key == 'e':
@@ -461,9 +526,14 @@ class LiveDashboard(Node):
         self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
         self.ergodic_ax.grid(True)
         
+        # Use current dynamic bounds
+        with BOUNDS_LOCK:
+            current_l1_bounds = L1_BOUNDS.copy()
+            current_l2_bounds = L2_BOUNDS.copy()
+        
         self.traj_ax.set_title('Agent Trajectories')
-        self.traj_ax.set_xlim(0, 10)
-        self.traj_ax.set_ylim(0, 10)
+        self.traj_ax.set_xlim(current_l1_bounds[0], current_l1_bounds[1])
+        self.traj_ax.set_ylim(current_l2_bounds[0], current_l2_bounds[1])
         self.traj_ax.grid(True)
         
         # Draw all figures
@@ -624,6 +694,10 @@ class LiveDashboard(Node):
         #     self.ergodic_ax.set_xlim(0, max_time * 1.05)  # Add 5% padding
             
         # Plot 3: Agent Trajectories (multi-agent)
+        with BOUNDS_LOCK:
+            current_l1_bounds = L1_BOUNDS.copy()
+            current_l2_bounds = L2_BOUNDS.copy()
+        
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['states']) > 0:
@@ -650,9 +724,11 @@ class LiveDashboard(Node):
                     # Skip this agent if data is inconsistent
                     continue
         
-        self.traj_ax.set_xlim(0, 10)
-        self.traj_ax.set_ylim(0, 10)
+        # Use dynamically updated bounds
+        self.traj_ax.set_xlim(current_l1_bounds[0], current_l1_bounds[1])
+        self.traj_ax.set_ylim(current_l2_bounds[0], current_l2_bounds[1])
         self.traj_ax.set_title('Agent Trajectories')
+        self.traj_ax.set_aspect('equal')
         
         # Draw communication lines between agents (before obstacles and targets for proper layering)
         self.drawCommunicationLines(self.traj_ax, agent_data_refs)
@@ -676,9 +752,39 @@ class LiveDashboard(Node):
     def drawObstacles(self, ax):
         """Draw obstacles on the given axis"""
         with self.obstacles_lock:
+            # TODO: Could calculate every few iterations to reduce computational load
             # Just get a shallow reference to avoid deep copying
-            obstacles_refs = dict(self.obstacles_data)
-        
+            # obstacles_refs = dict(self.obstacles_data)
+
+            # Combine obstacles from all agents into a single list
+            obstacles_refs = {}
+            combined_obstacles = []
+            obstacle_names_seen = set()  # Track unique obstacle names to avoid duplicates
+            
+            for agent_id, agent_obstacles in self.obstacles_data.items():
+                for obs in agent_obstacles:
+                    # Use obstacle name as unique identifier, or position-based identifier if name not available
+                    obs_name = obs.get('name')
+                    if not obs_name:
+                        obs_identifier = obs_name
+                    else:
+                        # Create position-based identifier from actual coordinates
+                        x_pos = obs['position'][0]
+                        y_pos = obs['position'][1]
+                        obs_identifier = f"obs_{x_pos:.2f}_{y_pos:.2f}"
+                    
+                    # print(f"Agent {agent_id} obstacle: {obs_identifier}")
+                    
+                    # Only add if we haven't seen this obstacle before
+                    if obs_identifier not in obstacle_names_seen:
+                        combined_obstacles.append(obs)
+                        obstacle_names_seen.add(obs_identifier)
+                        # print(f"Added obstacle: {obs_identifier} from agent {agent_id}")
+
+                # Create a single entry with all combined obstacles
+                if combined_obstacles:
+                    obstacles_refs['combined'] = combined_obstacles
+
         # Draw obstacles from any agent (we'll use the first available agent's obstacles)
         # In practice, obstacles should be the same across agents or you might want to merge them
         for agent_id, obstacles in obstacles_refs.items():

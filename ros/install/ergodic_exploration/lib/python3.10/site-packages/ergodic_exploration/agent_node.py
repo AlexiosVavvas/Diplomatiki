@@ -9,15 +9,20 @@ import rclpy.parameter
 import argparse
 
 # TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
-def createPhiFunc(L1=10.0, L2=10.0):
+def createPhiFunc(L1_BOUNDS=[0.0, 10.0], L2_BOUNDS=[0.0, 10.0]):
     """Creates a normalized phi function with multiple Gaussian bumps"""
+    
+    L1_min, L1_max = L1_BOUNDS
+    L2_min, L2_max = L2_BOUNDS
+    L1_range = L1_max - L1_min
+    L2_range = L2_max - L2_min
     
     # Bump configuration: (x_pos, y_pos, height, width)
     bumps_config = [
-        (0.3 * L1, 0.8 * L2, 5, 0.7),
-        (0.7 * L1, 0.2 * L2, 4, 0.7), 
-        (0.15 * L1, 0.4 * L2, 3, 15.2),
-        (0.85 * L1, 0.6 * L2, 4.5, 6.3)
+        (L1_min + 0.3 * L1_range, L2_min + 0.8 * L2_range, 5, 0.7),
+        (L1_min + 0.7 * L1_range, L2_min + 0.2 * L2_range, 4, 0.7), 
+        (L1_min + 0.15 * L1_range, L2_min + 0.4 * L2_range, 3, 15.2),
+        (L1_min + 0.85 * L1_range, L2_min + 0.6 * L2_range, 4.5, 6.3)
     ]
     
     def phiUnnormalized(s):
@@ -28,13 +33,11 @@ def createPhiFunc(L1=10.0, L2=10.0):
     
     # Calculate normalization constant
     from scipy.integrate import dblquad
-    _phi_integral, _ = dblquad(lambda x, y: phiUnnormalized((x, y)), 0, L1, lambda _: 0, lambda _: L2)
+    _phi_integral, _ = dblquad(lambda x, y: phiUnnormalized((x, y)), L1_min, L1_max, lambda _: L2_min, lambda _: L2_max)
     
     # Return normalized function
     return lambda s: phiUnnormalized(s) / _phi_integral * 4
 
-# Create the phi function
-phi_func = createPhiFunc(L1=10.0, L2=10.0)
 
 # Global shutdown flag
 shutdown_flag = threading.Event()
@@ -62,15 +65,24 @@ def main(args=None):
     parser = argparse.ArgumentParser(description='Run agent node with dynamic ID')
     parser.add_argument('--agent_id',           type=int,            required=True,                  help='Agent ID to name the node')
     parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
-    parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
-    parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
+    parser.add_argument('--l_bounds',           type=float, nargs=4, required=False, default=[0, 10, 0, 10], help='Initial bounds as [x_min, x_max, y_min, y_max] for ergodic exploration')
     parser.add_argument('--model_type',         type=str,            required=False, default='DoubleIntegrator', help='Dynamics model type (SingleIntegrator, DoubleIntegrator, SimpleBoatSecondOrder)')
+    parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
+    parser.add_argument('--kmax',               type=int,            required=False, default=4,      help='Maximum Fourier modes to use for reconstruction')
+    parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
+    parser.add_argument('--talk_alike_flag',    type=lambda x: x.lower() == 'true', required=False, default=False, help='Weather to communicate only with similar model (boats with boats, cars with cars, etc) (true/false)')
+    parser.add_argument('--same_l_bounds_flag', type=lambda x: x.lower() == 'true', required=False, default=True, help='Whether to communicate only with agents having same L bounds (true/false)')
     parsed_args, ros_args = parser.parse_known_args()  # Parse known args only, keep ROS args separate
     AGENT_ID = parsed_args.agent_id
     INIT_POS_2D = np.array(parsed_args.init_pos)
     ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
     ANTENNA_RADIUS = parsed_args.antenna_rad if ANTENNA_RANGE_FLAG else np.inf
     MODEL_TYPE = parsed_args.model_type
+    TALK_ALIKE_FLAG = parsed_args.talk_alike_flag
+    SAME_L_BOUNDS_FLAG = parsed_args.same_l_bounds_flag
+    KMAX = parsed_args.kmax if parsed_args.kmax > 0 else 4
+    L1_BOUNDS = [parsed_args.l_bounds[0], parsed_args.l_bounds[1]]
+    L2_BOUNDS = [parsed_args.l_bounds[2], parsed_args.l_bounds[3]]
 
     # System Read Only Parameters to set in ROS
     LOCALISE_TARGETS_FLAG = True
@@ -116,14 +128,15 @@ def main(args=None):
         R_ = 0.001
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.03; T_H = 0.5; deltaT_ERG = 3
-        PREDICTION_DT = 0.0012 * 5  # model dt * 5
+        SIMUL_DT = 0.0012
+        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
         BAR_WEIGHT = 0
         UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
         KAPPA_OBS = 1; RHO_OBS = 0.15
         
-        dynamic_model = DoubleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
+        dynamic_model = DoubleIntegrator(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
 
         print("--> Using model: <DoubleIntegrator>")
     
@@ -161,7 +174,7 @@ def main(args=None):
         R_ = 0.001
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
-        SIMUL_DT = 0.0012 * 4
+        SIMUL_DT = 0.0012 * 2
         PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
         BAR_WEIGHT = 0
         UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
@@ -210,12 +223,13 @@ def main(args=None):
     rclpy.init(args=ros_args)
 
     # Generate Agent and connect to an ergodic controller object
-    agent = Agent(L1=10.0, L2=10.0, Kmax=4, 
+    agent = Agent(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS, Kmax=KMAX, 
                   dynamics_model=dynamic_model,
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
-                  phi=lambda s: 1/100) # phi=phi_func
-                #   phi=phi_func)      # phi=phi_func
-    
+                  same_l_bounds_flag=SAME_L_BOUNDS_FLAG,
+                  phi=lambda s: 1/100) 
+                #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
+
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_ * np.eye(agent.model.num_of_inputs), uLimits=u_limits_init,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
                                                  use_inf_buffer=INF_BUF_FLAG,
@@ -231,12 +245,18 @@ def main(args=None):
     agent.declare_parameter('imax', IMAX, descriptor=descriptor)
     agent.declare_parameter('init_position_2d', INIT_POS_2D.tolist(), descriptor=descriptor)
     agent.declare_parameter('model_type', agent.model.type, descriptor=descriptor)
-    
+
     # Declare antenna_radius parameter (not read-only) and update agent's antenna_rad
     agent.declare_parameter('antenna_radius', ANTENNA_RADIUS)
     agent.antenna_rad = agent.get_parameter('antenna_radius').value
     agent.declare_parameter('antenna_range_flag', ANTENNA_RANGE_FLAG)
     agent.antenna_range_flag = agent.get_parameter('antenna_range_flag').value
+
+    agent.declare_parameter('talk_alike_flag', TALK_ALIKE_FLAG)
+    agent.talk_alike_flag = TALK_ALIKE_FLAG
+
+    agent.declare_parameter('same_l_bounds_flag', SAME_L_BOUNDS_FLAG)
+    agent.same_l_bounds_flag = SAME_L_BOUNDS_FLAG
 
     # Add parameter callback to update antenna_rad when parameter changes
     def parameterCallback(params):
@@ -250,6 +270,18 @@ def main(args=None):
                     agent.get_logger().info("Enabling Antenna Range for this agent...")
                 else:
                     agent.get_logger().info("Disabling Antenna Range for this agent...")
+            if param.name == 'talk_alike_flag':
+                agent.talk_alike_flag = param.value
+                if param.value == True:
+                    agent.get_logger().info("Enabling Talk Alike for this agent...")
+                else:
+                    agent.get_logger().info("Disabling Talk Alike for this agent...")
+            if param.name == 'same_l_bounds_flag':
+                agent.same_l_bounds_flag = param.value
+                if param.value == True:
+                    agent.get_logger().info("Enabling Same L Bounds filtering for this agent...")
+                else:
+                    agent.get_logger().info("Disabling Same L Bounds filtering for this agent...")
 
         return SetParametersResult(successful=True)
 
@@ -285,33 +317,37 @@ def main(args=None):
     obs_grid = []
     for i in range(grid_size):
         for j in range(grid_size):
-            x_pos = margin_x + i * (agent.L1 - 2 * margin_x) / (grid_size - 1)
-            y_pos = margin_y + j * (agent.L2 - 2 * margin_y) / (grid_size - 1)
-            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=1.3, obs_type='circle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name=f"Obstacle {i*grid_size + j + 1}"))
+            x_pos = agent.L1_min + margin_x * agent.L1_size + i * (agent.L1_size - 2 * margin_x * agent.L1_size) / (grid_size - 1)
+            y_pos = agent.L2_min + margin_y * agent.L2_size + j * (agent.L2_size - 2 * margin_y * agent.L2_size) / (grid_size - 1)
+            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=0.6, obs_type='circle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name=f"Obstacle {i*grid_size + j + 1}"))
 
 
     # Avoiding Walls ----------------------
-    obs_walls  = [Obstacle(pos=[agent.L1/2, 0         ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
-                  Obstacle(pos=[agent.L1/2, agent.L2  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
-                  Obstacle(pos=[0,          agent.L2/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
-                  Obstacle(pos=[agent.L1,   agent.L2/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
+    obs_walls  = [Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_min                  ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
+                  Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_max                  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
+                  Obstacle(pos=[agent.L1_min,                   agent.L2_min + agent.L2_size/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
+                  Obstacle(pos=[agent.L1_max,                   agent.L2_min + agent.L2_size/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
 
     # Save obstacles to memory
-    saveObstaclesToMemory(agent, obs_list=obs_grid)
+    # saveObstaclesToMemory(agent, obs_list=obs_grid)
     saveObstaclesToMemory(agent, obs_list=obs_walls)
+    # saveObstaclesToMemory(agent, obs_list=[Obstacle(pos=[5, 5],   dimensions=[10, 10], obs_type='rectangle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name="Obstacle 1")])
 
     # Print uNominal Status
     # print(agent_1.erg_c.uNominal)
     
     # Visualize H-field
-    # vis.visHfield(agent, L_limits=[-0.5, agent.L1+0.5, -0.5, agent.L2+0.5], delta=DELTA_SAFE, num_of_points=200)
+    # vis.visHfield(agent, L_limits=[agent.L1_min-0.5, agent.L1_max+0.5, agent.L2_min-0.5, agent.L2_max+0.5], delta=DELTA_SAFE, num_of_points=200)
 
     # Lets now update the phi_function to take into account the obstacles
     agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="None")
     agent.basis.precalcAllPhiK()
 
-    # if input("\nVisualise Potential Fields? (y/n): ") == "y":
-    #     vis.visPotentialFields(agent)
+    # Lets visualise the origial phi side by side with the reconstructed one using Kmax
+    # phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
+    # vis.plotPhiOnlyOriginalAndReconstructed(agent, phi_rec_from_agent=phi_rec, grid_res=100, clip_to_min_max=False)
+    # plt.show()
+    # sys.exit(0)
 
     # --------------------------------------------------------------------------------------------------
 
@@ -371,6 +407,9 @@ def main(args=None):
                     in_range_ck_data = [ck for aid, ck in agent.getAgentCkData(in_range_only=True).items() if aid != agent.agent_id and ck is not None]
                     if len(in_range_ck_data) > 0:
                         agent.erg_c.ck_aver_others = np.mean(in_range_ck_data, axis=0)
+                    else:
+                        # If no agent in the neighborhood use own ck as average for in-rangers
+                        agent.erg_c.ck_aver_others = agent.basis.ck
                     ck_total_in_range = np.mean(in_range_ck_data + [agent.basis.ck], axis=0) if len(in_range_ck_data) > 0 else agent.basis.ck
                     agent.erg_c.total_erg_cost_in_range = agent.erg_c.calcErgodicCost(ck_total_in_range)
                 else:

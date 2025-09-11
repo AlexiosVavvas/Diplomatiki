@@ -12,26 +12,37 @@ from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstac
 import re
 
 class Agent(Node):
-    def __init__(self, L1, L2, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False):
+    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True):
         self.agent_id = agent_id if agent_id is not None else 0
         self.time_since_start = 0.0
 
         super().__init__(f"agent_{self.agent_id}")  # ROS node with name "agent_{id}"
         
         # Space Parameters
-        self.L1 = L1
-        self.L2 = L2
+        # assert L_BOUNDS is a list of 2 elements [min, max]
+        assert isinstance(L1_BOUNDS, (list, tuple)) and len(L1_BOUNDS) == 2, "L1_BOUNDS must be a list or tuple of 2 elements [min, max]."
+        assert isinstance(L2_BOUNDS, (list, tuple)) and len(L2_BOUNDS) == 2, "L2_BOUNDS must be a list or tuple of 2 elements [min, max]."
+        self.L1_min = L1_BOUNDS[0]
+        self.L1_max = L1_BOUNDS[1]
+        self.L2_min = L2_BOUNDS[0]
+        self.L2_max = L2_BOUNDS[1]
+        assert self.L1_min < self.L1_max, f"L1_BOUNDS are not valid. Lower bound must be less than upper bound. ({self.L1_min} <=? {self.L1_max})"
+        assert self.L2_min < self.L2_max, f"L2_BOUNDS are not valid. Lower bound must be less than upper bound. ({self.L2_min} <=? {self.L2_max})"
+        self.L1_size = self.L1_max - self.L1_min
+        self.L2_size = self.L2_max - self.L2_min
+
         self.Kmax = Kmax
         self.antenna_rad = antenna_rad      # Antenna radius in meters (for CK sharing among agents)
         self.antenna_range_flag = antenna_range_flag
+        self.same_l_bounds_flag = same_l_bounds_flag  # Whether to communicate only with agents having same L bounds [Default: True]
         self.limits_changed_flag = False    # We have the option to start with lower u_bounds. After a while change them to higher. This flags states whether the change has been made yet or not
         
         # Connecting model dynamics
         self.model = dynamics_model
-        # Make sure x0 is within the space limits 0->L1, 0->L2 if given
+        # Make sure x0 is within the space limits L1_min->L1_max, L2_min->L2_max if given
         if x0 is not None:
             assert len(x0) == self.model.num_of_states, "Initial position x0 must have the same length as the model's state vector."
-            assert 0 <= x0[0] <= L1 and 0 <= x0[1] <= L2, "Initial position x0 must be within the limits of the space." # TODO: Assuming x[0], x[1] are the x, y coordinates
+            assert self.L1_min <= x0[0] <= self.L1_max and self.L2_min <= x0[1] <= self.L2_max, "Initial position x0 must be within the limits of the space." # TODO: Assuming x[0], x[1] are the x, y coordinates
             self.model.reset(x0)
 
         # TODO: Maybe make a separate target class for this?
@@ -56,7 +67,7 @@ class Agent(Node):
         self.obstacle_list = []
 
         # Initialize the basis object
-        self.basis = Basis(L1, L2, Kmax, phi_=phi, precalc_phik_coeff=False, num_gauss_points=22)
+        self.basis = Basis(L1_BOUNDS, L2_BOUNDS, Kmax, phi_=phi, precalc_phik_coeff=False, num_gauss_points=22)
         # TODO: Make a modular length basis ergodic memory, so that it can be changed later on
 
         # Create ROS publishers and subscribers
@@ -73,6 +84,9 @@ class Agent(Node):
         self.ck_subscribers = {}  # Dict to store subscribers for other agents
         self.agent_ck_data = {}  # Dict to store CK data from other agents {agent_id: ck_table}
         self.agent_positions = {}  # Dict to store positions of other agents {agent_id: (x, y)}
+        self.agent_model_types = {}  # Dict to store model types of other agents {agent_id: model_type}
+        self.agent_l_bounds = {}  # Dict to store L bounds of other agents {agent_id: [x_min, x_max, y_min, y_max]}
+        self.talk_alike_flag = False # Whether to communicate only with similar model (boats with boats, cars with cars, etc)
         
         # Timer for periodic agent discovery (every second)
         self.discovery_timer = self.create_timer(1.0, self.discoverAgentsInROS)
@@ -127,12 +141,12 @@ class Agent(Node):
         # Get Gauss-Legendre quadrature points and weights
         a1_points, a1_weights = np.polynomial.legendre.leggauss(NUM_GAUSS_POINTS)
         a2_points, a2_weights = np.polynomial.legendre.leggauss(NUM_GAUSS_POINTS)
-        # Transform from [-1,1] to [0,L1] and [0,L2]
-        a1_points  = 0.5 * self.L1 * (a1_points + 1)
-        a2_points  = 0.5 * self.L2 * (a2_points + 1)
-        a1_weights = 0.5 * self.L1 * a1_weights
-        a2_weights = 0.5 * self.L2 * a2_weights
-        
+        # Transform from [-1,1] to [L1_min, L1_max] and [L2_min, L2_max]
+        a1_points  = 0.5 * self.L1_size * (a1_points + 1) + self.L1_min
+        a2_points  = 0.5 * self.L2_size * (a2_points + 1) + self.L2_min
+        a1_weights = 0.5 * self.L1_size * a1_weights
+        a2_weights = 0.5 * self.L2_size * a2_weights
+
         # -----------------------------------------------------------------------------
         
         # Precalculate I matrices using vectorized approach (cleaner version)
@@ -241,9 +255,9 @@ class Agent(Node):
                 self.model.state[1] + self.sensor.sensor_range/2 * np.cos(beta),  # y position
                 0                                                         # z position (assuming flat ground)
             ])
-            # Clip to 0->L1, 0->L2
-            a_init[0] = np.clip(a_init[0], 0, self.L1)
-            a_init[1] = np.clip(a_init[1], 0, self.L2)
+            # Clip to L1_min->L1_max, L2_min->L2_max
+            a_init[0] = np.clip(a_init[0], self.L1_min, self.L1_max)
+            a_init[1] = np.clip(a_init[1], self.L2_min, self.L2_max)
         elif init_position is not None:
             a_init = np.asarray(init_position)
         else:
@@ -254,7 +268,7 @@ class Agent(Node):
                    sigma_init=np.eye(3)*5e-1,    # 1e-1 may be more appropriate
                    R=np.diag([0.1, 0.1]),        # Sensor noise covariance    
                    Q=np.eye(3) * 1e-4,           # Process noise covariance (1e-5)
-                   a_limits=[[0, self.L1], [0, self.L2], [0, 10]],
+                   a_limits=[[self.L1_min, self.L1_max], [self.L2_min, self.L2_max], [0, 10]],
                    time_now=current_time)
         
         self.ekfs.append(ekf_)
@@ -530,7 +544,7 @@ class Agent(Node):
         Check if the state is within the bounds of the system
         '''
         # Check if the 2 first ergodic dimension are within the bounds L1, L2
-        if not (0 <= x[0] <= self.L1 and 0 <= x[1] <= self.L2):
+        if not (self.L1_min <= x[0] <= self.L1_max and self.L2_min <= x[1] <= self.L2_max):
             print(f"--> ATTENTION: State out of bounds: {x}")
 
         # Check if model is quadcopter
@@ -755,7 +769,9 @@ class Agent(Node):
         Publish the ck values to a ROS topic
         """
         msg = CkTable()
+        msg.model_type = self.model.type
         msg.table_size = self.Kmax + 1
+        msg.l_bounds = [float(self.L1_min), float(self.L1_max), float(self.L2_min), float(self.L2_max)]
         msg.ck_values = ck.flatten().tolist()
         msg.ck_values_average_in_range = self.erg_c.ck_aver_others.flatten().tolist()
         msg.total_erg_cost = float(self.erg_c.total_erg_cost)
@@ -933,12 +949,43 @@ class Agent(Node):
         if agent_id in self.agent_positions:
             del self.agent_positions[agent_id]
             
+        # Remove stored model type data for this agent
+        if agent_id in self.agent_model_types:
+            del self.agent_model_types[agent_id]
+            
+        # Remove stored l_bounds data for this agent
+        if agent_id in self.agent_l_bounds:
+            del self.agent_l_bounds[agent_id]
+            
         # Remove from in-range agents
         self.in_range_agents.discard(agent_id)
 
     def agentCkCallback(self, msg, agent_id):
         """Callback function to handle CK data from other agents"""
         try:
+            # Store agent model type from the message
+            self.agent_model_types[agent_id] = msg.model_type
+            
+            # Store agent l_bounds from the message
+            self.agent_l_bounds[agent_id] = list(msg.l_bounds)
+            
+            # Check if talk_alike_flag is enabled and if model types match
+            if self.talk_alike_flag:
+                if msg.model_type != self.model.type:
+                    # Log that we're ignoring this message due to model type mismatch
+                    self.get_logger().info(f'Ignoring CK data from agent_{agent_id} (model type: {msg.model_type}) - not compatible with my model type: {self.model.type}')
+                    return
+            
+            # Check if same_l_bounds_flag is enabled and if l_bounds match
+            if self.same_l_bounds_flag:
+                my_l_bounds = [self.L1_min, self.L1_max, self.L2_min, self.L2_max]
+                # Convert msg.l_bounds to list for proper comparison
+                msg_l_bounds = list(msg.l_bounds)
+                if msg_l_bounds != my_l_bounds:
+                    # Log that we're ignoring this message due to l_bounds mismatch
+                    self.get_logger().info(f'Ignoring CK data from agent_{agent_id} (l_bounds: {msg_l_bounds}) - not compatible with my l_bounds: {my_l_bounds}')
+                    return
+            
             # Store agent position from the message
             self.agent_positions[agent_id] = (msg.position.x, msg.position.y)
             
@@ -948,7 +995,15 @@ class Agent(Node):
             
             # Reshape to (table_size, table_size) matrix
             ck_table = ck_flat.reshape((table_size, table_size))
-            
+
+            # If table_size is less than my Kmax+1, pad with zeros otherwise truncate
+            if table_size < self.Kmax + 1:
+                padded_ck = np.zeros((self.Kmax + 1, self.Kmax + 1))
+                padded_ck[:table_size, :table_size] = ck_table
+                ck_table = padded_ck
+            elif table_size > self.Kmax + 1:
+                ck_table = ck_table[:self.Kmax + 1, :self.Kmax + 1]
+
             # Store the CK data for this agent
             self.agent_ck_data[agent_id] = ck_table
             
@@ -971,24 +1026,76 @@ class Agent(Node):
             If agent_id specified: numpy array of CK table or None if not available
             If agent_id is None: dict {agent_id: ck_table} for all discovered agents
         """
+        def _isCompatibleAgent(aid):
+            """Helper function to check if agent is compatible based on flags"""
+            # Check if in range if requested
+            if in_range_only and aid not in self.in_range_agents:
+                return False
+            
+            # Check if model types match if talk_alike_flag is enabled
+            if self.talk_alike_flag:
+                agent_model_type = self.agent_model_types.get(aid, None)
+                if agent_model_type is None or agent_model_type != self.model.type:
+                    return False
+            
+            # Check if l_bounds match if same_l_bounds_flag is enabled
+            if self.same_l_bounds_flag:
+                agent_l_bounds = self.agent_l_bounds.get(aid, None)
+                my_l_bounds = [self.L1_min, self.L1_max, self.L2_min, self.L2_max]
+                if agent_l_bounds is None or agent_l_bounds != my_l_bounds:
+                    return False
+            
+            return True
+        
         if agent_id is not None:
-            # Check if specific agent is in range if requested
-            if in_range_only and agent_id not in self.in_range_agents:
+            # Check if specific agent is compatible
+            if not _isCompatibleAgent(agent_id):
                 return None
             return self.agent_ck_data.get(agent_id, None)
         else:
-            if in_range_only:
-                # Return only data from agents within range
-                return {aid: ck_data for aid, ck_data in self.agent_ck_data.items() 
-                       if aid in self.in_range_agents}
-            else:
-                return self.agent_ck_data.copy()
+            # Return data from compatible agents
+            return {aid: ck_data for aid, ck_data in self.agent_ck_data.items() 
+                   if _isCompatibleAgent(aid)}
 
     def getInRangeAgentIds(self):
         """Get list of currently in-range agent IDs (excluding self)"""
-        return sorted(list(self.in_range_agents)) if (self.antenna_range_flag == True) else self.getDiscoveredAgentIds()
+        if self.antenna_range_flag:
+            # Filter in-range agents based on compatibility flags
+            compatible_agents = set()
+            for aid in self.in_range_agents:
+                # Check talk_alike_flag compatibility
+                if self.talk_alike_flag:
+                    if self.agent_model_types.get(aid, None) != self.model.type:
+                        continue
+                
+                # Check same_l_bounds_flag compatibility
+                if self.same_l_bounds_flag:
+                    my_l_bounds = [self.L1_min, self.L1_max, self.L2_min, self.L2_max]
+                    if self.agent_l_bounds.get(aid, None) != my_l_bounds:
+                        continue
+                
+                compatible_agents.add(aid)
+            
+            return sorted(list(compatible_agents))
+        else:
+            return self.getDiscoveredAgentIds()
 
     def getDiscoveredAgentIds(self):
         """Get list of currently discovered agent IDs (excluding self)"""
-        return sorted(list(self.discovered_agents - {self.agent_id}))
+        compatible_agents = set()
+        for aid in (self.discovered_agents - {self.agent_id}):
+            # Check talk_alike_flag compatibility
+            if self.talk_alike_flag:
+                if self.agent_model_types.get(aid, None) != self.model.type:
+                    continue
+            
+            # Check same_l_bounds_flag compatibility
+            if self.same_l_bounds_flag:
+                my_l_bounds = [self.L1_min, self.L1_max, self.L2_min, self.L2_max]
+                if self.agent_l_bounds.get(aid, None) != my_l_bounds:
+                    continue
+            
+            compatible_agents.add(aid)
+        
+        return sorted(list(compatible_agents))
             

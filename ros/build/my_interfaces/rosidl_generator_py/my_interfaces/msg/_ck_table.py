@@ -5,6 +5,7 @@
 
 # Import statements for member types
 
+# Member 'l_bounds'
 # Member 'ck_values'
 # Member 'ck_values_average_in_range'
 import array  # noqa: E402, I100
@@ -65,6 +66,8 @@ class CkTable(metaclass=Metaclass_CkTable):
     """Message class 'CkTable'."""
 
     __slots__ = [
+        '_model_type',
+        '_l_bounds',
         '_table_size',
         '_ck_values',
         '_ck_values_average_in_range',
@@ -75,6 +78,8 @@ class CkTable(metaclass=Metaclass_CkTable):
     ]
 
     _fields_and_field_types = {
+        'model_type': 'string',
+        'l_bounds': 'sequence<double>',
         'table_size': 'int32',
         'ck_values': 'sequence<double>',
         'ck_values_average_in_range': 'sequence<double>',
@@ -85,6 +90,8 @@ class CkTable(metaclass=Metaclass_CkTable):
     }
 
     SLOT_TYPES = (
+        rosidl_parser.definition.UnboundedString(),  # noqa: E501
+        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
         rosidl_parser.definition.BasicType('int32'),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('double')),  # noqa: E501
@@ -98,6 +105,8 @@ class CkTable(metaclass=Metaclass_CkTable):
         assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
             'Invalid arguments passed to constructor: %s' % \
             ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
+        self.model_type = kwargs.get('model_type', str())
+        self.l_bounds = array.array('d', kwargs.get('l_bounds', []))
         self.table_size = kwargs.get('table_size', int())
         self.ck_values = array.array('d', kwargs.get('ck_values', []))
         self.ck_values_average_in_range = array.array('d', kwargs.get('ck_values_average_in_range', []))
@@ -136,6 +145,10 @@ class CkTable(metaclass=Metaclass_CkTable):
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
+        if self.model_type != other.model_type:
+            return False
+        if self.l_bounds != other.l_bounds:
+            return False
         if self.table_size != other.table_size:
             return False
         if self.ck_values != other.ck_values:
@@ -156,6 +169,47 @@ class CkTable(metaclass=Metaclass_CkTable):
     def get_fields_and_field_types(cls):
         from copy import copy
         return copy(cls._fields_and_field_types)
+
+    @builtins.property
+    def model_type(self):
+        """Message field 'model_type'."""
+        return self._model_type
+
+    @model_type.setter
+    def model_type(self, value):
+        if __debug__:
+            assert \
+                isinstance(value, str), \
+                "The 'model_type' field must be of type 'str'"
+        self._model_type = value
+
+    @builtins.property
+    def l_bounds(self):
+        """Message field 'l_bounds'."""
+        return self._l_bounds
+
+    @l_bounds.setter
+    def l_bounds(self, value):
+        if isinstance(value, array.array):
+            assert value.typecode == 'd', \
+                "The 'l_bounds' array.array() must have the type code of 'd'"
+            self._l_bounds = value
+            return
+        if __debug__:
+            from collections.abc import Sequence
+            from collections.abc import Set
+            from collections import UserList
+            from collections import UserString
+            assert \
+                ((isinstance(value, Sequence) or
+                  isinstance(value, Set) or
+                  isinstance(value, UserList)) and
+                 not isinstance(value, str) and
+                 not isinstance(value, UserString) and
+                 all(isinstance(v, float) for v in value) and
+                 all(not (val < -1.7976931348623157e+308 or val > 1.7976931348623157e+308) or math.isinf(val) for val in value)), \
+                "The 'l_bounds' field must be a set or sequence and each value of type 'float' and each double in [-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000, 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000]"
+        self._l_bounds = array.array('d', value)
 
     @builtins.property
     def table_size(self):

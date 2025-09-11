@@ -120,13 +120,45 @@ private:
 class Init_CkTable_table_size
 {
 public:
-  Init_CkTable_table_size()
-  : msg_(::rosidl_runtime_cpp::MessageInitialization::SKIP)
+  explicit Init_CkTable_table_size(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
   {}
   Init_CkTable_ck_values table_size(::my_interfaces::msg::CkTable::_table_size_type arg)
   {
     msg_.table_size = std::move(arg);
     return Init_CkTable_ck_values(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
+class Init_CkTable_l_bounds
+{
+public:
+  explicit Init_CkTable_l_bounds(::my_interfaces::msg::CkTable & msg)
+  : msg_(msg)
+  {}
+  Init_CkTable_table_size l_bounds(::my_interfaces::msg::CkTable::_l_bounds_type arg)
+  {
+    msg_.l_bounds = std::move(arg);
+    return Init_CkTable_table_size(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::CkTable msg_;
+};
+
+class Init_CkTable_model_type
+{
+public:
+  Init_CkTable_model_type()
+  : msg_(::rosidl_runtime_cpp::MessageInitialization::SKIP)
+  {}
+  Init_CkTable_l_bounds model_type(::my_interfaces::msg::CkTable::_model_type_type arg)
+  {
+    msg_.model_type = std::move(arg);
+    return Init_CkTable_l_bounds(msg_);
   }
 
 private:
@@ -144,7 +176,7 @@ template<>
 inline
 auto build<::my_interfaces::msg::CkTable>()
 {
-  return my_interfaces::msg::builder::Init_CkTable_table_size();
+  return my_interfaces::msg::builder::Init_CkTable_model_type();
 }
 
 }  // namespace my_interfaces

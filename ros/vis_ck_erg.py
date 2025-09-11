@@ -41,7 +41,7 @@ from rclpy.node import Node
 from my_interfaces.msg import CkTable
 
 # Import the new ROS library
-from my_erg_lib import basis
+from src.ergodic_exploration.my_erg_lib.basis import Basis, ReconstructedPhi, ReconstructedPhiFromCk
 
 # Global shutdown manager
 class GracefulShutdown:
@@ -129,56 +129,34 @@ class GracefulShutdown:
 # Global shutdown manager instance
 shutdown_manager = GracefulShutdown()
 
-Kmax = 4
-L1 = 10 
-L2 = 10
+# =============----------------------------
+# Here used in phi calculations, not only visualization
 
-from src.ergodic_exploration.ergodic_exploration.agent_node import createPhiFunc
+Kmax = 4
+L1_min = 0
+L1_max = 1
+L2_min = 0
+L2_max = 1
+L1_size = L1_max - L1_min
+L2_size = L2_max - L2_min
 
 # Create the phi function to match agent_node.py
-phi_func = createPhiFunc(L1=10.0, L2=10.0)
+from src.ergodic_exploration.ergodic_exploration.agent_node import createPhiFunc
+phi_func = createPhiFunc(L1_BOUNDS=[L1_min, L1_max], L2_BOUNDS=[L2_min, L2_max])
+# phi_func = lambda s: 1/100  # Uniform distribution for testing
 
-def visualiseCoefficients(ck):
-    import matplotlib.pyplot as plt
-    from matplotlib import cm
+base = Basis(L1_BOUNDS=[L1_min, L1_max], L2_BOUNDS=[L2_min, L2_max], Kmax=Kmax, phi_=phi_func, precalc_phik_coeff=True, num_gauss_points=22)
+base.phi_rec = ReconstructedPhi(base, precalc_phik=False)
 
-    k1 = np.linspace(0, Kmax, Kmax+1)
-    k2 = np.linspace(0, Kmax, Kmax+1)
-    K1, K2 = np.meshgrid(k1, k2)
-    Z_ck = np.zeros((len(k1), len(k2)))
-    Z_phik = np.zeros((len(k1), len(k2)))
-    
-    for i in range(len(k1)):
-        for j in range(len(k2)):
-            Z_ck[i, j] = ck[i, j]
-            Z_phik[i, j] = base.calcPhikCoeff(int(k1[i]), int(k2[j]))
-    
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    
-    # Plot Ck coefficients
-    im1 = ax1.imshow(Z_ck, cmap=cm.viridis, origin='lower', 
-                    extent=[0, Kmax, 0, Kmax], aspect='equal')
-    ax1.set_title('Ck Coefficients')
-    ax1.set_xlabel('k1')
-    ax1.set_ylabel('k2')
-    fig.colorbar(im1, ax=ax1, label='Ck Value')
-    
-    # Plot Phi_k coefficients
-    im2 = ax2.imshow(Z_phik, cmap=cm.viridis, origin='lower', 
-                    extent=[0, Kmax, 0, Kmax], aspect='equal')
-    ax2.set_title('Phi_k Coefficients')
-    ax2.set_xlabel('k1')
-    ax2.set_ylabel('k2')
-    fig.colorbar(im2, ax=ax2, label='Phi_k Value')
-    
-    plt.tight_layout()
-    plt.show()
+# =============----------------------------
+
+
 
 def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=None, grid_res=50, clip_to_min_max=False, ergodic_cost=None):
     phi_original = base.phi
 
-    x1 = np.linspace(0, L1, grid_res)
-    x2 = np.linspace(0, L2, grid_res)
+    x1 = np.linspace(base.L1_min, base.L1_max, grid_res)
+    x2 = np.linspace(base.L2_min, base.L2_max, grid_res)
 
     # Plot in a 1x3 matplotlib figure as heatmap colors
     import matplotlib.pyplot as plt
@@ -197,7 +175,7 @@ def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=N
     fig = plt.figure(figsize=(18, 6))
     
     ax1 = fig.add_subplot(131)
-    im1 = ax1.imshow(Z_original, extent=(0, L1, 0, L2), origin='lower', cmap=cm.viridis)
+    im1 = ax1.imshow(Z_original, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap=cm.viridis)
     ax1.set_title('Original Function Φ')
     ax1.set_xlabel('x1')
     ax1.set_ylabel('x2')
@@ -206,8 +184,8 @@ def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=N
 
     ax2 = fig.add_subplot(132)
     im2 = ax2.imshow(Z_agent_fourier_rec,
-                     extent=(0, L1, 0, L2), origin='lower', cmap=cm.viridis)
-    ax2.set_title(f'Fourier Reconstruction (Kmax = {Kmax})')
+                     extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap=cm.viridis)
+    ax2.set_title(f'Fourier Reconstruction (Kmax = {base.Kmax})')
     ax2.set_xlabel('x1')
     ax2.set_ylabel('x2')
     ax2.set_aspect('auto')
@@ -220,18 +198,18 @@ def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=N
 
     ax3 = fig.add_subplot(133)
     if clip_to_min_max:
-        im3 = ax3.imshow(Z_rec_from_ros_ck, extent=(0, L1, 0, L2), 
+        im3 = ax3.imshow(Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
                         origin='lower', cmap=cm.viridis, vmin=min_val, vmax=max_val)
     else:
-        im3 = ax3.imshow(Z_rec_from_ros_ck, extent=(0, L1, 0, L2), 
+        im3 = ax3.imshow(Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
                         origin='lower', cmap=cm.viridis)
     ax3.set_title('Reconstructed from ROS Ck (ck_values_average_in_range)')
     ax3.set_xlabel('x1')
     ax3.set_ylabel('x2')
     ax3.set_aspect('auto')
-    # x and y lims to 0 -> L1 and 0 -> L2
-    ax3.set_xlim(0, L1)
-    ax3.set_ylim(0, L2)
+    # x and y lims to base.L1_min -> base.L1_max and base.L2_min -> base.L2_max
+    ax3.set_xlim(base.L1_min, base.L1_max)
+    ax3.set_ylim(base.L2_min, base.L2_max)
     plt.colorbar(im3, ax=ax3, label='Function Value')
     
     # Add ergodic cost as text annotation
@@ -249,8 +227,8 @@ def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=N
 
 def plot_ros_only(phi_rec_from_ros_ck, agent_id, grid_res=50, ergodic_cost=None):
     """Plot only the ROS Ck reconstruction in a single figure"""
-    x1 = np.linspace(0, L1, grid_res)
-    x2 = np.linspace(0, L2, grid_res)
+    x1 = np.linspace(base.L1_min, base.L1_max, grid_res)
+    x2 = np.linspace(base.L2_min, base.L2_max, grid_res)
 
     Z_rec_from_ros_ck = np.zeros((len(x1), len(x2)))
 
@@ -260,14 +238,14 @@ def plot_ros_only(phi_rec_from_ros_ck, agent_id, grid_res=50, ergodic_cost=None)
         
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111)
-    
-    im = ax.imshow(Z_rec_from_ros_ck, extent=(0, L1, 0, L2), origin='lower', cmap='viridis')
+
+    im = ax.imshow(Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap='viridis')
     ax.set_title(f'Agent {agent_id} - ROS Ck (ck_values_average_in_range)')
     ax.set_xlabel('x1')
     ax.set_ylabel('x2')
     ax.set_aspect('equal')
-    ax.set_xlim(0, L1)
-    ax.set_ylim(0, L2)
+    ax.set_xlim(base.L1_min, base.L1_max)
+    ax.set_ylim(base.L2_min, base.L2_max)
     plt.colorbar(im, ax=ax, label='Function Value')
     
     # Add ergodic cost as text annotation
@@ -279,63 +257,6 @@ def plot_ros_only(phi_rec_from_ros_ck, agent_id, grid_res=50, ergodic_cost=None)
     
     plt.tight_layout()
 
-def calcCkCoeff(x_traj, ti, T, x_buffer=None, do_not_divide_integral_flag=False):
-        '''
-        Calculate the coefficients Ck for the trajectory x_traj from time ti to T.
-            x_traj: Ergodic states trajectory only (x1, x2)
-            ti:     Current Initial Time
-            T:      Duration forward
-        '''
-        ck = np.zeros((Kmax+1, Kmax+1))
-        
-        # Append to the trajectory the buffer points at the beginning with the traj continueing from the last buffer poit
-        if x_buffer is not None:
-            x_traj = np.concatenate((x_buffer, x_traj), axis=0)
-            # Lets calculate simulation time step (dt) assuming uniform time spacing
-            dt = (T - ti) / len(x_traj)
-            # How much time in the back do we go with the buffer?
-            delta_t = len(x_buffer) * dt  # Ergodic memory time
-        else:
-            # If we dont play with a buffer, we dont need ergodic memory
-            delta_t = 0            
-        
-        # Calculate time step (dt) assuming uniform time spacing
-        n_points = len(x_traj)
-        
-        # Time points corresponding to trajectory points
-        t_points = np.linspace(ti-delta_t, ti+T, n_points)
-        
-        for k1 in range(Kmax+1):
-            for k2 in range(Kmax+1):
-                hk = base.calcHk(k1, k2)
-
-                # Vectorized Fk calculation
-                cos_k1 = np.cos(k1*np.pi/L1*x_traj[:, 0])
-                cos_k2 = np.cos(k2*np.pi/L2*x_traj[:, 1])
-                
-                # Evaluate Fk at each trajectory point
-                fk_values = cos_k1 * cos_k2 / hk
-                
-                # Perform trapezoidal integration
-                if do_not_divide_integral_flag:
-                    ck[k1, k2] = np.trapz(fk_values, x=t_points)
-                else:
-                    ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
-
-        
-        return ck
-
-def calcErgodicCost(ck):
-        ergodic_cost = 0.0
-        for k1 in range(Kmax+1):
-            for k2 in range(Kmax+1):
-                ergodic_cost += base.LamdaK_cache[(k1, k2)] * (ck[k1, k2] - base.calcPhikCoeff(k1, k2))**2
-        ergodic_cost *= 30
-        return ergodic_cost
-
-# base = basis.Basis(L1, L2, Kmax, phi_=lambda s: 1/100, precalc_phik_coeff=True, num_gauss_points=22)
-base = basis.Basis(L1, L2, Kmax, phi_=phi_func, precalc_phik_coeff=True, num_gauss_points=22)
-phi_rec = basis.ReconstructedPhi(base, precalc_phik=False)
 
 class CkSubscriber(Node):
     """ROS subscriber to listen to CkTable messages from a specific agent"""
@@ -347,6 +268,8 @@ class CkSubscriber(Node):
         self.latest_ck_values = None
         self.ergodic_cost = 0
         self.erg_cost_reduction_perc = 0.0
+        self.l_bounds_initiated_flag = False  # Flag to check if l_bounds have been set
+        self.bounds_changed_flag = False  # Flag to indicate bounds have changed
 
         # Subscribe to the agent's ck topic
         self.subscription = self.create_subscription(
@@ -361,6 +284,20 @@ class CkSubscriber(Node):
     def ck_callback(self, msg):
         """Callback to handle incoming CkTable messages"""
         try:
+            if not self.l_bounds_initiated_flag:
+                # Lets set l_bounds
+                l_bounds = msg.l_bounds
+                kmax = int(msg.table_size - 1)
+                # Create the phi function to match agent_node.py
+                phi_func = createPhiFunc(L1_BOUNDS=[l_bounds[0], l_bounds[1]], L2_BOUNDS=[l_bounds[2], l_bounds[3]])
+                # phi_func = lambda s: 1/100  # Uniform distribution for testing
+
+                base.__init__(L1_BOUNDS=[l_bounds[0], l_bounds[1]], L2_BOUNDS=[l_bounds[2], l_bounds[3]], Kmax=kmax, phi_=phi_func, precalc_phik_coeff=True, num_gauss_points=22)
+                base.phi_rec = ReconstructedPhi(base, precalc_phik=False)
+                print(f"Changing Bounds to : {l_bounds} \tand \tKmax : {kmax}")
+                self.l_bounds_initiated_flag = True
+                self.bounds_changed_flag = True  # Set flag to indicate bounds changed
+
             # Reshape flattened arrays back to square matrices
             table_size = msg.table_size
             
@@ -379,59 +316,6 @@ class CkSubscriber(Node):
         except Exception as e:
             self.get_logger().error(f'Error processing CkTable message: {e}')
 
-def calcCkCoeff(x_traj, ti, T, x_buffer=None, do_not_divide_integral_flag=False):
-        '''
-        Calculate the coefficients Ck for the trajectory x_traj from time ti to T.
-            x_traj: Ergodic states trajectory only (x1, x2)
-            ti:     Current Initial Time
-            T:      Duration forward
-        '''
-        ck = np.zeros((Kmax+1, Kmax+1))
-        
-        # Append to the trajectory the buffer points at the beginning with the traj continueing from the last buffer poit
-        if x_buffer is not None:
-            x_traj = np.concatenate((x_buffer, x_traj), axis=0)
-            # Lets calculate simulation time step (dt) assuming uniform time spacing
-            dt = (T - ti) / len(x_traj)
-            # How much time in the back do we go with the buffer?
-            delta_t = len(x_buffer) * dt  # Ergodic memory time
-        else:
-            # If we dont play with a buffer, we dont need ergodic memory
-            delta_t = 0            
-        
-        # Calculate time step (dt) assuming uniform time spacing
-        n_points = len(x_traj)
-        
-        # Time points corresponding to trajectory points
-        t_points = np.linspace(ti-delta_t, ti+T, n_points)
-        
-        for k1 in range(Kmax+1):
-            for k2 in range(Kmax+1):
-                hk = base.calcHk(k1, k2)
-
-                # Vectorized Fk calculation
-                cos_k1 = np.cos(k1*np.pi/L1*x_traj[:, 0])
-                cos_k2 = np.cos(k2*np.pi/L2*x_traj[:, 1])
-                
-                # Evaluate Fk at each trajectory point
-                fk_values = cos_k1 * cos_k2 / hk
-                
-                # Perform trapezoidal integration
-                if do_not_divide_integral_flag:
-                    ck[k1, k2] = np.trapz(fk_values, x=t_points)
-                else:
-                    ck[k1, k2] = np.trapz(fk_values, x=t_points) / (delta_t + T)
-
-        
-        return ck
-
-def calcErgodicCost(ck):
-        ergodic_cost = 0.0
-        for k1 in range(Kmax+1):
-            for k2 in range(Kmax+1):
-                ergodic_cost += base.LamdaK_cache[(k1, k2)] * (ck[k1, k2] - base.calcPhikCoeff(k1, k2))**2
-        ergodic_cost *= 30
-        return ergodic_cost
 
 class RealTimeVisualizer:
     def __init__(self, base, phi_rec, agent_id, plot_mode='all', grid_res=50, update_interval=200):
@@ -453,8 +337,8 @@ class RealTimeVisualizer:
         shutdown_manager.register_node(self.ck_subscriber)
         
         # Pre-calculate static data
-        self.x1 = np.linspace(0, L1, grid_res)
-        self.x2 = np.linspace(0, L2, grid_res)
+        self.x1 = np.linspace(base.L1_min, base.L1_max, grid_res)
+        self.x2 = np.linspace(base.L2_min, base.L2_max, grid_res)
         self.setup_plots()
         
     def setup_plots(self):
@@ -473,12 +357,12 @@ class RealTimeVisualizer:
         self.ax3.set_xlabel('x1')
         self.ax3.set_ylabel('x2')
         self.ax3.set_aspect('equal')
-        self.ax3.set_xlim(0, L1)
-        self.ax3.set_ylim(0, L2)
-        
+        self.ax3.set_xlim(base.L1_min, base.L1_max)
+        self.ax3.set_ylim(base.L2_min, base.L2_max)
+
         # Initialize empty plot
         self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
-        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(0, L1, 0, L2), 
+        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
                                   origin='lower', cmap='viridis')
         self.cbar3 = plt.colorbar(self.im3, ax=self.ax3, label='Function Value')
         
@@ -506,7 +390,7 @@ class RealTimeVisualizer:
         
         # Original function plot (static)
         self.ax1 = self.fig.add_subplot(131)
-        im1 = self.ax1.imshow(Z_original, extent=(0, L1, 0, L2), origin='lower', cmap='viridis')
+        im1 = self.ax1.imshow(Z_original, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap='viridis')
         self.ax1.set_title('Original Function Φ')
         self.ax1.set_xlabel('x1')
         self.ax1.set_ylabel('x2')
@@ -515,8 +399,8 @@ class RealTimeVisualizer:
         
         # Fourier reconstruction plot (static)
         self.ax2 = self.fig.add_subplot(132)
-        im2 = self.ax2.imshow(Z_agent_fourier_rec, extent=(0, L1, 0, L2), origin='lower', cmap='viridis')
-        self.ax2.set_title(f'Fourier Reconstruction (Kmax = {Kmax})')
+        im2 = self.ax2.imshow(Z_agent_fourier_rec, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap='viridis')
+        self.ax2.set_title(f'Fourier Reconstruction (Kmax = {base.Kmax})')
         self.ax2.set_xlabel('x1')
         self.ax2.set_ylabel('x2')
         self.ax2.set_aspect('auto')
@@ -528,12 +412,12 @@ class RealTimeVisualizer:
         self.ax3.set_xlabel('x1')
         self.ax3.set_ylabel('x2')
         self.ax3.set_aspect('auto')
-        self.ax3.set_xlim(0, L1)
-        self.ax3.set_ylim(0, L2)
-        
+        self.ax3.set_xlim(base.L1_min, base.L1_max)
+        self.ax3.set_ylim(base.L2_min, base.L2_max)
+
         # Initialize empty plot
         self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
-        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(0, L1, 0, L2), 
+        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
                                   origin='lower', cmap='viridis')
         self.cbar3 = plt.colorbar(self.im3, ax=self.ax3, label='Function Value')
         
@@ -544,6 +428,54 @@ class RealTimeVisualizer:
                                               fontsize=10, verticalalignment='top')
         
         plt.tight_layout()
+        
+    def update_plot_bounds(self):
+        """Update plot bounds and grid when base bounds change"""
+        # Recalculate grid points with new bounds
+        self.x1 = np.linspace(self.base.L1_min, self.base.L1_max, self.grid_res)
+        self.x2 = np.linspace(self.base.L2_min, self.base.L2_max, self.grid_res)
+        
+        # Update Z matrix size
+        self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
+        
+        if self.plot_mode == 'ros-only':
+            # Update axis limits
+            self.ax3.set_xlim(self.base.L1_min, self.base.L1_max)
+            self.ax3.set_ylim(self.base.L2_min, self.base.L2_max)
+            
+            # Update image extent
+            if hasattr(self, 'im3'):
+                self.im3.set_extent((self.base.L1_min, self.base.L1_max, self.base.L2_min, self.base.L2_max))
+            
+            # Force axis to recalculate ticks and labels
+            self.ax3.relim()
+            self.ax3.autoscale_view()
+            
+            # Manually set nice tick locations
+            self.ax3.locator_params(axis='x', nbins=6)
+            self.ax3.locator_params(axis='y', nbins=6)
+            
+        else:
+            # Update all three plots for 'all' mode
+            for ax in [self.ax1, self.ax2, self.ax3]:
+                ax.set_xlim(self.base.L1_min, self.base.L1_max)
+                ax.set_ylim(self.base.L2_min, self.base.L2_max)
+                
+                # Force each axis to recalculate ticks and labels
+                ax.relim()
+                ax.autoscale_view()
+                ax.locator_params(axis='x', nbins=6)
+                ax.locator_params(axis='y', nbins=6)
+            
+            # Update image extents for all plots
+            if hasattr(self, 'im3'):
+                self.im3.set_extent((self.base.L1_min, self.base.L1_max, self.base.L2_min, self.base.L2_max))
+        
+        # Force a redraw of the figure
+        if hasattr(self, 'fig') and self.fig is not None:
+            self.fig.canvas.draw_idle()
+        
+        print(f"Plot bounds updated to: x1=[{self.base.L1_min}, {self.base.L1_max}], x2=[{self.base.L2_min}, {self.base.L2_max}]")
     
     def update_plot(self, frame):
         """Update function for animation"""
@@ -551,6 +483,11 @@ class RealTimeVisualizer:
         if shutdown_manager.shutdown_requested.is_set() or not self.running:
             self.stop()
             return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and hasattr(self, 'ergodic_cost_text')) else []
+        
+        # Check if bounds have changed and update plot if needed
+        if hasattr(self.ck_subscriber, 'bounds_changed_flag') and self.ck_subscriber.bounds_changed_flag:
+            self.update_plot_bounds()
+            self.ck_subscriber.bounds_changed_flag = False  # Reset flag
             
         # Check if we have new ck data from ROS
         if self.ck_subscriber.latest_ck_values_average is None:
@@ -573,7 +510,7 @@ class RealTimeVisualizer:
         
         # Create new phi reconstruction
         try:
-            phi_rec_from_ros_ck = basis.ReconstructedPhiFromCk(self.base, ck_values)
+            phi_rec_from_ros_ck = ReconstructedPhiFromCk(self.base, ck_values)
             
             # Update Z matrix
             for i in range(len(self.x1)):
@@ -687,7 +624,7 @@ def start_realtime_visualization(agent_id, plot_mode='all'):
     rclpy.init()
     
     try:
-        visualizer = RealTimeVisualizer(base, phi_rec, agent_id, plot_mode, grid_res=50, update_interval=500)
+        visualizer = RealTimeVisualizer(base, base.phi_rec, agent_id, plot_mode, grid_res=50, update_interval=500)
         
         # Start ROS spinning in a separate thread
         def ros_spin():
@@ -751,7 +688,7 @@ def start_static_visualization(agent_id, plot_mode='all'):
         
         # Use the received ck_values_average_in_range for visualization
         ck_values_average = ck_subscriber.latest_ck_values_average
-        phi_rec_from_ros_ck = basis.ReconstructedPhiFromCk(base, ck_values_average)
+        phi_rec_from_ros_ck = ReconstructedPhiFromCk(base, ck_values_average)
         
         print(f"Received ck data from agent_{agent_id}. Creating static visualization...")
         print("Close the window or press Ctrl+C to exit")
@@ -762,7 +699,7 @@ def start_static_visualization(agent_id, plot_mode='all'):
         else:
             # Show all three plots
             plotPhi(phi_rec_from_ck=phi_rec_from_ros_ck, 
-                    phi_rec_from_agent=phi_rec, 
+                    phi_rec_from_agent=base.phi_rec, 
                     phi_rec_from_ros_ck=phi_rec_from_ros_ck,
                     ergodic_cost=ck_subscriber.ergodic_cost)
 

@@ -11,6 +11,14 @@ module my_interfaces {
       "Represents a square table/matrix of float values")
     struct CkTable {
       @verbatim (language="comment", text=
+        "Model type")
+      string model_type;
+
+      @verbatim (language="comment", text=
+        "[x_min, x_max, y_min, y_max] L1, L2 boundaries for ergodic search in space")
+      sequence<double> l_bounds;
+
+      @verbatim (language="comment", text=
         "Size of the square table (size x size)")
       int32 table_size;
 

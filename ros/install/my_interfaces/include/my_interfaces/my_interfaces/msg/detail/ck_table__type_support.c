@@ -13,6 +13,9 @@
 
 
 // Include directives for member types
+// Member `model_type`
+#include "rosidl_runtime_c/string_functions.h"
+// Member `l_bounds`
 // Member `ck_values`
 // Member `ck_values_average_in_range`
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
@@ -38,6 +41,61 @@ void my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_in
 void my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_fini_function(void * message_memory)
 {
   my_interfaces__msg__CkTable__fini(message_memory);
+}
+
+size_t my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__size_function__CkTable__l_bounds(
+  const void * untyped_member)
+{
+  const rosidl_runtime_c__double__Sequence * member =
+    (const rosidl_runtime_c__double__Sequence *)(untyped_member);
+  return member->size;
+}
+
+const void * my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_const_function__CkTable__l_bounds(
+  const void * untyped_member, size_t index)
+{
+  const rosidl_runtime_c__double__Sequence * member =
+    (const rosidl_runtime_c__double__Sequence *)(untyped_member);
+  return &member->data[index];
+}
+
+void * my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_function__CkTable__l_bounds(
+  void * untyped_member, size_t index)
+{
+  rosidl_runtime_c__double__Sequence * member =
+    (rosidl_runtime_c__double__Sequence *)(untyped_member);
+  return &member->data[index];
+}
+
+void my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__fetch_function__CkTable__l_bounds(
+  const void * untyped_member, size_t index, void * untyped_value)
+{
+  const double * item =
+    ((const double *)
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_const_function__CkTable__l_bounds(untyped_member, index));
+  double * value =
+    (double *)(untyped_value);
+  *value = *item;
+}
+
+void my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__assign_function__CkTable__l_bounds(
+  void * untyped_member, size_t index, const void * untyped_value)
+{
+  double * item =
+    ((double *)
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_function__CkTable__l_bounds(untyped_member, index));
+  const double * value =
+    (const double *)(untyped_value);
+  *item = *value;
+}
+
+bool my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__resize_function__CkTable__l_bounds(
+  void * untyped_member, size_t size)
+{
+  rosidl_runtime_c__double__Sequence * member =
+    (rosidl_runtime_c__double__Sequence *)(untyped_member);
+  rosidl_runtime_c__double__Sequence__fini(member);
+  return rosidl_runtime_c__double__Sequence__init(member, size);
 }
 
 size_t my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__size_function__CkTable__ck_values(
@@ -150,7 +208,41 @@ bool my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__resize_fun
   return rosidl_runtime_c__double__Sequence__init(member, size);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_member_array[7] = {
+static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_member_array[9] = {
+  {
+    "model_type",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_STRING,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces__msg__CkTable, model_type),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL,  // fetch(index, &value) function pointer
+    NULL,  // assign(index, value) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "l_bounds",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces__msg__CkTable, l_bounds),  // bytes offset in struct
+    NULL,  // default value
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__size_function__CkTable__l_bounds,  // size() function pointer
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_const_function__CkTable__l_bounds,  // get_const(index) function pointer
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__get_function__CkTable__l_bounds,  // get(index) function pointer
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__fetch_function__CkTable__l_bounds,  // fetch(index, &value) function pointer
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__assign_function__CkTable__l_bounds,  // assign(index, value) function pointer
+    my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__resize_function__CkTable__l_bounds  // resize(index) function pointer
+  },
   {
     "table_size",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_INT32,  // type
@@ -275,7 +367,7 @@ static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__CkT
 static const rosidl_typesupport_introspection_c__MessageMembers my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_members = {
   "my_interfaces__msg",  // message namespace
   "CkTable",  // message name
-  7,  // number of fields
+  9,  // number of fields
   sizeof(my_interfaces__msg__CkTable),
   my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_member_array,  // message members
   my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_init_function,  // function to initialize message memory (memory has to be allocated)
@@ -293,7 +385,7 @@ static rosidl_message_type_support_t my_interfaces__msg__CkTable__rosidl_typesup
 ROSIDL_TYPESUPPORT_INTROSPECTION_C_EXPORT_my_interfaces
 const rosidl_message_type_support_t *
 ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, my_interfaces, msg, CkTable)() {
-  my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_member_array[6].members_ =
+  my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_member_array[8].members_ =
     ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspection_c, geometry_msgs, msg, Point)();
   if (!my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_type_support_handle.typesupport_identifier) {
     my_interfaces__msg__CkTable__rosidl_typesupport_introspection_c__CkTable_message_type_support_handle.typesupport_identifier =

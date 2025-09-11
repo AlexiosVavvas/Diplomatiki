@@ -6,13 +6,13 @@ class Barrier:
     This class prevents the agent from
     going outside the exploration space
     '''
-    def __init__(self, L1, L2, pow_=2, weight=100, eps_=0.01):
+    def __init__(self, L1_BOUNDS, L2_BOUNDS, pow_=2, weight=100, eps_=0.01):
         self.pow = pow_
         self.weight = weight
         self.eps = eps_
 
-        self.space_top_lim = np.array([L1, L2])
-        self.space_bot_lim = np.array([0, 0])
+        self.space_top_lim = np.array([L1_BOUNDS[1], L2_BOUNDS[1]])
+        self.space_bot_lim = np.array([L1_BOUNDS[0], L2_BOUNDS[0]])
 
         assert pow_ >= 1, "Power must be greater than or equal to 1."
 

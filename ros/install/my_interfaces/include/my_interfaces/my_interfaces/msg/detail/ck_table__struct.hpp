@@ -43,6 +43,7 @@ struct CkTable_
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
+      this->model_type = "";
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
       this->total_erg_cost_in_range = 0.0;
@@ -51,11 +52,13 @@ struct CkTable_
   }
 
   explicit CkTable_(const ContainerAllocator & _alloc, rosidl_runtime_cpp::MessageInitialization _init = rosidl_runtime_cpp::MessageInitialization::ALL)
-  : position(_alloc, _init)
+  : model_type(_alloc),
+    position(_alloc, _init)
   {
     if (rosidl_runtime_cpp::MessageInitialization::ALL == _init ||
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
+      this->model_type = "";
       this->table_size = 0l;
       this->total_erg_cost = 0.0;
       this->total_erg_cost_in_range = 0.0;
@@ -64,6 +67,12 @@ struct CkTable_
   }
 
   // field types and members
+  using _model_type_type =
+    std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>>;
+  _model_type_type model_type;
+  using _l_bounds_type =
+    std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>>;
+  _l_bounds_type l_bounds;
   using _table_size_type =
     int32_t;
   _table_size_type table_size;
@@ -87,6 +96,18 @@ struct CkTable_
   _position_type position;
 
   // setters for named parameter idiom
+  Type & set__model_type(
+    const std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>> & _arg)
+  {
+    this->model_type = _arg;
+    return *this;
+  }
+  Type & set__l_bounds(
+    const std::vector<double, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<double>> & _arg)
+  {
+    this->l_bounds = _arg;
+    return *this;
+  }
   Type & set__table_size(
     const int32_t & _arg)
   {
@@ -172,6 +193,12 @@ struct CkTable_
   // comparison operators
   bool operator==(const CkTable_ & other) const
   {
+    if (this->model_type != other.model_type) {
+      return false;
+    }
+    if (this->l_bounds != other.l_bounds) {
+      return false;
+    }
     if (this->table_size != other.table_size) {
       return false;
     }
