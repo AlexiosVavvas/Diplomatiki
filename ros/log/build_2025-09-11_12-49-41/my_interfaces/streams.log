@@ -1,0 +1,53 @@
+[0.010s] Invoking command in '/home/alex/Diplomatiki/ros/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6
+[0.032s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.156s] -- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[0.159s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.166s] -- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.206s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.227s] -- Found std_msgs: 4.9.0 (/opt/ros/humble/share/std_msgs/cmake)
+[0.245s] -- Found geometry_msgs: 4.9.0 (/opt/ros/humble/share/geometry_msgs/cmake)
+[0.416s] [31mCMake Error at /opt/ros/humble/share/rosidl_adapter/cmake/rosidl_adapt_interfaces.cmake:59 (message):
+[0.417s]   execute_process(/usr/bin/python3 -m rosidl_adapter --package-name
+[0.417s]   my_interfaces --arguments-file
+[0.417s]   /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter__arguments__my_interfaces.json
+[0.417s]   --output-dir
+[0.417s]   /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces
+[0.417s]   --output-file
+[0.417s]   /home/alex/Diplomatiki/ros/build/my_interfaces/rosidl_adapter/my_interfaces.idls)
+[0.418s]   returned error code 1:
+[0.418s] 
+[0.418s]   Error processing 'float64 delta_t_Ts' of 'my_interfaces/AgentData':
+[0.418s]   ''delta_t_Ts' is an invalid field name.  It should have the pattern
+[0.418s]   '^(?!.*__)(?!.*_$)[a-z][a-z0-9_]*$''
+[0.418s] 
+[0.418s]   Traceback (most recent call last):
+[0.419s] 
+[0.419s]     File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[0.419s]       return _run_code(code, main_globals, None,
+[0.419s]     File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+[0.419s]       exec(code, run_globals)
+[0.419s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/__main__.py", line 19, in <module>
+[0.419s]       sys.exit(main())
+[0.419s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/main.py", line 53, in main
+[0.420s]       abs_idl_file = convert_to_idl(
+[0.420s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/__init__.py", line 19, in convert_to_idl
+[0.420s]       return convert_msg_to_idl(
+[0.420s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/msg/__init__.py", line 28, in convert_msg_to_idl
+[0.420s]       msg = parse_message_string(package_name, input_file.stem, content)
+[0.420s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/parser.py", line 519, in parse_message_string
+[0.420s]       fields.append(Field(
+[0.420s]     File "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_adapter/parser.py", line 354, in __init__
+[0.421s]       raise NameError(
+[0.421s] 
+[0.421s]   NameError: 'delta_t_Ts' is an invalid field name.  It should have the
+[0.421s]   pattern '^(?!.*__)(?!.*_$)[a-z][a-z0-9_]*$'
+[0.421s] 
+[0.421s] Call Stack (most recent call first):
+[0.421s]   /opt/ros/humble/share/rosidl_cmake/cmake/rosidl_generate_interfaces.cmake:130 (rosidl_adapt_interfaces)
+[0.421s]   CMakeLists.txt:17 (rosidl_generate_interfaces)
+[0.422s] 
+[0.422s] [0m
+[0.422s] -- Configuring incomplete, errors occurred!
+[0.422s] See also "/home/alex/Diplomatiki/ros/build/my_interfaces/CMakeFiles/CMakeOutput.log".
+[0.425s] gmake: *** [Makefile:1827: cmake_check_build_system] Error 1
+[0.430s] Invoked command in '/home/alex/Diplomatiki/ros/build/my_interfaces' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/ros/build/my_interfaces -- -j6 -l6

@@ -85,6 +85,11 @@ static bool _AgentData__cdr_serialize(
     cdr << ros_message->simulation_time;
   }
 
+  // Field name: delta_t_ts
+  {
+    cdr << ros_message->delta_t_ts;
+  }
+
   // Field name: num_of_states
   {
     cdr << ros_message->num_of_states;
@@ -158,6 +163,11 @@ static bool _AgentData__cdr_deserialize(
   // Field name: simulation_time
   {
     cdr >> ros_message->simulation_time;
+  }
+
+  // Field name: delta_t_ts
+  {
+    cdr >> ros_message->delta_t_ts;
   }
 
   // Field name: num_of_states
@@ -254,6 +264,12 @@ size_t get_serialized_size_my_interfaces__msg__AgentData(
   // field.name simulation_time
   {
     size_t item_size = sizeof(ros_message->simulation_time);
+    current_alignment += item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // field.name delta_t_ts
+  {
+    size_t item_size = sizeof(ros_message->delta_t_ts);
     current_alignment += item_size +
       eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
   }
@@ -363,6 +379,14 @@ size_t max_serialized_size_my_interfaces__msg__AgentData(
     }
   }
   // member: simulation_time
+  {
+    size_t array_size = 1;
+
+    last_member_size = array_size * sizeof(uint64_t);
+    current_alignment += array_size * sizeof(uint64_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint64_t));
+  }
+  // member: delta_t_ts
   {
     size_t array_size = 1;
 

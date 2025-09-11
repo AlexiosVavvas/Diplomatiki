@@ -1,0 +1,56 @@
+[0.562s] Invoking command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data
+[0.770s] running egg_info
+[0.783s] writing ../../build/ergodic_exploration/ergodic_exploration.egg-info/PKG-INFO
+[0.784s] writing dependency_links to ../../build/ergodic_exploration/ergodic_exploration.egg-info/dependency_links.txt
+[0.784s] writing entry points to ../../build/ergodic_exploration/ergodic_exploration.egg-info/entry_points.txt
+[0.784s] writing requirements to ../../build/ergodic_exploration/ergodic_exploration.egg-info/requires.txt
+[0.784s] writing top-level names to ../../build/ergodic_exploration/ergodic_exploration.egg-info/top_level.txt
+[0.811s] reading manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[0.811s] adding license file 'LICENSE'
+[0.812s] writing manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[0.813s] running build
+[0.813s] running build_py
+[0.813s] copying ergodic_exploration/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.813s] copying ergodic_exploration/environment.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.813s] copying ergodic_exploration/agent_node.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.813s] copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.814s] copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.815s] copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.816s] copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.816s] copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.816s] copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.816s] copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.816s] copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.817s] copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.817s] copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.817s] copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.817s] copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
+[0.817s] running install
+[0.821s] running install_lib
+[0.834s] copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+[0.834s] byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/vis.py to vis.cpython-310.pyc
+[0.844s] running install_data
+[0.844s] copying resource/ergodic_exploration -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages
+[0.844s] copying package.xml -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration
+[0.844s] copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.844s] copying meshes/car.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.846s] copying meshes/hermes.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.846s] copying meshes/boat.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.847s] running install_egg_info
+[0.860s] removing '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info' (and everything under it)
+[0.860s] Copying ../../build/ergodic_exploration/ergodic_exploration.egg-info to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info
+[0.861s] running install_scripts
+[0.888s] Installing agent_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration
+[0.888s] Installing environment_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration
+[0.888s] writing list of installed files to '/home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log'
+[0.918s] Invoked command in '/home/alex/Diplomatiki/ros/src/ergodic_exploration' returned '0': PYTHONPATH=/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/ros/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log --single-version-externally-managed install_data

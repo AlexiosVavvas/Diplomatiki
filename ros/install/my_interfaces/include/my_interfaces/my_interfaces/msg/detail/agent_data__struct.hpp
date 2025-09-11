@@ -44,6 +44,7 @@ struct AgentData_
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->simulation_time = 0.0;
+      this->delta_t_ts = 0.0;
       this->num_of_states = 0;
       this->num_of_inputs = 0;
       this->ergodic_cost = 0.0;
@@ -58,6 +59,7 @@ struct AgentData_
       rosidl_runtime_cpp::MessageInitialization::ZERO == _init)
     {
       this->simulation_time = 0.0;
+      this->delta_t_ts = 0.0;
       this->num_of_states = 0;
       this->num_of_inputs = 0;
       this->ergodic_cost = 0.0;
@@ -72,6 +74,9 @@ struct AgentData_
   using _simulation_time_type =
     double;
   _simulation_time_type simulation_time;
+  using _delta_t_ts_type =
+    double;
+  _delta_t_ts_type delta_t_ts;
   using _num_of_states_type =
     int8_t;
   _num_of_states_type num_of_states;
@@ -105,6 +110,12 @@ struct AgentData_
     const double & _arg)
   {
     this->simulation_time = _arg;
+    return *this;
+  }
+  Type & set__delta_t_ts(
+    const double & _arg)
+  {
+    this->delta_t_ts = _arg;
     return *this;
   }
   Type & set__num_of_states(
@@ -196,6 +207,9 @@ struct AgentData_
       return false;
     }
     if (this->simulation_time != other.simulation_time) {
+      return false;
+    }
+    if (this->delta_t_ts != other.delta_t_ts) {
       return false;
     }
     if (this->num_of_states != other.num_of_states) {

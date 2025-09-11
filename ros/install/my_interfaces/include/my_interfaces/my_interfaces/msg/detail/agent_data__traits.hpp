@@ -43,6 +43,13 @@ inline void to_flow_style_yaml(
     out << ", ";
   }
 
+  // member: delta_t_ts
+  {
+    out << "delta_t_ts: ";
+    rosidl_generator_traits::value_to_yaml(msg.delta_t_ts, out);
+    out << ", ";
+  }
+
   // member: num_of_states
   {
     out << "num_of_states: ";
@@ -146,6 +153,16 @@ inline void to_block_style_yaml(
     }
     out << "simulation_time: ";
     rosidl_generator_traits::value_to_yaml(msg.simulation_time, out);
+    out << "\n";
+  }
+
+  // member: delta_t_ts
+  {
+    if (indentation > 0) {
+      out << std::string(indentation, ' ');
+    }
+    out << "delta_t_ts: ";
+    rosidl_generator_traits::value_to_yaml(msg.delta_t_ts, out);
     out << "\n";
   }
 

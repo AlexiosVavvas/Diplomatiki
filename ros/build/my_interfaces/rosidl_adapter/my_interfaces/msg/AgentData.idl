@@ -16,6 +16,10 @@ module my_interfaces {
 
       double simulation_time;
 
+      @verbatim (language="comment", text=
+        "Ratio of real time for ergodic calculation over expected")
+      double delta_t_ts;
+
       int8 num_of_states;
 
       int8 num_of_inputs;

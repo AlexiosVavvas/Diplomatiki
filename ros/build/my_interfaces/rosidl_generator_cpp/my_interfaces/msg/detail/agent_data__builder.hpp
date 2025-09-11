@@ -133,16 +133,32 @@ private:
   ::my_interfaces::msg::AgentData msg_;
 };
 
+class Init_AgentData_delta_t_ts
+{
+public:
+  explicit Init_AgentData_delta_t_ts(::my_interfaces::msg::AgentData & msg)
+  : msg_(msg)
+  {}
+  Init_AgentData_num_of_states delta_t_ts(::my_interfaces::msg::AgentData::_delta_t_ts_type arg)
+  {
+    msg_.delta_t_ts = std::move(arg);
+    return Init_AgentData_num_of_states(msg_);
+  }
+
+private:
+  ::my_interfaces::msg::AgentData msg_;
+};
+
 class Init_AgentData_simulation_time
 {
 public:
   explicit Init_AgentData_simulation_time(::my_interfaces::msg::AgentData & msg)
   : msg_(msg)
   {}
-  Init_AgentData_num_of_states simulation_time(::my_interfaces::msg::AgentData::_simulation_time_type arg)
+  Init_AgentData_delta_t_ts simulation_time(::my_interfaces::msg::AgentData::_simulation_time_type arg)
   {
     msg_.simulation_time = std::move(arg);
-    return Init_AgentData_num_of_states(msg_);
+    return Init_AgentData_delta_t_ts(msg_);
   }
 
 private:

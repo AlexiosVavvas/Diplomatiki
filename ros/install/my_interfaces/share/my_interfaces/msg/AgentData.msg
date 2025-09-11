@@ -3,6 +3,7 @@
 
 std_msgs/Header header           # Standard ROS header with timestamp and frame_id
 float64 simulation_time
+float64 delta_t_ts               # Ratio of real time for ergodic calculation over expected
 
 int8 num_of_states
 int8 num_of_inputs

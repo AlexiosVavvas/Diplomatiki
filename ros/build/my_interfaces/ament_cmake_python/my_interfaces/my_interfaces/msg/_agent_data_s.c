@@ -77,6 +77,15 @@ bool my_interfaces__msg__agent_data__convert_from_py(PyObject * _pymsg, void * _
     ros_message->simulation_time = PyFloat_AS_DOUBLE(field);
     Py_DECREF(field);
   }
+  {  // delta_t_ts
+    PyObject * field = PyObject_GetAttrString(_pymsg, "delta_t_ts");
+    if (!field) {
+      return false;
+    }
+    assert(PyFloat_Check(field));
+    ros_message->delta_t_ts = PyFloat_AS_DOUBLE(field);
+    Py_DECREF(field);
+  }
   {  // num_of_states
     PyObject * field = PyObject_GetAttrString(_pymsg, "num_of_states");
     if (!field) {
@@ -340,6 +349,17 @@ PyObject * my_interfaces__msg__agent_data__convert_to_py(void * raw_ros_message)
     field = PyFloat_FromDouble(ros_message->simulation_time);
     {
       int rc = PyObject_SetAttrString(_pymessage, "simulation_time", field);
+      Py_DECREF(field);
+      if (rc) {
+        return NULL;
+      }
+    }
+  }
+  {  // delta_t_ts
+    PyObject * field = NULL;
+    field = PyFloat_FromDouble(ros_message->delta_t_ts);
+    {
+      int rc = PyObject_SetAttrString(_pymessage, "delta_t_ts", field);
       Py_DECREF(field);
       if (rc) {
         return NULL;

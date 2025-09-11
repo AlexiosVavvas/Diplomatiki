@@ -35,6 +35,8 @@ typedef struct my_interfaces__msg__AgentData
   /// Standard ROS header with timestamp and frame_id
   std_msgs__msg__Header header;
   double simulation_time;
+  /// Ratio of real time for ergodic calculation over expected
+  double delta_t_ts;
   int8_t num_of_states;
   int8_t num_of_inputs;
   rosidl_runtime_c__double__Sequence states;

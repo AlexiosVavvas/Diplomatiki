@@ -31,6 +31,7 @@ my_interfaces__msg__AgentData__init(my_interfaces__msg__AgentData * msg)
     return false;
   }
   // simulation_time
+  // delta_t_ts
   // num_of_states
   // num_of_inputs
   // states
@@ -62,6 +63,7 @@ my_interfaces__msg__AgentData__fini(my_interfaces__msg__AgentData * msg)
   // header
   std_msgs__msg__Header__fini(&msg->header);
   // simulation_time
+  // delta_t_ts
   // num_of_states
   // num_of_inputs
   // states
@@ -88,6 +90,10 @@ my_interfaces__msg__AgentData__are_equal(const my_interfaces__msg__AgentData * l
   }
   // simulation_time
   if (lhs->simulation_time != rhs->simulation_time) {
+    return false;
+  }
+  // delta_t_ts
+  if (lhs->delta_t_ts != rhs->delta_t_ts) {
     return false;
   }
   // num_of_states
@@ -143,6 +149,8 @@ my_interfaces__msg__AgentData__copy(
   }
   // simulation_time
   output->simulation_time = input->simulation_time;
+  // delta_t_ts
+  output->delta_t_ts = input->delta_t_ts;
   // num_of_states
   output->num_of_states = input->num_of_states;
   // num_of_inputs

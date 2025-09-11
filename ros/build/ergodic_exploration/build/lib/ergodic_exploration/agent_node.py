@@ -568,7 +568,7 @@ def main(args=None):
             if not shutdown_flag.is_set() and i % 30 == 0:
                 agent.publishData(state_now=agent.model.state, u_input_now=u, erg_cost_now=erg_cost, 
                                   active_cbf_flag=True if int(np.any(u_safe != 0)) == 1 else False,
-                                  time_now=time_list[i])
+                                  time_now=time_list[i], delta_t_Ts=delta_time / agent.erg_c.Ts)
 
             # TODO: Here we should simulate forward for simulation_dt with a dt, instead of stepping. Implement model simulation function
             agent.model.state = agent.model.step(agent.model.state, u)         # Step the model with the control action
@@ -613,6 +613,11 @@ def main(args=None):
             # delta_time is for when we calculated ergodic control. Otherwise we dont care, its fast
             delta_time = current_time - last_iter_time if (i%Ts_iter == 0) else delta_time
             last_iter_time = current_time
+
+            # if delta_time < Ts_iter: delay 
+            # if delta_time < agent.erg_c.Ts:
+            #     time.sleep(agent.erg_c.Ts - delta_time)
+            #     delta_time = agent.erg_c.Ts  # We waited the remaining time
             
             i += 1
 

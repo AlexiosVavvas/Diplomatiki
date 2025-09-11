@@ -7,6 +7,7 @@ from matplotlib.widgets import Button
 from matplotlib.patches import Circle, Rectangle, Polygon
 import os
 import colorsys
+import argparse
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
@@ -88,8 +89,11 @@ def updateGlobalBounds(l_bounds_list):
                     print(f"Updated global bounds: L1=[{L1_BOUNDS[0]:.3f}, {L1_BOUNDS[1]:.3f}], L2=[{L2_BOUNDS[0]:.3f}, {L2_BOUNDS[1]:.3f}]")
 
 class LiveDashboard(Node):
-    def __init__(self):
+    def __init__(self, allowed_agents=None):
         super().__init__('dashboard_node')
+        
+        # Store allowed agents filter
+        self.allowed_agents = set(allowed_agents) if allowed_agents else None
         
         # Create QoS profile for best effort communication
         # This allows for faster data transmission with potential message loss
@@ -109,6 +113,9 @@ class LiveDashboard(Node):
         
         self.control_fig, self.control_ax = plt.subplots(1, 1, figsize=(10, 6))
         self.control_fig.suptitle('Control Inputs', fontsize=14)
+        
+        self.delta_t_fig, self.delta_t_ax = plt.subplots(1, 1, figsize=(10, 6))
+        self.delta_t_fig.suptitle('Delta T Timestamps', fontsize=14)
         
         # Auto-refresh flag
         self.auto_refresh = True
@@ -143,26 +150,38 @@ class LiveDashboard(Node):
         # Set up key press event on agent trajectory figure
         self.traj_fig.canvas.mpl_connect('key_press_event', self.onKeyPress)
         
-        # Initialize animation with faster update rate
+        # Initialize animation with faster update rate (using delta_t_fig as the animation target)
         self.anim = animation.FuncAnimation(
-            self.control_fig, self.updatePlots, interval=50, blit=False, cache_frame_data=False
+            self.delta_t_fig, self.updatePlots, interval=50, blit=False, cache_frame_data=False
         )
         
         # Perform initial discovery
         self.discoverAgents()
         
-        self.get_logger().info('Dashboard initialized - discovering agents dynamically')
+        # Log filtering information
+        if self.allowed_agents:
+            self.get_logger().info(f'Dashboard initialized with agent filter: {sorted(self.allowed_agents)} - discovering all agents but only processing filtered ones')
+        else:
+            self.get_logger().info('Dashboard initialized - discovering all agents dynamically')
 
     def displayAgentColors(self):
         """Display discovered agents with their color mappings"""
-        if not self.discovered_agents:
+        # Filter agents if allowed_agents is set
+        agents_to_display = self.discovered_agents
+        if self.allowed_agents:
+            agents_to_display = self.discovered_agents.intersection(self.allowed_agents)
+        
+        if not agents_to_display:
             return
             
         print("\n" + "="*60)
-        print("🎨 Agent Color Mappings (Dashboard & RViz consistent)")
+        if self.allowed_agents:
+            print("🎨 Agent Color Mappings (Dashboard & RViz consistent) - FILTERED")
+        else:
+            print("🎨 Agent Color Mappings (Dashboard & RViz consistent)")
         print("="*60)
         
-        for agent_id in sorted(self.discovered_agents):
+        for agent_id in sorted(agents_to_display):
             r, g, b = getAgentColorRgb255(agent_id)
             
             # Create colored box and text
@@ -170,6 +189,11 @@ class LiveDashboard(Node):
             colored_agent_text = createColoredText(r, g, b, f"Agent {agent_id}")
             
             print(f"  {colored_box} {colored_agent_text}: RGB({r}, {g}, {b})")
+        
+        if self.allowed_agents:
+            filtered_out = self.discovered_agents - self.allowed_agents
+            if filtered_out:
+                print(f"  Discovered but filtered out: {sorted(filtered_out)}")
         
         print("="*60)
         print("Colors will appear consistently in both dashboard plots and RViz visualization")
@@ -194,7 +218,8 @@ class LiveDashboard(Node):
                     agent_id = int(match.group(1))
                     current_agents.add(agent_id)
                     
-                    # Create subscriber if this is a new agent
+                    # Create subscriber if this is a new agent (regardless of filtering)
+                    # We discover all agents but only process data for filtered ones
                     if agent_id not in self.discovered_agents:
                         self.createAgentSubscriber(agent_id)
             
@@ -205,7 +230,11 @@ class LiveDashboard(Node):
             
             # Update discovered agents
             if current_agents != self.discovered_agents:
-                self.get_logger().info(f'Active agents: {sorted(current_agents)}')
+                if self.allowed_agents:
+                    filtered_current = current_agents.intersection(self.allowed_agents)
+                    self.get_logger().info(f'Active agents: {sorted(current_agents)}, filtered: {sorted(filtered_current)}')
+                else:
+                    self.get_logger().info(f'Active agents: {sorted(current_agents)}')
                 self.discovered_agents = current_agents
                 
                 # Display colored agent mappings
@@ -239,20 +268,19 @@ class LiveDashboard(Node):
                 'inputs': [],
                 'ergodic_costs': [],
                 'cbf_flags': [],
-                'in_range_agents_ids': []
+                'in_range_agents_ids': [],
+                'delta_t_ts': []  # Store delta_t_ts from AgentData messages
             }
         
         with self.ck_lock:
             # Initialize CK data storage for new agent
-            self.ck_data[agent_id] = {
-                'timestamps': [],
-                'ck_tables': [],
-                'table_size': None,
-                'total_erg_costs': [],
-                'l_bounds': []  # Store l_bounds for dynamic boundary updates
-            }
-        
-        # Create agent data subscriber
+                self.ck_data[agent_id] = {
+                    'timestamps': [],
+                    'ck_tables': [],
+                    'table_size': None,
+                    'total_erg_costs': [],
+                    'l_bounds': []  # Store l_bounds for dynamic boundary updates
+                }        # Create agent data subscriber
         subscriber = self.create_subscription(
             AgentData,
             f'agent_{agent_id}/data',
@@ -363,6 +391,10 @@ class LiveDashboard(Node):
         """Callback function for agent data messages"""
         if self._shutdown_requested:
             return
+        
+        # Skip processing if this agent is not in the allowed list
+        if self.allowed_agents and agent_id not in self.allowed_agents:
+            return
             
         # Extract timestamp from ROS header (convert from nanoseconds to seconds)
         ros_time = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
@@ -386,6 +418,13 @@ class LiveDashboard(Node):
             data['ergodic_costs'].append(msg.ergodic_cost)
             data['cbf_flags'].append(msg.active_cbf_flag)
             data['in_range_agents_ids'].append(list(msg.in_range_agents_ids))  # Store communication connections
+            
+            # Store delta_t_ts if available
+            if hasattr(msg, 'delta_t_ts'):
+                data['delta_t_ts'].append(msg.delta_t_ts)
+            else:
+                # If not available, append 0.0 to maintain array consistency
+                data['delta_t_ts'].append(0.0)
 
             # Keep only the last 100000 data points to avoid memory issues but show more history
             max_points = int(1e5/2.5)
@@ -397,6 +436,10 @@ class LiveDashboard(Node):
     def obstaclesCallback(self, msg, agent_id):
         """Callback function for obstacle data messages"""
         if self._shutdown_requested:
+            return
+        
+        # Skip processing if this agent is not in the allowed list
+        if self.allowed_agents and agent_id not in self.allowed_agents:
             return
             
         with self.obstacles_lock:
@@ -420,6 +463,10 @@ class LiveDashboard(Node):
     def targetEstimatesCallback(self, msg, agent_id):
         """Callback function for target estimates data messages"""
         if self._shutdown_requested:
+            return
+        
+        # Skip processing if this agent is not in the allowed list
+        if self.allowed_agents and agent_id not in self.allowed_agents:
             return
             
         with self.target_estimates_lock:
@@ -449,6 +496,10 @@ class LiveDashboard(Node):
     def ckCallback(self, msg, agent_id):
         """Callback function for CK table data messages"""
         if self._shutdown_requested:
+            return
+        
+        # Skip processing if this agent is not in the allowed list
+        if self.allowed_agents and agent_id not in self.allowed_agents:
             return
             
         # sim_time = the last of the ones in the agent data
@@ -522,6 +573,7 @@ class LiveDashboard(Node):
         self.control_ax.clear()
         self.ergodic_ax.clear()
         self.traj_ax.clear()
+        self.delta_t_ax.clear()
         
         # Reset titles and grids
         self.control_ax.set_title('Control Inputs')
@@ -529,6 +581,9 @@ class LiveDashboard(Node):
         
         self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
         self.ergodic_ax.grid(True)
+        
+        self.delta_t_ax.set_title('Delta T Timestamps')
+        self.delta_t_ax.grid(True)
         
         # Use current dynamic bounds
         with BOUNDS_LOCK:
@@ -541,7 +596,7 @@ class LiveDashboard(Node):
         self.traj_ax.grid(True)
         
         # Draw all figures
-        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig]:
+        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]:
             fig.canvas.draw()
             
     def updatePlots(self, frame):
@@ -552,11 +607,16 @@ class LiveDashboard(Node):
         self.control_ax.clear()
         self.ergodic_ax.clear()
         self.traj_ax.clear()
+        self.delta_t_ax.clear()
         
         # Create a thread-safe shallow copy of the data structure, but reference arrays directly
         with self.data_lock:
             agent_data_refs = {}
             for agent_id, data in self.agent_data.items():
+                # Skip agents not in the allowed list
+                if self.allowed_agents and agent_id not in self.allowed_agents:
+                    continue
+                    
                 # Only copy the structure, not the large arrays
                 # Also limit to recent data points for performance
                 max_plot_points = 1000  # Limit plotting to last 1000 points
@@ -566,7 +626,8 @@ class LiveDashboard(Node):
                     'ergodic_costs': data['ergodic_costs'][-max_plot_points:],
                     'cbf_flags': data['cbf_flags'][-max_plot_points:],
                     'states': data['states'][-max_plot_points:],
-                    'in_range_agents_ids': data['in_range_agents_ids'][-max_plot_points:]
+                    'in_range_agents_ids': data['in_range_agents_ids'][-max_plot_points:],
+                    'delta_t_ts': data['delta_t_ts'][-max_plot_points:]
                 }
             
         # Plot 1: Control Inputs (multi-agent)
@@ -652,6 +713,10 @@ class LiveDashboard(Node):
         with self.ck_lock:
             ck_data_refs = {}
             for agent_id, data in self.ck_data.items():
+                # Skip agents not in the allowed list
+                if self.allowed_agents and agent_id not in self.allowed_agents:
+                    continue
+                    
                 # Only reference the arrays we need, and limit points for performance
                 max_plot_points = 1000
                 ck_data_refs[agent_id] = {
@@ -696,6 +761,45 @@ class LiveDashboard(Node):
         # Set x-axis limits based on maximum time found
         # if max_time > 0:
         #     self.ergodic_ax.set_xlim(0, max_time * 1.05)  # Add 5% padding
+        
+        # Plot 4: Delta T Timestamps (multi-agent) from AgentData messages
+        # First, find the maximum sample count across all agents
+        max_samples = 0
+        valid_agents = []
+        for agent_id in sorted(agent_data_refs.keys()):
+            data = agent_data_refs[agent_id]
+            if len(data['delta_t_ts']) > 0:
+                max_samples = max(max_samples, len(data['delta_t_ts']))
+                valid_agents.append(agent_id)
+        
+        # Plot each agent's delta_t_ts using the common x-axis range
+        for agent_id in valid_agents:
+            data = agent_data_refs[agent_id]
+            color = generateAgentColor(agent_id)
+            
+            try:
+                delta_t_ts_array = np.array(data['delta_t_ts'])
+                
+                if len(delta_t_ts_array) > 0:
+                    # Use sequential index starting from the end of the max range
+                    # This aligns all agents to the "current time" (right side of plot)
+                    start_idx = max_samples - len(delta_t_ts_array)
+                    x_axis = np.arange(start_idx, max_samples)
+                    
+                    self.delta_t_ax.plot(x_axis, delta_t_ts_array, 
+                                       label=f'Delta T - Agent {agent_id}', 
+                                       linewidth=2, color=color)
+            except (ValueError, IndexError) as e:
+                    # Skip this agent if data is inconsistent
+                    continue
+        # Add horizontal black dashed line at y = 1
+        self.delta_t_ax.axhline(y=1.0, color='black', linestyle='--', linewidth=1, label='Ideal Delta T = 1s')
+        self.delta_t_ax.set_title('Delta T Timestamps from AgentData Messages')
+        if self.delta_t_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
+            self.delta_t_ax.legend()
+        self.delta_t_ax.grid(True)
+        self.delta_t_ax.set_xlabel('Sample Index')
+        self.delta_t_ax.set_ylabel('Delta T [s]')
             
         # Plot 3: Agent Trajectories (multi-agent)
         with BOUNDS_LOCK:
@@ -750,7 +854,7 @@ class LiveDashboard(Node):
         self.traj_ax.set_ylabel('Y Position')
 
         # Draw all figures
-        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig]:
+        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]:
             fig.canvas.draw()
     
     def drawObstacles(self, ax):
@@ -875,8 +979,13 @@ class LiveDashboard(Node):
     def drawTargetEstimates(self, ax):
         """Draw target estimates with ellipses and ground truth with black X marks"""
         with self.target_estimates_lock:
-            # Just get shallow references to avoid deep copying
-            target_data_refs = dict(self.target_estimates_data)
+            # Just get shallow references to avoid deep copying, filtered by allowed agents
+            target_data_refs = {}
+            for agent_id, data in self.target_estimates_data.items():
+                # Skip agents not in the allowed list
+                if self.allowed_agents and agent_id not in self.allowed_agents:
+                    continue
+                target_data_refs[agent_id] = data
         
         # Draw target estimates and ground truths from each agent
         for agent_id, data in target_data_refs.items():
@@ -1040,7 +1149,17 @@ def rosSpinThread(dashboard, shutdown_event):
 
 import signal
 
+def parseArguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='ROS2 Multi-Agent Dashboard')
+    parser.add_argument('--agents', nargs='+', type=int, metavar='ID',
+                        help='Specify agent IDs to filter (e.g., --agents 1 3 4). If not specified, all discovered agents will be shown.')
+    return parser.parse_args()
+
 def main():
+    # Parse command line arguments
+    args = parseArguments()
+    
     # Initialize ROS
     rclpy.init()
 
@@ -1048,7 +1167,7 @@ def main():
     dashboard = None
     
     try:
-        dashboard = LiveDashboard()
+        dashboard = LiveDashboard(allowed_agents=args.agents)
 
         # Shutdown event for clean exit
         shutdown_event = threading.Event()
@@ -1073,6 +1192,13 @@ def main():
         print("- Agents, obstacles, and target estimates will be automatically discovered from running nodes")
         print("- Target estimates shown as colored ellipses (2-sigma confidence), ground truth as black X marks")
         print("- Agent colors are consistent between dashboard and RViz (use same color generation)")
+        print("- Four plot windows: Control Inputs, Ergodic Cost, Agent Trajectories, and Delta T Timestamps")
+        
+        if args.agents:
+            print(f"- FILTERING: Only processing data for agents: {sorted(args.agents)}")
+        else:
+            print("- Processing data for all discovered agents")
+        
         print("\nWaiting for agent discovery...")
 
         try:

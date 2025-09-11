@@ -788,7 +788,7 @@ class Agent(Node):
         msg.position.z = 0.0        # Assuming 2D plane for ergodic exploration
         self.ck_publisher.publish(msg)
 
-    def publishData(self, state_now, u_input_now, erg_cost_now, active_cbf_flag, time_now):
+    def publishData(self, state_now, u_input_now, erg_cost_now, active_cbf_flag, time_now, delta_t_Ts):
         """
         Publish agent data to a ROS topic
         """
@@ -796,6 +796,7 @@ class Agent(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = f"agent_{self.agent_id}"
         msg.simulation_time = float(time_now)
+        msg.delta_t_ts = delta_t_Ts
         msg.num_of_states = self.model.num_of_states
         msg.num_of_inputs = self.model.num_of_inputs
         msg.states = [float(x) for x in state_now.flatten()]

@@ -68,6 +68,7 @@ class AgentData(metaclass=Metaclass_AgentData):
     __slots__ = [
         '_header',
         '_simulation_time',
+        '_delta_t_ts',
         '_num_of_states',
         '_num_of_inputs',
         '_states',
@@ -80,6 +81,7 @@ class AgentData(metaclass=Metaclass_AgentData):
     _fields_and_field_types = {
         'header': 'std_msgs/Header',
         'simulation_time': 'double',
+        'delta_t_ts': 'double',
         'num_of_states': 'int8',
         'num_of_inputs': 'int8',
         'states': 'sequence<double>',
@@ -91,6 +93,7 @@ class AgentData(metaclass=Metaclass_AgentData):
 
     SLOT_TYPES = (
         rosidl_parser.definition.NamespacedType(['std_msgs', 'msg'], 'Header'),  # noqa: E501
+        rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.BasicType('double'),  # noqa: E501
         rosidl_parser.definition.BasicType('int8'),  # noqa: E501
         rosidl_parser.definition.BasicType('int8'),  # noqa: E501
@@ -108,6 +111,7 @@ class AgentData(metaclass=Metaclass_AgentData):
         from std_msgs.msg import Header
         self.header = kwargs.get('header', Header())
         self.simulation_time = kwargs.get('simulation_time', float())
+        self.delta_t_ts = kwargs.get('delta_t_ts', float())
         self.num_of_states = kwargs.get('num_of_states', int())
         self.num_of_inputs = kwargs.get('num_of_inputs', int())
         self.states = array.array('d', kwargs.get('states', []))
@@ -148,6 +152,8 @@ class AgentData(metaclass=Metaclass_AgentData):
         if self.header != other.header:
             return False
         if self.simulation_time != other.simulation_time:
+            return False
+        if self.delta_t_ts != other.delta_t_ts:
             return False
         if self.num_of_states != other.num_of_states:
             return False
@@ -198,6 +204,21 @@ class AgentData(metaclass=Metaclass_AgentData):
             assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
                 "The 'simulation_time' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
         self._simulation_time = value
+
+    @builtins.property
+    def delta_t_ts(self):
+        """Message field 'delta_t_ts'."""
+        return self._delta_t_ts
+
+    @delta_t_ts.setter
+    def delta_t_ts(self, value):
+        if __debug__:
+            assert \
+                isinstance(value, float), \
+                "The 'delta_t_ts' field must be of type 'float'"
+            assert not (value < -1.7976931348623157e+308 or value > 1.7976931348623157e+308) or math.isinf(value), \
+                "The 'delta_t_ts' field must be a double in [-1.7976931348623157e+308, 1.7976931348623157e+308]"
+        self._delta_t_ts = value
 
     @builtins.property
     def num_of_states(self):

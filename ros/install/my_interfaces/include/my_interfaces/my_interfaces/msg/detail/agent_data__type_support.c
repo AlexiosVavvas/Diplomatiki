@@ -206,7 +206,7 @@ bool my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__resize_f
   return rosidl_runtime_c__int8__Sequence__init(member, size);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array[9] = {
+static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array[10] = {
   {
     "header",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_MESSAGE,  // type
@@ -233,6 +233,23 @@ static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__Age
     0,  // array size
     false,  // is upper bound
     offsetof(my_interfaces__msg__AgentData, simulation_time),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL,  // fetch(index, &value) function pointer
+    NULL,  // assign(index, value) function pointer
+    NULL  // resize(index) function pointer
+  },
+  {
+    "delta_t_ts",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces__msg__AgentData, delta_t_ts),  // bytes offset in struct
     NULL,  // default value
     NULL,  // size() function pointer
     NULL,  // get_const(index) function pointer
@@ -365,7 +382,7 @@ static rosidl_typesupport_introspection_c__MessageMember my_interfaces__msg__Age
 static const rosidl_typesupport_introspection_c__MessageMembers my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_members = {
   "my_interfaces__msg",  // message namespace
   "AgentData",  // message name
-  9,  // number of fields
+  10,  // number of fields
   sizeof(my_interfaces__msg__AgentData),
   my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_message_member_array,  // message members
   my_interfaces__msg__AgentData__rosidl_typesupport_introspection_c__AgentData_init_function,  // function to initialize message memory (memory has to be allocated)

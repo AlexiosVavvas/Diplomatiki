@@ -172,7 +172,7 @@ void resize_function__AgentData__in_range_agents_ids(void * untyped_member, size
   member->resize(size);
 }
 
-static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_message_member_array[9] = {
+static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_message_member_array[10] = {
   {
     "header",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE,  // type
@@ -199,6 +199,23 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_mes
     0,  // array size
     false,  // is upper bound
     offsetof(my_interfaces::msg::AgentData, simulation_time),  // bytes offset in struct
+    nullptr,  // default value
+    nullptr,  // size() function pointer
+    nullptr,  // get_const(index) function pointer
+    nullptr,  // get(index) function pointer
+    nullptr,  // fetch(index, &value) function pointer
+    nullptr,  // assign(index, value) function pointer
+    nullptr  // resize(index) function pointer
+  },
+  {
+    "delta_t_ts",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    false,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(my_interfaces::msg::AgentData, delta_t_ts),  // bytes offset in struct
     nullptr,  // default value
     nullptr,  // size() function pointer
     nullptr,  // get_const(index) function pointer
@@ -331,7 +348,7 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember AgentData_mes
 static const ::rosidl_typesupport_introspection_cpp::MessageMembers AgentData_message_members = {
   "my_interfaces::msg",  // message namespace
   "AgentData",  // message name
-  9,  // number of fields
+  10,  // number of fields
   sizeof(my_interfaces::msg::AgentData),
   AgentData_message_member_array,  // message members
   AgentData_init_function,  // function to initialize message memory (memory has to be allocated)
