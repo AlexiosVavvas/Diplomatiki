@@ -77,6 +77,14 @@ The system now leverages **ROS2 Humble** for inter-agent communication and real-
 <div align="center">
 <img src="images/images/ros/rviz_screenshot_w_boat.png" width="80%" alt="RViz 3D Visualization">
 </div>
+<div align="center">
+<img src="images/images/ros/rviz_screenshot_w_boat_and_car.png" width="80%" alt="RViz 3D Visualization">
+</div>
+<div align="center">
+<img src="images/images/ros/rviz_screen_airplane.png" width="80%" alt="RViz 3D Visualization">
+</div>
+*Airplane control 12-DoF non linear model, with direct inputs (elevator, aileron, rudder angles + throttle command)*
+<br><br>
 *RViz 3D visualization showing multi-agent trajectories, target positions, and obstacle avoidance in real-time. The environment node publishes visualization markers for comprehensive 3D monitoring of the ergodic exploration system.*
 
 <br><br>
@@ -84,15 +92,30 @@ The system now leverages **ROS2 Humble** for inter-agent communication and real-
 ## Key Components
 
 ### Dynamics Models
-- `model_dynamics.py`: Implementation of various dynamics models including:
   - `SingleIntegrator`: Simple first-order dynamics
   - `DoubleIntegrator`: Second-order dynamics
+  - `SimpleBoatSecondOrder`: 5-state nonlinear boat model with:
+    - 2D position, heading, surge speed, and yaw rate
+    - Thrust and rudder control inputs
+    - Nonlinear drag and rudder effectiveness
+    - Realistic marine dynamics for small robotic hulls
+  - `SimpleCarSecondOrder`: 6-state nonlinear car model with:
+    - 2D position, heading, speed, steering angle, and yaw rate
+    - Drive force and steering command inputs
+    - Nonlinear drag, steering actuator, and yaw dynamics
+    - Suitable for small UGVs and ground robots
   - `Quadcopter`: Full 12-DoF quadrotor model with realistic dynamics including:
     - Position (x, y, z)
     - Orientation (roll, pitch, yaw)
     - Linear and angular velocities
     - Motor command mixing and thrust generation
     - LQR stabilization with customizable gains for obstacle avoidance
+  - `FixedWing12DOFTrainer`: Full 12-DoF fixed-wing airplane model with:
+    - 3D position and orientation (Euler angles)
+    - Linear and angular velocities
+    - Nonlinear aerodynamic forces and moments
+    - Control surfaces (elevator, aileron, rudder) and throttle input
+    - Runge-Kutta 4 integration and trim/linearization utilities
 
 ### Control
 - `ergodic_controllers.py`: Core implementation of ergodic control strategies:
