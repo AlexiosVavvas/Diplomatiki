@@ -8,9 +8,8 @@ Ideas for another time
 
 
 Features
-    - change boundaries service, change kmax service (maybe have many precomputed to chose from)
-    
-    - Visualisation from a ROS Bag for my applications (maybe create dummy nodes?)
+    - change boundaries service 
+    - change kmax service (maybe have many precomputed to chose from)
 
 
 Today
@@ -33,6 +32,7 @@ Done -----------------------------
     - Add drone stl in the place of Double Integrator
     - Wall obstacles only 10 meters long by default? change that for Rviz etc
     - Somehow move obstacles outside agent_node. In a configuration file or smth
+    - Visualisation from a ROS Bag for my applications (maybe create dummy nodes?)
 
 
 
