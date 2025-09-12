@@ -14,6 +14,12 @@ from rcl_interfaces.srv import GetParameters
 import colorsys
 from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 
+
+# Map Parameters
+MAP_WIDTH = 20.0        # [m] - Usually 20 (Airplane 200)
+MAP_HEIGHT = 20.0       # [m] - Usually 20 (Airplane 200)
+MAP_RESOLUTION = 0.05   # [pixels/m] - Usually 0.05 (Airplane 1.0)
+
 class EnvironmentNode(Node):
     def __init__(self):
         super().__init__('environment')
@@ -65,9 +71,9 @@ class EnvironmentNode(Node):
         self.map_publisher = self.create_publisher(OccupancyGrid, 'obstacle_map', 10)
         
         # Map parameters
-        self.map_width = 20.0      # Map width in meters (0 to 20)
-        self.map_height = 20.0     # Map height in meters (0 to 20)
-        self.map_resolution = 0.05 # Grid resolution in meters/pixel (20 pixels per meter)
+        self.map_width = MAP_WIDTH             # Map width in meters (0 to 500)
+        self.map_height = MAP_HEIGHT           # Map height in meters (0 to 500)
+        self.map_resolution = MAP_RESOLUTION   # Grid resolution in meters/pixel (1 pixel per meter)
         self.grid_width = int(self.map_width / self.map_resolution)
         self.grid_height = int(self.map_height / self.map_resolution)
         
@@ -350,20 +356,59 @@ class EnvironmentNode(Node):
                         'delta': delta,
                         'omega': omega,
                         'is_boat': False,
-                        'is_car': True
+                        'is_car': True,
+                        'is_airplane': False
                     }
                     
                     # Debug logging for car detection
                     # self.get_logger().info(f'Agent {agent_id} detected as car - model_type: {model_type}, psi: {psi:.2f}')
                     
+                elif model_type == "FixedWing12DOFTrainer" and len(msg.states) >= 12:
+                    # For airplane: states are [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+                    z_pos = msg.states[2]    # Altitude
+                    phi = msg.states[3]      # Roll angle
+                    theta = msg.states[4]    # Pitch angle
+                    psi = msg.states[5]      # Yaw angle
+                    u_vel = msg.states[6]    # Body-frame x velocity
+                    v_vel = msg.states[7]    # Body-frame y velocity
+                    w_vel = msg.states[8]    # Body-frame z velocity
+                    p_rate = msg.states[9]   # Roll rate
+                    q_rate = msg.states[10]  # Pitch rate
+                    r_rate = msg.states[11]  # Yaw rate
+                    
+                    self.agent_states[agent_id] = {
+                        'x': x,
+                        'y': y,
+                        'z': z_pos,
+                        'phi': phi,
+                        'theta': theta, 
+                        'psi': psi,
+                        'u_vel': u_vel,
+                        'v_vel': v_vel,
+                        'w_vel': w_vel,
+                        'p_rate': p_rate,
+                        'q_rate': q_rate,
+                        'r_rate': r_rate,
+                        'is_boat': False,
+                        'is_car': False,
+                        'is_airplane': True
+                    }
+                    
+                    # Update position with actual Z coordinate for airplanes
+                    self.agent_positions[agent_id] = (x, y, z_pos)
+                    
+                    # Debug logging for airplane detection
+                    # self.get_logger().info(f'Agent {agent_id} detected as airplane - model_type: {model_type}, psi: {psi:.2f}, altitude: {z_pos:.2f}')
+                    
                 else:
-                    # For non-boat, non-car agents, store basic position info
+                    # For non-boat, non-car, non-airplane agents, store basic position info
                     self.agent_states[agent_id] = {
                         'x': x,
                         'y': y,
                         'psi': 0.0,  # No orientation
                         'is_boat': False,
-                        'is_car': False
+                        'is_car': False,
+                        'is_airplane': False
                     }
                     
                     # Debug logging for non-boat, non-car detection
@@ -373,7 +418,12 @@ class EnvironmentNode(Node):
                     #     self.get_logger().info(f'Agent {agent_id} model_type not yet determined')
                 
                 # Update and publish agent path
-                self.update_agent_path(agent_id, x, y, msg.header)
+                # Determine z coordinate based on agent type
+                z_coord = 0.0  # Default for ground vehicles
+                if agent_id in self.agent_states and self.agent_states[agent_id].get('is_airplane', False):
+                    z_coord = self.agent_states[agent_id].get('z', 0.0)
+                
+                self.update_agent_path(agent_id, x, y, msg.header, z_coord)
                 
                 # Log position updates (can be commented out to reduce verbosity)
                 # self.get_logger().info(f'Agent {agent_id} position: ({x:.2f}, {y:.2f}, {z:.2f})')
@@ -381,7 +431,7 @@ class EnvironmentNode(Node):
         except Exception as e:
             self.get_logger().error(f'Error processing data from agent_{agent_id}: {str(e)}')
 
-    def update_agent_path(self, agent_id, x, y, header):
+    def update_agent_path(self, agent_id, x, y, header, z=0.0):
         """Update and publish the path for a specific agent"""
         try:
             # Check if agent path exists, if not create it
@@ -395,10 +445,10 @@ class EnvironmentNode(Node):
             pose_stamped.header = header
             pose_stamped.header.frame_id = "map"  # Ensure frame_id is map
             
-            # Set position
+            # Set position (z coordinate will be 0.0 for ground vehicles, actual altitude for airplanes)
             pose_stamped.pose.position.x = x
             pose_stamped.pose.position.y = y
-            pose_stamped.pose.position.z = 0.0
+            pose_stamped.pose.position.z = z
             
             # Set orientation (no rotation for now)
             pose_stamped.pose.orientation.x = 0.0
@@ -406,15 +456,16 @@ class EnvironmentNode(Node):
             pose_stamped.pose.orientation.z = 0.0
             pose_stamped.pose.orientation.w = 1.0
             
-            # Add to path (with some basic filtering to avoid too many close points)
+            # Add to path (with filtering to avoid too many close points)
             should_add = True
             if len(self.agent_paths[agent_id].poses) > 0:
                 last_pose = self.agent_paths[agent_id].poses[-1]
                 dx = x - last_pose.pose.position.x
                 dy = y - last_pose.pose.position.y
-                distance = (dx*dx + dy*dy)**0.5
+                dz = z - last_pose.pose.position.z  # Include Z distance for airplanes
+                distance = (dx*dx + dy*dy + dz*dz)**0.5
                 
-                # Only add if the agent moved at least 5cm
+                # Only add if the agent moved at least 5cm in 3D space
                 if distance < 0.05:
                     should_add = False
             
@@ -929,6 +980,23 @@ class EnvironmentNode(Node):
         qw = math.cos(half_yaw)
         return 0.0, 0.0, qz, qw  # qx, qy, qz, qw
 
+    def euler_to_quaternion(self, roll, pitch, yaw):
+        """Convert Euler angles (roll, pitch, yaw) to quaternion"""
+        # Convert Euler angles to quaternion
+        cr = math.cos(roll * 0.5)
+        sr = math.sin(roll * 0.5)
+        cp = math.cos(pitch * 0.5)
+        sp = math.sin(pitch * 0.5)
+        cy = math.cos(yaw * 0.5)
+        sy = math.sin(yaw * 0.5)
+        
+        qw = cr * cp * cy + sr * sp * sy
+        qx = sr * cp * cy - cr * sp * sy
+        qy = cr * sp * cy + sr * cp * sy
+        qz = cr * cp * sy - sr * sp * cy
+        
+        return qx, qy, qz, qw
+
     def publish_agent_markers(self):
         """Publish MarkerArray with cylinder markers for each active agent"""
         marker_array = MarkerArray()
@@ -954,8 +1022,9 @@ class EnvironmentNode(Node):
                 # Debug logging
                 is_boat = state.get('is_boat', False)
                 is_car = state.get('is_car', False)
+                is_airplane = state.get('is_airplane', False)
                 model_type = self.agent_model_types.get(agent_id, 'Unknown')
-                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}, is_car={is_car}')
+                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}, is_car={is_car}, is_airplane={is_airplane}')
                 
                 # Check if this is a boat agent
                 if is_boat:
@@ -1016,6 +1085,47 @@ class EnvironmentNode(Node):
                     
                     # Debug logging for mesh marker
                     # self.get_logger().info(f'Agent {agent_id}: Using CAR MESH marker, mesh_resource={marker.mesh_resource}, scale={marker.scale.x}')
+                    
+                # Check if this is an airplane agent
+                elif is_airplane:
+                    # Use STL mesh marker for airplanes to show full 3D orientation
+                    marker.type = Marker.MESH_RESOURCE
+                    
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/hermes.stl"
+                    
+                    # Set mesh orientation based on roll, pitch, and yaw angles
+                    phi = state.get('phi', 0.0)      # Roll
+                    phi = -phi
+                    theta = state.get('theta', 0.0)  # Pitch
+                    psi = state.get('psi', 0.0)      # Yaw
+                    
+                    # Convert Euler angles to quaternion
+                    qx, qy, qz, qw = self.euler_to_quaternion(phi, theta, psi)
+                    marker.pose.orientation.x = qx
+                    marker.pose.orientation.y = qy
+                    marker.pose.orientation.z = qz
+                    marker.pose.orientation.w = qw
+                    
+                    # Set mesh scale
+                    marker.scale.x = 1.0
+                    marker.scale.y = 1.0
+                    marker.scale.z = 1.0
+
+                    # Use the actual Z position from the state
+                    marker.pose.position.z = float(state.get('z', position[2]))
+
+                    # Its difficult to follow the marker arround, so lets just fix it in the center
+                    # Remove the following lines and the plane will go as expected
+                    marker.pose.position.x = 0.0
+                    marker.pose.position.y = 0.0
+                    marker.pose.position.z = 0.0
+                    
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # Debug logging for mesh marker
+                    # self.get_logger().info(f'Agent {agent_id}: Using AIRPLANE MESH marker, mesh_resource={marker.mesh_resource}, altitude={marker.pose.position.z:.2f}')
                     
                 else:
                     # Use cylinder for non-boat agents
@@ -1090,6 +1200,11 @@ class EnvironmentNode(Node):
                 elif state.get('is_car', False):
                     psi = state.get('psi', 0.0)
                     self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, yaw: {psi:.2f} rad ({math.degrees(psi):.1f}°)')
+                elif state.get('is_airplane', False):
+                    phi = state.get('phi', 0.0)
+                    theta = state.get('theta', 0.0)
+                    psi = state.get('psi', 0.0)
+                    self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, roll: {phi:.2f}, pitch: {theta:.2f}, yaw: {psi:.2f} rad')
                 else:
                     self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}')
             else:

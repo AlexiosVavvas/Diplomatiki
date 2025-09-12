@@ -54,7 +54,7 @@ signal.signal(signal.SIGINT, signalHandler)
 def main(args=None):
     from my_erg_lib.agent import Agent
     from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder
+    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder, FixedWing12DOFTrainer
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
@@ -101,7 +101,7 @@ def main(args=None):
         u_nominal = None
         INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
         Q_ = 1
-        R_ = 0.001
+        R_ = 0.001 * np.eye(2)
         PREDICTION_DT = 0.002 * 25
         RELAX_FACTOR = 1
         IMAX = 100e3
@@ -114,6 +114,8 @@ def main(args=None):
         KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.4    # Parameters for avoiding other agents
 
         dynamic_model = SingleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
+
+        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
         
         print("--> Using model: <SingleIntegrator>")
 
@@ -126,7 +128,7 @@ def main(args=None):
         u_nominal = None
         INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
         Q_ = 8
-        R_ = 0.001
+        R_ = 0.001 * np.eye(2)
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.03; T_H = 0.5; deltaT_ERG = 3
         SIMUL_DT = 0.0012
@@ -140,6 +142,8 @@ def main(args=None):
         
         dynamic_model = DoubleIntegrator(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
 
+        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
+
         print("--> Using model: <DoubleIntegrator>")
     
     # Simple Boat Second Order model ----
@@ -150,7 +154,7 @@ def main(args=None):
         u_nominal = None
         INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
         Q_ = 8
-        R_ = 0.001
+        R_ = 0.001 * np.eye(2)
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
         SIMUL_DT = 0.0012
@@ -164,6 +168,8 @@ def main(args=None):
 
         dynamic_model = SimpleBoatSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
 
+        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
+
         print("--> Using model: <SimpleBoatSecondOrder>")
 
     # Simple Car Second Order model ----
@@ -174,7 +180,7 @@ def main(args=None):
         u_nominal = None
         INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
         Q_ = 8
-        R_ = 0.001
+        R_ = 0.001 * np.eye(2)
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
         SIMUL_DT = 0.0012 * 2
@@ -190,17 +196,58 @@ def main(args=None):
                                                 m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, 
                                                 max_allowed_rev_thr=-1, steer_priority=0.004) # max = -0.5
 
+        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
+
+
         print("--> Using model: <SimpleCarSecondOrder>")
+
+    # Fixed Wing model
+    elif MODEL_TYPE == "FixedWing12DOFTrainer":
+        # FixedWing12DOFTrainer(dt=0.001, x0=None)
+        u_limits_init = np.array([[-0.4363, 0.4363],  # elevator ±25 deg
+                                  [-0.4363, 0.4363],  # aileron ±25 deg
+                                  [-0.4363, 0.4363],  # rudder ±25 deg
+                                  [0.0,     1.0]])    # throttle 0..1
+        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
+        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
+        Q_ = 2 * 10**3
+        R_ = 1 * np.eye(4)
+        R_[3,3] = 0.1  # Less penalty on throttle changes
+        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
+        TS = 0.02; T_H = 2; deltaT_ERG = 2
+        SIMUL_DT = 0.005
+        PREDICTION_DT = SIMUL_DT * 2  # model dt * 2
+        BAR_WEIGHT = 0
+        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
+        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
+        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
+        KAPPA_OBS = 1; RHO_OBS = 30
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 1    # Parameters for avoiding other agents
+        
+        USE_LINEAR_F = False         # Whether to use linearised model for f(x,u) (True/False)
+        USE_LINEAR_FX_FU = False     # Whether to use linearised model for f_x, f_u (True/False)
+        
+        V_TRIM = 7.5 # [m/s] Desired trim speed
+        #                                                  x0=[x,              y,              z,     φ,  θ,     ψ,      u,       v,  w,  p,  q,  r]
+        dynamic_model = FixedWing12DOFTrainer(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 80.0,  0,  0.07,  0.053,  V_TRIM,  0,  0,  0,  0,  0],
+                                              v_trim=V_TRIM, use_linear_f=USE_LINEAR_F, use_linear_fx_fu=USE_LINEAR_FX_FU)
+        
+        # Add trim inputs to every input from now on using a nominal function
+        def _uNomAddTrim(x, t):
+            return dynamic_model.u_trim
+        u_nominal = _uNomAddTrim
+
+        PUBLISH_DATA_FREQ = 5  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
+
+        print("--> Using model: <FixedWing12DOFTrainer>")
 
     # Quadrotor model -----------
     elif MODEL_TYPE == "Quadcopter":
+        # TODO: Quad not working well with CBFs yet, the others do for now
         print("ERROR: Quadcopter model needs work, not available yet.")
         # Stop the program, exit main
         sys.exit(1)
-    else:
-        print("ERROR: Unsupported model type.")
-        sys.exit(2)
-        # TODO: Quad not working well with CBFs yet, the others do for now
+
         # x0 = [8, 4, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
         # UP_MTR_LIM = 22         # Motor Upper Limit Thrust in [N]
         # LOW_MTR_LIM = -22       # Motor Lower Limit Thrust in [N]
@@ -221,6 +268,10 @@ def main(args=None):
         # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
         # CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+    
+    else:
+        print("ERROR: Unsupported model type.")
+        sys.exit(2)
 
     # Agent - Ergodic Controller -------------
     # ROS Initialization
@@ -234,7 +285,7 @@ def main(args=None):
                   phi=lambda s: 1/100) 
                 #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
 
-    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_ * np.eye(agent.model.num_of_inputs), uLimits=u_limits_init,
+    agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_, uLimits=u_limits_init,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
                                                  use_inf_buffer=INF_BUF_FLAG,
                                                  barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
@@ -453,8 +504,9 @@ def main(args=None):
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])
                 if np.any(np.abs(agent.model.state[:2]) > 50):
-                    agent.get_logger().fatal(f"Agent WAYY out of bounds! Stopping simulation.")
-                    break
+                    if agent.model.type != "FixedWing12DOFTrainer":
+                        agent.get_logger().fatal(f"Agent WAYY out of bounds! Stopping simulation.")
+                        break
                 
                 # Update the action mask
                 if lamda_dur > 0:
@@ -565,7 +617,7 @@ def main(args=None):
             u_before = u.copy()
 
             # ROS Send data to data topic
-            if not shutdown_flag.is_set() and i % 30 == 0:
+            if not shutdown_flag.is_set() and i % PUBLISH_DATA_FREQ == 0:
                 agent.publishData(state_now=agent.model.state, u_input_now=u, erg_cost_now=erg_cost, 
                                   active_cbf_flag=True if int(np.any(u_safe != 0)) == 1 else False,
                                   time_now=time_list[i], delta_t_Ts=delta_time / agent.erg_c.Ts)

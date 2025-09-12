@@ -818,3 +818,362 @@ class SimpleCarSecondOrder(DynamicsBase):
         x_pos, y_pos, psi, u_speed, delta, omega = self.state
         return f"x={x_pos:.2f} y={y_pos:.2f} psi={psi:.2f} u={u_speed:.2f} delta={delta:.2f} omega={omega:.2f}"
 
+
+from scipy.optimize import root
+class FixedWing12DOFTrainer(DynamicsBase):
+    """
+    12-DOF rigid-body trainer airplane (starter parameters for ~1.5 m RC trainer).
+    State ordering:
+      x = [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+    Inputs:
+      u = [delta_e, delta_a, delta_r, throttle]
+    Uses rk4Step for integration (same style as Quadcopter).
+    """
+    def __init__(self, dt=0.001, x0=None, params=None, v_trim=10, use_linear_f=False, use_linear_fx_fu=False):
+        # 12 states, 4 inputs
+        super().__init__(dt=dt, x0=x0, num_of_states=12, num_of_inputs=4,
+                         state_names=["X", "Y", "Z", "phi", "theta", "psi",
+                                      "u", "v", "w", "p", "q", "r"])
+        self.type = "FixedWing12DOFTrainer"
+
+        # default parameter set (good starting point for 1.5 m trainer)
+        default_params = {
+            'm': 1.6,        # kg
+            'S': 0.36,       # m^2
+            'b': 1.50,       # m (span)
+            'c': 0.2407,     # m (mean aerodynamic chord ~ S/b)
+            'rho': 1.225,
+            'Ix': 0.072,     # kg m^2 (estimate; replace with CAD)
+            'Iy': 0.0255,
+            'Iz': 0.0963,
+            'Ixz': -6.12e-4,
+            # longitudinal coefficients (linearized starter)
+            'CL0': 0.20,
+            'CL_alpha': 4.756,   # per rad
+            'CL_q': 3.0,
+            'CL_de': -1.0,       # elevator effectiveness (neg. if down elevator -> negative Cm_de)
+            'CD0': 0.025,
+            'k': 0.0639,         # induced drag factor
+            'Cm_alpha': -0.8,
+            'Cm_q': -8.0,
+            'Cm_de': -1.2,
+            # lateral-directional
+            'C_ell_beta': -0.12,
+            'C_ell_p': -0.26,
+            'C_ell_r': 0.14,
+            'Cn_beta': 0.25,
+            'Cn_p': -0.022,
+            'Cn_r': -0.35,
+            'CY_beta': -0.02,
+            # control-surface derivatives (starter guesses)
+            'C_ell_da': 0.10,   # roll per aileron rad
+            'C_ell_dr': 0.01,   # roll per rudder rad
+            'Cn_da': -0.03,     # yaw per aileron rad (adverse yaw)
+            'Cn_dr': -0.10,     # yaw per rudder rad
+            'CY_da': 0.0,       # side force per aileron rad
+            'CY_dr': 0.12,      # side force per rudder rad
+            'CY_p': 0.0,
+            'CY_r': 0.0,
+            # propulsion
+            'T_max': 10.0,   # N (example static thrust)
+            # input limits: [min, max] for [de, da, dr, throttle]
+            'input_limits': np.array([[-0.4363, 0.4363],  # elevator ±25 deg
+                                    [-0.4363, 0.4363],  # aileron ±25 deg
+                                    [-0.4363, 0.4363],  # rudder ±25 deg
+                                    [0.0, 1.0]]),       # throttle 0..1
+            'V_trim': v_trim  # Desired trim speed [m/s]
+        }
+
+        self.params = default_params if params is None else {**default_params, **params}
+        self.input_limits = self.params['input_limits'].copy()
+
+        # Lets try and trim the plane at desired speed
+        # Start with non linear before we linearise
+        self.use_linear_model_for_f = False
+        self.use_linear_model_for_fx_fu = False
+        x_trim, u_trim, sol = self.computeTrim(V_trim=self.params['V_trim'])
+        if not sol.success:
+            print("ATTENTION: Trimming failed:", sol.message)
+            input("Waiting for confirmation to continue... [Enter]")
+        self.x_trim = x_trim
+        self.u_trim = u_trim
+        self.trim_sol_flags = sol
+
+        # Linearise flight dynamics
+        # x_dot = A x + B u
+        self.A, self.B = self.linearizeAtTrimPoint(self.x_trim, self.u_trim)
+        self.use_linear_model_for_f = use_linear_f
+        self.use_linear_model_for_fx_fu = use_linear_fx_fu
+
+    def f(self, x, u):
+        # u is an array [de, da, dr, throttle]
+        u = np.asarray(u)
+        # clip inputs
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        delta_e, delta_a, delta_r, throttle = u
+
+        # If using linear model, just do that
+        if self.use_linear_model_for_f:
+            x_dot = self.A @ (x - self.x_trim) + self.B @ (u - self.u_trim)
+            return x_dot
+
+        # unpack state (match ordering)
+        X, Y, Z, phi, theta, psi, ub, vb, wb, p, q, r = x
+        p = float(p); q = float(q); r = float(r)  # ensure scalars
+
+        # params (direct indexing)
+        P = self.params
+        m = P['m']; S = P['S']; b = P['b']; c = P['c']; rho = P['rho']
+        Ix = P['Ix']; Iy = P['Iy']; Iz = P['Iz']; Ixz = P['Ixz']
+
+        # airspeed and angles (protect small V)
+        V = np.sqrt(max(ub*ub + vb*vb + wb*wb, 1e-6))
+        V_safe = max(V, 1e-3)
+        alpha = np.arctan2(wb, ub)   # angle of attack
+        beta = np.arcsin(np.clip(vb / V_safe, -0.99, 0.99))
+
+        qbar = 0.5 * rho * V**2
+
+        # Longitudinal coefficients (linearized)
+        CL = P['CL0'] + P['CL_alpha'] * alpha + P['CL_q'] * (c * q / (2.0 * V_safe)) + P['CL_de'] * delta_e
+        CD = P['CD0'] + P['k'] * CL**2
+
+        # side force: include rudder/aileron and small rate terms
+        CY = (P['CY_beta'] * beta
+            + P['CY_p'] * (b * p / (2.0 * V_safe))
+            + P['CY_r'] * (b * r / (2.0 * V_safe))
+            + P['CY_da'] * delta_a
+            + P['CY_dr'] * delta_r)
+
+        # aerodynamic forces (wind axes)
+        L = qbar * S * CL
+        D = qbar * S * CD
+        Y_force = qbar * S * CY
+
+        # transform wind-axis forces to body axes (rotate by alpha)
+        X_aero = -D * np.cos(alpha) - L * np.sin(alpha)
+        Z_aero = -D * np.sin(alpha) - L * np.cos(alpha)
+        Y_aero = Y_force
+
+        # Moments coefficients (include control-surface derivatives)
+        Cl = (P['C_ell_beta'] * beta
+            + P['C_ell_p'] * (b * p / (2.0 * V_safe))
+            + P['C_ell_r'] * (b * r / (2.0 * V_safe))
+            + P['C_ell_da'] * delta_a
+            + P['C_ell_dr'] * delta_r)
+
+        Cm = (P['Cm_alpha'] * alpha
+            + P['Cm_q'] * (c * q / (2.0 * V_safe))
+            + P['Cm_de'] * delta_e)
+
+        Cn = (P['Cn_beta'] * beta
+            + P['Cn_p'] * (b * p / (2.0 * V_safe))
+            + P['Cn_r'] * (b * r / (2.0 * V_safe))
+            + P['Cn_da'] * delta_a
+            + P['Cn_dr'] * delta_r)
+
+        L_aero = qbar * S * b * Cl
+        M_aero = qbar * S * c * Cm
+        N_aero = qbar * S * b * Cn
+
+        # Propulsion: thrust along body x
+        T = P['T_max'] * np.clip(throttle, 0.0, 1.0)
+        X_prop = T; Y_prop = 0.0; Z_prop = 0.0
+
+        # Gravity in body axes
+        g = 9.81
+        X_grav = -m * g * np.sin(theta)
+        Y_grav = m * g * np.cos(theta) * np.sin(phi)
+        Z_grav = m * g * np.cos(theta) * np.cos(phi)
+
+        # Total forces
+        X_tot = X_aero + X_prop + X_grav
+        Y_tot = Y_aero + Y_prop + Y_grav
+        Z_tot = Z_aero + Z_prop + Z_grav
+
+        # Translational accelerations (body axes)
+        udot = (X_tot / m) - q * wb + r * vb
+        vdot = (Y_tot / m) - r * ub + p * wb
+        wdot = (Z_tot / m) - p * vb + q * ub
+
+        # rotational EoM: I * omega_dot + omega x I omega = M
+        I = np.array([[Ix, 0.0, -Ixz],
+                    [0.0, Iy, 0.0],
+                    [-Ixz, 0.0, Iz]])
+        omega = np.array([p, q, r])
+        M_vec = np.array([L_aero, M_aero, N_aero])
+        # solve for omega_dot
+        omega_dot = np.linalg.solve(I, M_vec - np.cross(omega, I.dot(omega)))
+        pdot, qdot, rdot = omega_dot
+
+        # Euler kinematics (body rates -> euler angle rates)
+        cphi = np.cos(phi); sphi = np.sin(phi)
+        cth = np.cos(theta); sth = np.sin(theta)
+        if abs(cth) < 1e-6:
+            cth = 1e-6
+
+        E = np.array([[1.0, sphi * np.tan(theta), cphi * np.tan(theta)],
+                    [0.0, cphi, -sphi],
+                    [0.0, sphi / cth, cphi / cth]])
+        phi_dot, theta_dot, psi_dot = E.dot(omega)
+
+        # inertial position derivative (body->inertial)
+        cpsi = np.cos(psi); spsi = np.sin(psi)
+        R = np.array([
+            [cpsi * cth, cpsi * sth * sphi - spsi * cphi, cpsi * sth * cphi + spsi * sphi],
+            [spsi * cth, spsi * sth * sphi + cpsi * cphi, spsi * sth * cphi - cpsi * sphi],
+            [-sth,       cth * sphi,                     cth * cphi]
+        ])
+        pos_dot = R.dot(np.array([ub, vb, wb]))
+
+        # assemble xdot in same ordering as state
+        xdot = np.zeros(12)
+        xdot[0:3] = pos_dot           # Xdot, Ydot, Zdot
+        xdot[3:6] = [phi_dot, theta_dot, psi_dot]
+        xdot[6:9] = [udot, vdot, wdot]
+        xdot[9:12] = [pdot, qdot, rdot]
+
+        return xdot
+
+    def f_x(self, x, u, eps=1e-6):
+        # Use analytical Jacobian at trim point if we play with linear model
+        if self.use_linear_model_for_fx_fu:
+            return self.A.copy()
+
+        # numerical Jacobian wrt state (finite differences)
+        fx = np.zeros((self.num_of_states, self.num_of_states))
+        f0 = self.f(x, u)
+        for i in range(self.num_of_states):
+            xp = x.copy()
+            xp[i] += eps
+            fp = self.f(xp, u)
+            fx[:, i] = (fp - f0) / eps
+        return fx
+
+    def f_u(self, x, eps=1e-6):
+        # Use analytical Jacobian at trim point if we play with linear model
+        if self.use_linear_model_for_fx_fu:
+            return self.B.copy()
+        
+        # numerical Jacobian wrt inputs (finite differences)
+        fu = np.zeros((self.num_of_states, self.num_of_inputs))
+        u0 = np.zeros((self.num_of_inputs,))
+        # to get a meaningful linearization we use mid inputs (neutral)
+        # but here we simply compute around zero-throttle/zero-control baseline
+        for j in range(self.num_of_inputs):
+            up = u0.copy()
+            up[j] += eps
+            fp = self.f(x, up)
+            f0 = self.f(x, u0)
+            fu[:, j] = (fp - f0) / eps
+        return fu
+
+    def rk4Step(self, f, x, dt, *args):
+        """
+        Fourth-order Runge-Kutta integration method
+        """
+        k1 = f(x, *args)
+        k2 = f(x + 0.5*dt*k1, *args)
+        k3 = f(x + 0.5*dt*k2, *args)
+        k4 = f(x + dt*k3, *args)
+        return x + (dt/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
+
+    def step(self, x, u, dt=None):
+        # follow same pattern as other classes: clip inputs and RK4
+        dt = self.dt if dt is None else dt
+        u = np.asarray(u)
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        return self.rk4Step(self.f, x, dt, *(u,))
+
+
+    def computeTrim(self, V_trim=10.0):
+        """
+        Compute a symmetric trim for desired airspeed V_trim (m/s).
+        Returns x_trim (state) and u_trim (controls).
+        """
+        def _trimObjective(vars, plane, V_trim):
+            """
+            vars: [w, theta, delta_e, throttle]
+            w: body z-velocity
+            theta: pitch angle (rad)
+            delta_e: elevator (rad)
+            throttle: 0..1
+            plane: instance of FixedWing12DOFTrainer
+            V_trim: desired airspeed (m/s) used for u (body-x)
+            returns residuals [udot, wdot, qdot, u - V_trim]
+            Note: class state ordering is:
+            x = [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+            """
+            w, theta, delta_e, throttle = vars
+            # build state with symmetric (no lateral motion), no angular rates
+            X = 0.0; Y = 0.0; Z = -0.0  # choose Z reference (your convention)
+            phi = 0.0
+            psi = 0.0
+            u = V_trim
+            v = 0.0
+            p = 0.0; q = 0.0; r = 0.0
+
+            x = np.array([X, Y, Z, phi, theta, psi, u, v, w, p, q, r], dtype=float)
+            u_ctrl = np.array([delta_e, 0.0, 0.0, throttle])  # symmetric (ail/rud zero)
+
+            # evaluate dynamics
+            xdot = plane.f(x, u_ctrl)
+
+            # residuals: udot = 0, wdot = 0, qdot = 0 (pitch accel), and u - V_trim = 0
+            # xdot ordering in this implementation:
+            # xdot[0:3] = pos_dot (Xdot,Ydot,Zdot)
+            # xdot[3:6] = [phi_dot, theta_dot, psi_dot]
+            # xdot[6:9] = [udot, vdot, wdot]
+            # xdot[9:12] = [pdot, qdot, rdot]
+            udot = xdot[6]
+            wdot = xdot[8]
+            qdot = xdot[10]
+            # last residual enforces body-x speed equals V_trim (u - V_trim = 0)
+            res = np.array([udot, wdot, qdot, u - V_trim])
+            return res
+        
+        # initial guess: small w, small pitch, small elevator, half throttle
+        guess = np.array([0.0, 0.05, 0.0, 0.5])  # [w, theta, delta_e, throttle]
+        sol = root(_trimObjective, guess, args=(self, V_trim), method='hybr', tol=1e-8)
+
+        if not sol.success:
+            print("Trim solver did not converge:", sol.message)
+            # still return a best-effort guess
+        w, theta, delta_e, throttle = sol.x
+        u = V_trim
+        x_trim = np.array([0.0, 0.0, 0.0,   # X, Y, Z
+                        0.0, theta, 0.0,  # phi, theta, psi
+                        u, 0.0, w,         # u, v, w
+                        0.0, 0.0, 0.0])    # p, q, r
+        u_trim = np.array([delta_e, 0.0, 0.0, np.clip(throttle, 0.0, 1.0)])
+
+        # Print trim state message
+        print("==============================================")
+        print("Trim solver success:", sol.success, sol.message)
+        print(f"Trim state (partial): u, w, theta = {x_trim[6]:.2f}, {x_trim[8]:.2f}, {180 / np.pi * x_trim[4]:.2f}")
+        print(f"Trim inputs (de, da, dr, throttle) = {180/np.pi*u_trim[0]:.2f}°, {u_trim[1]:.2f}°, {u_trim[2]:.2f}°, {u_trim[3]:.2%}")
+        print("==============================================")
+
+        return x_trim, u_trim, sol
+
+    def linearizeAtTrimPoint(self, x_trim, u_trim, eps=1e-6):
+        n = x_trim.size
+        m = u_trim.size
+        f0 = self.f(x_trim, u_trim)
+        A = np.zeros((n,n))
+        B = np.zeros((n,m))
+        # A: df/dx
+        for i in range(n):
+            xp = x_trim.copy(); xp[i] += eps
+            A[:, i] = (self.f(xp, u_trim) - f0) / eps
+        # B: df/du
+        for j in range(m):
+            up = u_trim.copy(); up[j] += eps
+            B[:, j] = (self.f(x_trim, up) - f0) / eps
+        return A, B
+
+    @property
+    def state_string(self):
+        X, Y, Z, phi, theta, psi, u, v, w, p, q, r = self.state
+        return f"X:{X:.2f} Y:{Y:.2f} Z:{Z:.2f} || phi:{phi*180/np.pi:.1f}° theta:{theta*180/np.pi:.1f}° psi:{psi*180/np.pi:.1f}° || u:{u:.2f} v:{v:.2f} w:{w:.2f} || p:{p*180/np.pi:.1f} [°/s] q:{q*180/np.pi:.1f} [°/s] r:{r*180/np.pi:.1f} [°/s]"

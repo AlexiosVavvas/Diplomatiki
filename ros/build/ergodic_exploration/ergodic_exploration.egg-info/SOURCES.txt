@@ -16,6 +16,7 @@ launch/multi_agent.launch.py
 meshes/boat.stl
 meshes/car.stl
 meshes/hermes.stl
+meshes/hermes_original.stl
 my_erg_lib/Utilities.py
 my_erg_lib/__init__.py
 my_erg_lib/agent.py

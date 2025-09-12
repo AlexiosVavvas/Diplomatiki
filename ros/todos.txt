@@ -7,9 +7,10 @@ Ideas for another time
 
 
 Features
-    - Airplance dynamics
     - Add drone stl in the place of Double Integrator
+
     - change boundaries service, change kmax service (maybe have many precomputed to chose from)
+    
     - Wall obstacles only 10 meters long by default? change that for Rviz etc
     - Somehow move obstacles outside agent_node. In a configuration file or smth
 
@@ -19,7 +20,10 @@ Today
     - How do 2 talk if they dont have the same L1 L2 ??
 
 
-Done
+
+
+Done -----------------------------
+
     - Eachone working on a part of the workspace
     - make Kmax global, not only agent
     - agents shouldnt collide with others
@@ -27,6 +31,7 @@ Done
     - agents should have the same kmax in order to talk ?? 
     - Visualise DeltaT 
     - python dashboard --agents 1 3 5
+    - Airplance dynamics
 
 
 

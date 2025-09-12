@@ -1,6 +1,7 @@
 import numpy as np
 from my_erg_lib.replay_buffer import ReplayBufferFIFO, ActionMask
 from my_erg_lib.barrier import Barrier
+import my_erg_lib.vis as vis
 
 class DecentralisedErgodicController():
     def __init__(self, agent, num_of_agents=1,  
@@ -181,6 +182,7 @@ class DecentralisedErgodicController():
 
         # Saturate Control to given limits
         us = np.clip(us, self.uLimits[:, 0], self.uLimits[:, 1])
+        # print(f"ERG:  us = {us[0]*180/3.1415:.2f}, {us[1]*180/3.1415:.2f}, {us[2]*180/3.1415:.2f}, {us[3]:.2%} | Jtau = {Jtau:.2e} | ErgCost = {erg_cost:.4f}")
 
         return us, tau, lamda_duration, erg_cost
 
