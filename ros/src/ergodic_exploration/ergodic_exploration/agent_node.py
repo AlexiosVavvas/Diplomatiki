@@ -59,6 +59,7 @@ def main(args=None):
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
     import my_erg_lib.vis as vis
+    from my_erg_lib.Utilities import loadObstaclesFromYaml
     import time
 
     # Lets parse arguments to get agent ID
@@ -69,10 +70,13 @@ def main(args=None):
     parser.add_argument('--model_type',         type=str,            required=False, default='DoubleIntegrator', help='Dynamics model type (SingleIntegrator, DoubleIntegrator, SimpleBoatSecondOrder)')
     parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
     parser.add_argument('--kmax',               type=int,            required=False, default=4,      help='Maximum Fourier modes to use for reconstruction')
+    parser.add_argument('--obstacles_yaml',     type=str,                           required=False, default='None', help='Path to YAML file containing obstacle definitions')
     parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
     parser.add_argument('--talk_alike_flag',    type=lambda x: x.lower() == 'true', required=False, default=False, help='Weather to communicate only with similar model (boats with boats, cars with cars, etc) (true/false)')
     parser.add_argument('--same_l_bounds_flag', type=lambda x: x.lower() == 'true', required=False, default=True, help='Whether to communicate only with agents having same L bounds (true/false)')
-    parsed_args, ros_args = parser.parse_known_args()  # Parse known args only, keep ROS args separate
+    parser.add_argument('--show_init_phi',      type=lambda x: x.lower() == 'true', required=False, default=False, help='Whether to show initial phi function (original + reconstructed) (true/false)')
+    # Parse known args only, keep ROS args separate
+    parsed_args, ros_args = parser.parse_known_args()  
     AGENT_ID = parsed_args.agent_id
     INIT_POS_2D = np.array(parsed_args.init_pos)
     ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
@@ -83,6 +87,8 @@ def main(args=None):
     KMAX = parsed_args.kmax if parsed_args.kmax > 0 else 4
     L1_BOUNDS = [parsed_args.l_bounds[0], parsed_args.l_bounds[1]]
     L2_BOUNDS = [parsed_args.l_bounds[2], parsed_args.l_bounds[3]]
+    OBSTACLES_YAML_PATH = parsed_args.obstacles_yaml
+    SHOW_INIT_PHI = parsed_args.show_init_phi
 
     # System Read Only Parameters to set in ROS
     LOCALISE_TARGETS_FLAG = True
@@ -137,8 +143,8 @@ def main(args=None):
         UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
         CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
         DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 0.15
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.4    # Parameters for avoiding other agents
+        KAPPA_OBS = 1; RHO_OBS = 0.45
+        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.65    # Parameters for avoiding other agents
         
         dynamic_model = DoubleIntegrator(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
 
@@ -346,68 +352,43 @@ def main(args=None):
     agent.add_on_set_parameters_callback(parameterCallback)
 
     # Avoiding Obstacles -------------------
-    # Add obstacles and another controller to take them into account
-    # Floor Plan Obstacle Map ---------------------
-    # RHO0 = 0.15; KAPPA0 = 1
-    # obs = [Obstacle(pos=[2.16, 3.04],   dimensions=[1.89, 0.69], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 1"),
-    #        Obstacle(pos=[4.51, 1.41],   dimensions=[0.20, 2.83], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 2"),
-    #        Obstacle(pos=[5.02, 2.73],   dimensions=[0.82, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 3"),
-    #        Obstacle(pos=[7.37, 2.73],   dimensions=[0.78, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 4"),
-    #        Obstacle(pos=[7.86, 1.58],   dimensions=[0.20, 3.17], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 5"),
-    #        Obstacle(pos=[7.41, 4.83],   dimensions=[0.20, 1.14], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 6"),
-    #        Obstacle(pos=[8.75, 4.81],   dimensions=[2.49, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 7"),
-    #        Obstacle(pos=[6.79, 7.85],   dimensions=[1.06, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 8"),
-    #        Obstacle(pos=[8.26, 8.87],   dimensions=[0.20, 2.27], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 9"),
-    #        Obstacle(pos=[4.73, 9.13],   dimensions=[3.05, 1.73], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 10"),
-    #        Obstacle(pos=[6.15, 7.05],   dimensions=[0.20, 2.44], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 11"),
-    #        Obstacle(pos=[5.40, 5.93],   dimensions=[1.32, 0.20], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 12"),
-    #        Obstacle(pos=[3.30, 7.05],   dimensions=[0.20, 2.44], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 13"),
-    #        Obstacle(pos=[1.64, 7.91],   dimensions=[0.99, 0.16], obs_type='rectangle', kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 14"),
-    #        Obstacle(pos=[2.17, 1.58],   dimensions=0.35,         obs_type='circle',    kappa=KAPPA0, rho0=RHO0, obs_name="Obstacle 15")]
-    # saveObstaclesToMemory(agent, obs_list=obs)
-    # -----------------------------------------------
+    # Always load the default walls to keep us inside L bound domain for ergodic search
+    obstacle_default_walls = loadObstaclesFromYaml('src/ergodic_exploration/ergodic_exploration/default_walls.yaml', L1_BOUNDS, L2_BOUNDS,
+                                              kappa_obs=KAPPA_OBS, rho_obs=RHO_OBS,
+                                              kappa_wall=KAPPA_WALL, rho_wall=RHO_WALL)
 
-    # # Create 3x3 grid of circular obstacles with more spacing
-    grid_size = 3
-    # Add margin from edges
-    margin_x = 0.15  # 15% margin from edges
-    margin_y = 0.15  # 15% margin from edges
-    obs_grid = []
-    for i in range(grid_size):
-        for j in range(grid_size):
-            x_pos = agent.L1_min + margin_x * agent.L1_size + i * (agent.L1_size - 2 * margin_x * agent.L1_size) / (grid_size - 1)
-            y_pos = agent.L2_min + margin_y * agent.L2_size + j * (agent.L2_size - 2 * margin_y * agent.L2_size) / (grid_size - 1)
-            obs_grid.append(Obstacle(pos=[x_pos, y_pos], dimensions=0.6, obs_type='circle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name=f"Obstacle {i*grid_size + j + 1}"))
+    saveObstaclesToMemory(agent, obs_list=obstacle_default_walls)
 
-
-    # Avoiding Walls ----------------------
-    L1 = agent.L1_size; L2 = agent.L2_size
-    obs_walls  = [Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_min                  ],  dimensions=[0, +L1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
-                  Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_max                  ],  dimensions=[0, -L1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
-                  Obstacle(pos=[agent.L1_min,                   agent.L2_min + agent.L2_size/2],  dimensions=[+L2, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
-                  Obstacle(pos=[agent.L1_max,                   agent.L2_min + agent.L2_size/2],  dimensions=[-L2, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
-
-    # Save obstacles to memory
-    # saveObstaclesToMemory(agent, obs_list=obs_grid)
-    saveObstaclesToMemory(agent, obs_list=obs_walls)
-    # saveObstaclesToMemory(agent, obs_list=[Obstacle(pos=[5, 5],   dimensions=[10, 10], obs_type='rectangle', kappa=KAPPA_OBS, rho0=RHO_OBS, obs_name="Obstacle 1")])
+    # Load obstacles from custom YAML configuration file if available
+    if OBSTACLES_YAML_PATH != "None":
+        obstacles_from_yaml = loadObstaclesFromYaml(OBSTACLES_YAML_PATH, L1_BOUNDS, L2_BOUNDS, 
+                                                kappa_obs=KAPPA_OBS, rho_obs=RHO_OBS,
+                                                kappa_wall=KAPPA_WALL, rho_wall=RHO_WALL)
+        # Save obstacles to memory
+        if obstacles_from_yaml:
+            saveObstaclesToMemory(agent, obs_list=obstacles_from_yaml)
+        else:
+            print("Warning: No obstacles loaded from YAML file. Using empty obstacle list.")
+    
 
     # Print uNominal Status
-    # print(agent_1.erg_c.uNominal)
+    # print(agent.erg_c.uNominal)
     
-    # Visualize H-field
-    # vis.visHfield(agent, L_limits=[agent.L1_min-0.5, agent.L1_max+0.5, agent.L2_min-0.5, agent.L2_max+0.5], delta=DELTA_SAFE, num_of_points=200)
-
     # Lets now update the phi_function to take into account the obstacles
     agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="None")
     agent.basis.precalcAllPhiK()
 
-    # Lets visualise the origial phi side by side with the reconstructed one using Kmax
-    # phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
-    # vis.plotPhiOnlyOriginalAndReconstructed(agent, phi_rec_from_agent=phi_rec, grid_res=100, clip_to_min_max=False)
-    # plt.show()
-    # print("Using sys.exit() to stop here for now...")
-    # sys.exit(0)
+    if SHOW_INIT_PHI:
+        # Visualize H-field
+        vis.visHfield(agent, L_limits=[agent.L1_min-0.5, agent.L1_max+0.5, agent.L2_min-0.5, agent.L2_max+0.5], delta=DELTA_SAFE, num_of_points=200)
+        phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
+
+        # Lets visualise the origial phi side by side with the reconstructed one using Kmax
+        vis.plotPhiOnlyOriginalAndReconstructed(agent, phi_rec_from_agent=phi_rec, grid_res=100, clip_to_min_max=False)
+        
+        plt.show()
+        print("Using sys.exit() to stop due to --show_initial_phi == True flag")
+        sys.exit(0)
 
     # --------------------------------------------------------------------------------------------------
 

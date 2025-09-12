@@ -17,11 +17,11 @@ from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 # ===================-----------------------------------------------
 
 # Map Parameters
-MAP_WIDTH = 20.0        # [m] - Usually 20 (Airplane 200)
-MAP_HEIGHT = 20.0       # [m] - Usually 20 (Airplane 200)
-MAP_RESOLUTION = 0.05   # [pixels/m] - Usually 0.05 (Airplane 1.0)
-WALL_THICKNESS = 0.1    # [m] - Thickness of wall obstacles in the occupancy grid
-
+MAP_WIDTH = 10.0            # [m] - Usually 40 (Airplane 200)
+MAP_HEIGHT = 10.0           # [m] - Usually 40 (Airplane 200)
+MAP_RESOLUTION = 0.05       # [pixels/m] - Usually 0.05 (Airplane 1.0)
+WALL_THICKNESS = 0.1        # [m] - Thickness of wall obstacles in the occupancy grid
+DEFAULT_DRONE_HEIGHT = 0.5  # [m] - Default height for drone markers
 # ===================-----------------------------------------------
 
 
@@ -452,7 +452,7 @@ class EnvironmentNode(Node):
             pose_stamped.pose.position.y = y
             pose_stamped.pose.position.z = z if (self.agent_states[agent_id].get('is_airplane', False) \
                                                  or self.agent_states[agent_id].get('is_boat', False) \
-                                                 or self.agent_states[agent_id].get('is_car', False)) else 4.0
+                                                 or self.agent_states[agent_id].get('is_car', False)) else DEFAULT_DRONE_HEIGHT
             
             # Set orientation (no rotation for now)
             pose_stamped.pose.orientation.x = 0.0
@@ -737,14 +737,14 @@ class EnvironmentNode(Node):
                 obs_type = obstacle['type']
                 dimensions = obstacle['dimensions']
                 
-                if obs_type == "circle" and len(dimensions) >= 1:
+                if obs_type == "circle" and len(dimensions) == 1:
                     marker.type = Marker.CYLINDER
                     radius = dimensions[0]
                     marker.scale.x = float(radius * 2.0)  # Diameter
                     marker.scale.y = float(radius * 2.0)  # Diameter
                     marker.scale.z = 2.5  # Height for visualization
                     
-                elif obs_type == "rectangle" and len(dimensions) >= 2:
+                elif obs_type == "rectangle" and len(dimensions) == 2:
                     marker.type = Marker.CUBE
                     width = dimensions[0]
                     height = dimensions[1]
@@ -758,14 +758,14 @@ class EnvironmentNode(Node):
                     marker.color.b = 0.5
                     marker.color.a = 1.0
 
-                elif obs_type == "wall" and len(dimensions) >= 2:
+                elif obs_type == "wall" and len(dimensions) == 3:
                     marker.type = Marker.CUBE
                     normal_x = dimensions[0]
                     normal_y = dimensions[1]
+                    wall_length = dimensions[2]
                     
                     # Create a wall representation
                     wall_thickness = 0.1  # 10cm thick
-                    wall_length = 10.0     # 10m long
 
                     if abs(normal_x) > abs(normal_y):  # More horizontal normal
                         marker.scale.x = wall_thickness
@@ -1151,7 +1151,7 @@ class EnvironmentNode(Node):
                     marker.scale.z = 1.0
                     
                     # Adjust z position for mesh
-                    marker.pose.position.z = float(position[2]) + 5.0
+                    marker.pose.position.z = float(position[2]) + DEFAULT_DRONE_HEIGHT
                     
                     # Enable mesh_use_embedded_materials if needed
                     marker.mesh_use_embedded_materials = False

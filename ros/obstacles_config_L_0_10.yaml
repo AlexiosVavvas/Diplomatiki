@@ -1,0 +1,93 @@
+# Obstacle Configuration File
+# This file defines obstacles for the ergodic exploration system
+# Each obstacle must have: pos, dimensions, obs_type, kappa, rho0, obs_name
+
+obstacles:
+  # Circle obstacles - dimensions is a single value for radius
+  # kappa and rho0 are optional - will use defaults from model if not specified
+  - pos: [1.5, 1.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 1"
+    # kappa: 1.0      # Optional - uses KAPPA_OBS default if not specified
+    # rho0: 0.15      # Optional - uses RHO_OBS default if not specified
+    
+  - pos: [5.0, 1.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 2"
+    
+  - pos: [8.5, 1.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 3"
+    
+  - pos: [1.5, 5.0]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 4"
+    
+  - pos: [5.0, 5.0]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 5"
+    
+  - pos: [8.5, 5.0]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 6"
+    
+  - pos: [1.5, 8.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 7"
+    
+  - pos: [5.0, 8.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 8"
+    
+  - pos: [8.5, 8.5]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 9"
+
+  # Rectangle obstacles - dimensions is [width, height]
+  - pos: [7.0, 3.0]
+    dimensions: [2.0, 1.5]
+    obs_type: 'rectangle'
+    obs_name: "Rectangle Obstacle 1"
+    
+  - pos: [3.0, 7.0]
+    dimensions: [1.0, 2.0]
+    obs_type: 'rectangle'
+    obs_name: "Rectangle Obstacle 2"  # Uses defaults
+
+  # Large rectangle obstacle like in your example
+  # - pos: [5.0, 5.0]
+  #   dimensions: [10.0, 10.0]
+  #   obs_type: 'rectangle'
+  #   obs_name: "Large Rectangle Obstacle"
+
+# Wall obstacles - these use dynamic positioning based on agent bounds
+# The loader will calculate actual positions based on agent's L1/L2 bounds
+# kappa and rho0 are optional - will use defaults from model if not specified
+    
+  # Fixed walls (explicit positions and dimensions)
+  # Example: Custom wall in the middle of the domain
+  # - obs_type: 'wall'
+  #   pos: [5.0, 3.0]          # Explicit position [x, y]
+  #   dimensions: [0, 4.0]     # Normal vector [nx, ny] - magnitude 4.0 (visual length)
+  #   kappa: 0.5
+  #   rho0: 1.5
+  #   obs_name: "Custom Vertical Wall"
+  #
+  # - obs_type: 'wall'
+  #   pos: [2.0, 7.0]          # Explicit position [x, y] 
+  #   dimensions: [3.0, 0]     # Normal vector [nx, ny] - magnitude 3.0 (visual length)
+  #   kappa: 0.5
+  #   rho0: 1.5
+  #   obs_name: "Custom Horizontal Wall"
+  #
+  # Note: dimensions is the normal vector whose magnitude = visual wall length
+  #       Wall is mathematically infinite for collision detection

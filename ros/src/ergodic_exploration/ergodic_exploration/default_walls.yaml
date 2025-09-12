@@ -1,0 +1,24 @@
+# Obstacle Configuration File
+# This file defines obstacles for the ergodic exploration system
+# Each obstacle must have: pos, dimensions, obs_type, kappa, rho0, obs_name
+
+# Wall obstacles - these use dynamic positioning based on agent bounds
+# The loader will calculate actual positions based on agent's L1/L2 bounds
+walls:
+  # Dynamic walls (auto-calculated positions)
+  - obs_type: 'wall'
+    wall_type: 'bottom'
+    obs_name: "Bottom Wall"
+    
+  - obs_type: 'wall'
+    wall_type: 'top'
+    obs_name: "Top Wall"
+    
+  - obs_type: 'wall'
+    wall_type: 'left'
+    obs_name: "Left Wall"
+    
+  - obs_type: 'wall'
+    wall_type: 'right'
+    obs_name: "Right Wall"
+    

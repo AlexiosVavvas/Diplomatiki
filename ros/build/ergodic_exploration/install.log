@@ -28,7 +28,9 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/__pycache__/ergodic_controllers.cpython-310.pyc
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages/ergodic_exploration
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.xml
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/drones_in_small_space.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.py
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/big_environment_1_L_0_40.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/car.stl
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/hermes.stl
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes/hermes_original.stl

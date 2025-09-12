@@ -1363,6 +1363,7 @@ def visHfield(agent, L_limits, delta, num_of_points):
                      origin='lower', cmap='viridis', aspect='auto')
     ax1.set_xlabel('X Position')
     ax1.set_ylabel('Y Position')
+    ax1.set_aspect('equal')
     ax1.set_title('Potential Field - 2D View')
     plt.colorbar(im1, ax=ax1, label='Potential Field Value')
     # Plot a red dashed rectangle agent.L1_min->agent.L1_max, agent.L2_min->agent.L2_max
@@ -1378,4 +1379,3 @@ def visHfield(agent, L_limits, delta, num_of_points):
     fig.colorbar(surf, ax=ax2, label='Potential Field Value', shrink=0.5)
     
     plt.tight_layout()
-    plt.show()

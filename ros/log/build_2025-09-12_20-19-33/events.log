@@ -1,0 +1,582 @@
+[0.000000] (-) TimerEvent: {}
+[0.000653] (my_interfaces) JobQueued: {'identifier': 'my_interfaces', 'dependencies': OrderedDict()}
+[0.000724] (ergodic_exploration) JobQueued: {'identifier': 'ergodic_exploration', 'dependencies': OrderedDict([('my_interfaces', '/home/alex/Diplomatiki/ros/install/my_interfaces')])}
+[0.000760] (my_interfaces) JobStarted: {'identifier': 'my_interfaces'}
+[0.006850] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'cmake'}
+[0.007500] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '/home/alex/Diplomatiki/ros/src/my_interfaces', '-DCMAKE_INSTALL_PREFIX=/home/alex/Diplomatiki/ros/install/my_interfaces'], 'cwd': '/home/alex/Diplomatiki/ros/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('PYTHONWARNINGS', 'ignore::UserWarning:google.protobuf'), ('USER', 'alex'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/alex'), ('OLDPWD', '/home/alex/Diplomatiki/ros/rosbag'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '1453'), ('SYSTEMD_EXEC_PID', '1806'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '4157'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'alex'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:15022'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'alex'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/alexlinux:@/tmp/.ICE-unix/1593,unix/alexlinux:/tmp/.ICE-unix/1593'), ('INVOCATION_ID', '7dab4ed9de8342e9a75e1166c1428b67'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', 'dfb69f4e-dd3a-48cd-9d61-1fadacbe6573'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.UXO5C3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration:/home/alex/Diplomatiki/ros/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/alex/Diplomatiki/ros/build/my_interfaces'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[0.099787] (-) TimerEvent: {}
+[0.100381] (my_interfaces) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.176456] (my_interfaces) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.188949] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.199919] (-) TimerEvent: {}
+[0.255404] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.261552] (my_interfaces) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.261779] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.263853] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.267257] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.300021] (-) TimerEvent: {}
+[0.343920] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.352245] (my_interfaces) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.352420] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.352470] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.355750] (my_interfaces) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.400181] (-) TimerEvent: {}
+[0.501238] (-) TimerEvent: {}
+[0.601573] (-) TimerEvent: {}
+[0.701876] (-) TimerEvent: {}
+[0.735573] (my_interfaces) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[0.801974] (-) TimerEvent: {}
+[0.825616] (my_interfaces) StdoutLine: {'line': b'-- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)\n'}
+[0.829519] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.835634] (my_interfaces) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.878475] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.902109] (-) TimerEvent: {}
+[0.910660] (my_interfaces) StdoutLine: {'line': b'-- Found std_msgs: 4.9.0 (/opt/ros/humble/share/std_msgs/cmake)\n'}
+[0.940016] (my_interfaces) StdoutLine: {'line': b'-- Found geometry_msgs: 4.9.0 (/opt/ros/humble/share/geometry_msgs/cmake)\n'}
+[1.003228] (-) TimerEvent: {}
+[1.103635] (-) TimerEvent: {}
+[1.204118] (-) TimerEvent: {}
+[1.288959] (my_interfaces) StdoutLine: {'line': b'-- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)\n'}
+[1.304237] (-) TimerEvent: {}
+[1.404613] (-) TimerEvent: {}
+[1.504969] (-) TimerEvent: {}
+[1.532964] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.605071] (-) TimerEvent: {}
+[1.705423] (-) TimerEvent: {}
+[1.805763] (-) TimerEvent: {}
+[1.866938] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.889002] (my_interfaces) StdoutLine: {'line': b'-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") \n'}
+[1.890250] (my_interfaces) StdoutLine: {'line': b'-- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)\n'}
+[1.905864] (-) TimerEvent: {}
+[1.921501] (my_interfaces) StdoutLine: {'line': b'-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") \n'}
+[1.922351] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_EXECUTABLE: /usr/bin/python3\n'}
+[1.922513] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10\n'}
+[1.922635] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so\n'}
+[1.945493] (my_interfaces) StdoutLine: {'line': b'-- Found PythonExtra: .so  \n'}
+[2.002485] (my_interfaces) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[2.005955] (-) TimerEvent: {}
+[2.020680] (my_interfaces) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[2.021863] (my_interfaces) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[2.023993] (my_interfaces) StdoutLine: {'line': b'-- Configuring done\n'}
+[2.060226] (my_interfaces) StdoutLine: {'line': b'-- Generating done\n'}
+[2.069952] (my_interfaces) StdoutLine: {'line': b'-- Build files have been written to: /home/alex/Diplomatiki/ros/build/my_interfaces\n'}
+[2.076221] (my_interfaces) CommandEnded: {'returncode': 0}
+[2.076810] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'build'}
+[2.077782] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/alex/Diplomatiki/ros/build/my_interfaces', '--', '-j6', '-l6'], 'cwd': '/home/alex/Diplomatiki/ros/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('PYTHONWARNINGS', 'ignore::UserWarning:google.protobuf'), ('USER', 'alex'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/alex'), ('OLDPWD', '/home/alex/Diplomatiki/ros/rosbag'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '1453'), ('SYSTEMD_EXEC_PID', '1806'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '4157'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'alex'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:15022'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'alex'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/alexlinux:@/tmp/.ICE-unix/1593,unix/alexlinux:/tmp/.ICE-unix/1593'), ('INVOCATION_ID', '7dab4ed9de8342e9a75e1166c1428b67'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', 'dfb69f4e-dd3a-48cd-9d61-1fadacbe6573'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.UXO5C3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration:/home/alex/Diplomatiki/ros/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/alex/Diplomatiki/ros/build/my_interfaces'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[2.106060] (-) TimerEvent: {}
+[2.117436] (my_interfaces) StdoutLine: {'line': b'[  1%] \x1b[34m\x1b[1mGenerating C code for ROS interfaces\x1b[0m\n'}
+[2.124217] (my_interfaces) StdoutLine: {'line': b'[  2%] \x1b[34m\x1b[1mGenerating C++ code for ROS interfaces\x1b[0m\n'}
+[2.130103] (my_interfaces) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_copy_my_interfaces\n'}
+[2.206172] (-) TimerEvent: {}
+[2.307867] (-) TimerEvent: {}
+[2.322274] (my_interfaces) StdoutLine: {'line': b'running egg_info\n'}
+[2.336810] (my_interfaces) StdoutLine: {'line': b'creating my_interfaces.egg-info\n'}
+[2.337206] (my_interfaces) StdoutLine: {'line': b'writing my_interfaces.egg-info/PKG-INFO\n'}
+[2.337531] (my_interfaces) StdoutLine: {'line': b'writing dependency_links to my_interfaces.egg-info/dependency_links.txt\n'}
+[2.337814] (my_interfaces) StdoutLine: {'line': b'writing top-level names to my_interfaces.egg-info/top_level.txt\n'}
+[2.337919] (my_interfaces) StdoutLine: {'line': b"writing manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[2.383324] (my_interfaces) StdoutLine: {'line': b"reading manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[2.383604] (my_interfaces) StdoutLine: {'line': b"writing manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[2.408296] (-) TimerEvent: {}
+[2.424995] (my_interfaces) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_build_my_interfaces_egg\n'}
+[2.508453] (-) TimerEvent: {}
+[2.608831] (-) TimerEvent: {}
+[2.709178] (-) TimerEvent: {}
+[2.809501] (-) TimerEvent: {}
+[2.910602] (-) TimerEvent: {}
+[3.008016] (my_interfaces) StdoutLine: {'line': b'[  4%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/agent_data__functions.c.o\x1b[0m\n'}
+[3.009484] (my_interfaces) StdoutLine: {'line': b'[  5%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o\x1b[0m\n'}
+[3.010788] (-) TimerEvent: {}
+[3.011244] (my_interfaces) StdoutLine: {'line': b'[  7%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__functions.c.o\x1b[0m\n'}
+[3.018438] (my_interfaces) StdoutLine: {'line': b'[  8%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.c.o\x1b[0m\n'}
+[3.018677] (my_interfaces) StdoutLine: {'line': b'[  9%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.c.o\x1b[0m\n'}
+[3.024635] (my_interfaces) StdoutLine: {'line': b'[  9%] Built target my_interfaces__cpp\n'}
+[3.034881] (my_interfaces) StdoutLine: {'line': b'[ 11%] \x1b[34m\x1b[1mGenerating C++ type support dispatch for ROS interfaces\x1b[0m\n'}
+[3.088536] (my_interfaces) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.c.o\x1b[0m\n'}
+[3.090025] (my_interfaces) StdoutLine: {'line': b'[ 14%] \x1b[34m\x1b[1mGenerating C++ introspection for ROS interfaces\x1b[0m\n'}
+[3.091241] (my_interfaces) StdoutLine: {'line': b'[ 15%] \x1b[34m\x1b[1mGenerating C++ type support for eProsima Fast-RTPS\x1b[0m\n'}
+[3.110880] (-) TimerEvent: {}
+[3.142880] (my_interfaces) StdoutLine: {'line': b'[ 16%] \x1b[32m\x1b[1mLinking C shared library libmy_interfaces__rosidl_generator_c.so\x1b[0m\n'}
+[3.193284] (my_interfaces) StdoutLine: {'line': b'[ 16%] Built target my_interfaces__rosidl_generator_c\n'}
+[3.209879] (my_interfaces) StdoutLine: {'line': b'[ 18%] \x1b[34m\x1b[1mGenerating C type support dispatch for ROS interfaces\x1b[0m\n'}
+[3.210951] (-) TimerEvent: {}
+[3.215752] (my_interfaces) StdoutLine: {'line': b'[ 19%] \x1b[34m\x1b[1mGenerating C type support for eProsima Fast-RTPS\x1b[0m\n'}
+[3.231017] (my_interfaces) StdoutLine: {'line': b'[ 21%] \x1b[34m\x1b[1mGenerating C introspection for ROS interfaces\x1b[0m\n'}
+[3.314227] (-) TimerEvent: {}
+[3.414515] (-) TimerEvent: {}
+[3.514786] (-) TimerEvent: {}
+[3.615070] (-) TimerEvent: {}
+[3.715472] (-) TimerEvent: {}
+[3.816053] (-) TimerEvent: {}
+[3.903096] (my_interfaces) StdoutLine: {'line': b'[ 22%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/ck_table__type_support.cpp.o\x1b[0m\n'}
+[3.916144] (-) TimerEvent: {}
+[3.933333] (my_interfaces) StdoutLine: {'line': b'[ 23%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/ck_table__type_support.cpp.o\x1b[0m\n'}
+[4.018000] (-) TimerEvent: {}
+[4.118471] (-) TimerEvent: {}
+[4.130687] (my_interfaces) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp.o\x1b[0m\n'}
+[4.213035] (my_interfaces) StdoutLine: {'line': b'[ 26%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/agent_data__type_support.cpp.o\x1b[0m\n'}
+[4.218597] (-) TimerEvent: {}
+[4.323584] (-) TimerEvent: {}
+[4.324793] (my_interfaces) StdoutLine: {'line': b'[ 28%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[4.403317] (my_interfaces) StdoutLine: {'line': b'[ 29%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[4.424266] (-) TimerEvent: {}
+[4.439907] (my_interfaces) StdoutLine: {'line': b'[ 30%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/agent_data__type_support.cpp.o\x1b[0m\n'}
+[4.469346] (my_interfaces) StdoutLine: {'line': b'[ 32%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[4.506612] (my_interfaces) StdoutLine: {'line': b'[ 33%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[4.524392] (-) TimerEvent: {}
+[4.529389] (my_interfaces) StdoutLine: {'line': b'[ 35%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/ck_table__type_support.cpp.o\x1b[0m\n'}
+[4.537873] (my_interfaces) StdoutLine: {'line': b'[ 36%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/ck_table__type_support.c.o\x1b[0m\n'}
+[4.584212] (my_interfaces) StdoutLine: {'line': b'[ 38%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_c.so\x1b[0m\n'}
+[4.626271] (-) TimerEvent: {}
+[4.676039] (my_interfaces) StdoutLine: {'line': b'[ 39%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/agent_data__type_support.c.o\x1b[0m\n'}
+[4.683225] (my_interfaces) StdoutLine: {'line': b'[ 40%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/agent_data__type_support.cpp.o\x1b[0m\n'}
+[4.694808] (my_interfaces) StdoutLine: {'line': b'[ 40%] Built target my_interfaces__rosidl_typesupport_c\n'}
+[4.718674] (my_interfaces) StdoutLine: {'line': b'[ 42%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[4.726385] (-) TimerEvent: {}
+[4.760517] (my_interfaces) StdoutLine: {'line': b'[ 43%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__type_support_c.cpp.o\x1b[0m\n'}
+[4.778506] (my_interfaces) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_obstacle__type_support.c.o\x1b[0m\n'}
+[4.831315] (-) TimerEvent: {}
+[4.901425] (my_interfaces) StdoutLine: {'line': b'[ 46%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_obstacles__type_support.c.o\x1b[0m\n'}
+[4.934246] (-) TimerEvent: {}
+[5.014535] (my_interfaces) StdoutLine: {'line': b'[ 47%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_target_estimate__type_support.c.o\x1b[0m\n'}
+[5.035252] (-) TimerEvent: {}
+[5.066340] (my_interfaces) StdoutLine: {'line': b'[ 49%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[5.122922] (my_interfaces) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_target_estimates__type_support.c.o\x1b[0m\n'}
+[5.135373] (-) TimerEvent: {}
+[5.160240] (my_interfaces) StdoutLine: {'line': b'[ 52%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[5.192812] (my_interfaces) StdoutLine: {'line': b'[ 53%] \x1b[32m\x1b[1mLinking C shared library libmy_interfaces__rosidl_typesupport_introspection_c.so\x1b[0m\n'}
+[5.235481] (-) TimerEvent: {}
+[5.290861] (my_interfaces) StdoutLine: {'line': b'[ 53%] Built target my_interfaces__rosidl_typesupport_introspection_c\n'}
+[5.307386] (my_interfaces) StdoutLine: {'line': b'[ 54%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[5.336347] (-) TimerEvent: {}
+[5.380949] (my_interfaces) StdoutLine: {'line': b'[ 56%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__type_support_c.cpp.o\x1b[0m\n'}
+[5.420237] (my_interfaces) StdoutLine: {'line': b'[ 57%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/agent_data__type_support.cpp.o\x1b[0m\n'}
+[5.443293] (-) TimerEvent: {}
+[5.524291] (my_interfaces) StdoutLine: {'line': b'[ 59%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[5.543413] (-) TimerEvent: {}
+[5.570671] (my_interfaces) StdoutLine: {'line': b'[ 60%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[5.645253] (-) TimerEvent: {}
+[5.745591] (-) TimerEvent: {}
+[5.781407] (my_interfaces) StdoutLine: {'line': b'[ 61%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__type_support_c.cpp.o\x1b[0m\n'}
+[5.804520] (my_interfaces) StdoutLine: {'line': b'[ 63%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[5.846294] (-) TimerEvent: {}
+[5.901148] (my_interfaces) StdoutLine: {'line': b'[ 64%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__type_support_c.cpp.o\x1b[0m\n'}
+[5.946401] (-) TimerEvent: {}
+[5.960468] (my_interfaces) StdoutLine: {'line': b'[ 66%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[6.049253] (-) TimerEvent: {}
+[6.149659] (-) TimerEvent: {}
+[6.204272] (my_interfaces) StdoutLine: {'line': b'[ 67%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__type_support_c.cpp.o\x1b[0m\n'}
+[6.250240] (-) TimerEvent: {}
+[6.275258] (my_interfaces) StdoutLine: {'line': b'[ 69%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[6.325988] (my_interfaces) StdoutLine: {'line': b'[ 70%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__type_support_c.cpp.o\x1b[0m\n'}
+[6.352265] (-) TimerEvent: {}
+[6.454793] (-) TimerEvent: {}
+[6.535395] (my_interfaces) StdoutLine: {'line': b'[ 71%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[6.554912] (-) TimerEvent: {}
+[6.556339] (my_interfaces) StdoutLine: {'line': b'[ 73%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[6.644920] (my_interfaces) StdoutLine: {'line': b'[ 74%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_introspection_cpp.so\x1b[0m\n'}
+[6.655268] (-) TimerEvent: {}
+[6.711082] (my_interfaces) StdoutLine: {'line': b'[ 76%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[6.716383] (my_interfaces) StdoutLine: {'line': b'[ 77%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_c.so\x1b[0m\n'}
+[6.755720] (-) TimerEvent: {}
+[6.825327] (my_interfaces) StdoutLine: {'line': b'[ 77%] Built target my_interfaces__rosidl_typesupport_introspection_cpp\n'}
+[6.837079] (my_interfaces) StdoutLine: {'line': b'[ 77%] Built target my_interfaces__rosidl_typesupport_fastrtps_c\n'}
+[6.858254] (-) TimerEvent: {}
+[6.903580] (my_interfaces) StdoutLine: {'line': b'[ 78%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_cpp.so\x1b[0m\n'}
+[6.950511] (my_interfaces) StdoutLine: {'line': b'[ 78%] Built target my_interfaces__rosidl_typesupport_cpp\n'}
+[6.958357] (-) TimerEvent: {}
+[7.058659] (-) TimerEvent: {}
+[7.148286] (my_interfaces) StdoutLine: {'line': b'[ 80%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so\x1b[0m\n'}
+[7.158753] (-) TimerEvent: {}
+[7.244802] (my_interfaces) StdoutLine: {'line': b'[ 80%] Built target my_interfaces__rosidl_typesupport_fastrtps_cpp\n'}
+[7.258875] (-) TimerEvent: {}
+[7.260829] (my_interfaces) StdoutLine: {'line': b'[ 80%] Built target my_interfaces\n'}
+[7.277219] (my_interfaces) StdoutLine: {'line': b'[ 81%] \x1b[34m\x1b[1mGenerating Python code for ROS interfaces\x1b[0m\n'}
+[7.358997] (-) TimerEvent: {}
+[7.459336] (-) TimerEvent: {}
+[7.560947] (-) TimerEvent: {}
+[7.661354] (-) TimerEvent: {}
+[7.761659] (-) TimerEvent: {}
+[7.862023] (-) TimerEvent: {}
+[7.962446] (-) TimerEvent: {}
+[8.062812] (-) TimerEvent: {}
+[8.163183] (-) TimerEvent: {}
+[8.263544] (-) TimerEvent: {}
+[8.363892] (-) TimerEvent: {}
+[8.464272] (-) TimerEvent: {}
+[8.564641] (-) TimerEvent: {}
+[8.629231] (my_interfaces) StdoutLine: {'line': b'[ 81%] Built target my_interfaces__py\n'}
+[8.650995] (my_interfaces) StdoutLine: {'line': b'[ 83%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c.o\x1b[0m\n'}
+[8.655842] (my_interfaces) StdoutLine: {'line': b'[ 84%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_agent_data_s.c.o\x1b[0m\n'}
+[8.661535] (my_interfaces) StdoutLine: {'line': b'[ 85%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c.o\x1b[0m\n'}
+[8.665288] (-) TimerEvent: {}
+[8.666318] (my_interfaces) StdoutLine: {'line': b'[ 87%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c.o\x1b[0m\n'}
+[8.674184] (my_interfaces) StdoutLine: {'line': b'[ 88%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c.o\x1b[0m\n'}
+[8.676597] (my_interfaces) StdoutLine: {'line': b'[ 90%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c.o\x1b[0m\n'}
+[8.767660] (-) TimerEvent: {}
+[8.868114] (-) TimerEvent: {}
+[8.886355] (my_interfaces) StdoutLine: {'line': b'[ 91%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so\x1b[0m\n'}
+[8.935525] (my_interfaces) StdoutLine: {'line': b'[ 91%] Built target my_interfaces__rosidl_generator_py\n'}
+[8.954251] (my_interfaces) StdoutLine: {'line': b'[ 94%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o\x1b[0m\n'}
+[8.955077] (my_interfaces) StdoutLine: {'line': b'[ 94%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c.o\x1b[0m\n'}
+[8.955483] (my_interfaces) StdoutLine: {'line': b'[ 95%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o\x1b[0m\n'}
+[8.968298] (-) TimerEvent: {}
+[9.060495] (my_interfaces) StdoutLine: {'line': b'[ 97%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[9.064127] (my_interfaces) StdoutLine: {'line': b'[ 98%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[9.066945] (my_interfaces) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[9.068393] (-) TimerEvent: {}
+[9.101395] (my_interfaces) StdoutLine: {'line': b'[100%] Built target my_interfaces__rosidl_typesupport_introspection_c__pyext\n'}
+[9.102619] (my_interfaces) StdoutLine: {'line': b'[100%] Built target my_interfaces__rosidl_typesupport_c__pyext\n'}
+[9.106057] (my_interfaces) StdoutLine: {'line': b'[100%] Built target my_interfaces__rosidl_typesupport_fastrtps_c__pyext\n'}
+[9.116649] (my_interfaces) CommandEnded: {'returncode': 0}
+[9.117308] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'install'}
+[9.125537] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/alex/Diplomatiki/ros/build/my_interfaces'], 'cwd': '/home/alex/Diplomatiki/ros/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('PYTHONWARNINGS', 'ignore::UserWarning:google.protobuf'), ('USER', 'alex'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/alex'), ('OLDPWD', '/home/alex/Diplomatiki/ros/rosbag'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '1453'), ('SYSTEMD_EXEC_PID', '1806'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '4157'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'alex'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:15022'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'alex'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/alexlinux:@/tmp/.ICE-unix/1593,unix/alexlinux:/tmp/.ICE-unix/1593'), ('INVOCATION_ID', '7dab4ed9de8342e9a75e1166c1428b67'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', 'dfb69f4e-dd3a-48cd-9d61-1fadacbe6573'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.UXO5C3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration:/home/alex/Diplomatiki/ros/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/alex/Diplomatiki/ros/build/my_interfaces'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/alex/Diplomatiki/ros/install/my_interfaces:/home/alex/Diplomatiki/ros/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[9.137169] (my_interfaces) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[9.137486] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/rosidl_interfaces/my_interfaces\n'}
+[9.141007] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.141207] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.141259] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.h\n'}
+[9.141303] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.h\n'}
+[9.141344] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_c__visibility_control.h\n'}
+[9.141385] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.h\n'}
+[9.142100] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.142205] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.h\n'}
+[9.142251] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.h\n'}
+[9.142292] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.h\n'}
+[9.142333] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.h\n'}
+[9.142373] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.h\n'}
+[9.142413] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.c\n'}
+[9.142462] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.h\n'}
+[9.142502] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.h\n'}
+[9.142541] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.h\n'}
+[9.142581] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.h\n'}
+[9.142622] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.h\n'}
+[9.142664] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.h\n'}
+[9.142704] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.c\n'}
+[9.142745] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.h\n'}
+[9.142786] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.c\n'}
+[9.142832] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.c\n'}
+[9.142876] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.c\n'}
+[9.143517] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.h\n'}
+[9.143638] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.h\n'}
+[9.143704] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.h\n'}
+[9.143790] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.c\n'}
+[9.143868] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.h\n'}
+[9.143932] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.h\n'}
+[9.143977] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.h\n'}
+[9.144017] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.h\n'}
+[9.144083] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.h\n'}
+[9.144125] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.h\n'}
+[9.144176] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/library_path.sh\n'}
+[9.144222] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/library_path.dsv\n'}
+[9.144263] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so\n'}
+[9.144310] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so" to ""\n'}
+[9.144359] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.144431] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.144472] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h\n'}
+[9.144511] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.144550] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144599] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144639] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144683] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144724] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144763] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h\n'}
+[9.144804] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so\n'}
+[9.144844] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so" to ""\n'}
+[9.144891] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.144935] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.145039] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.145086] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_c.h\n'}
+[9.145147] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_c.h\n'}
+[9.145229] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_c.h\n'}
+[9.145283] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_c.h\n'}
+[9.145342] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.c\n'}
+[9.145409] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_c.h\n'}
+[9.145458] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.c\n'}
+[9.145500] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.c\n'}
+[9.145539] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.c\n'}
+[9.145577] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_c.h\n'}
+[9.145617] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.c\n'}
+[9.145658] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.c\n'}
+[9.145709] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h\n'}
+[9.145898] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so\n'}
+[9.145965] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so" to ""\n'}
+[9.146008] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so\n'}
+[9.148003] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so" to ""\n'}
+[9.148212] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.148272] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.148353] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.hpp\n'}
+[9.148424] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.hpp\n'}
+[9.148492] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp\n'}
+[9.148559] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.hpp\n'}
+[9.148623] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.hpp\n'}
+[9.148674] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.hpp\n'}
+[9.148743] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.148788] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp\n'}
+[9.148848] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__builder.hpp\n'}
+[9.148900] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__traits.hpp\n'}
+[9.148964] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__builder.hpp\n'}
+[9.149029] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__builder.hpp\n'}
+[9.149098] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.hpp\n'}
+[9.149177] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.hpp\n'}
+[9.149374] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__traits.hpp\n'}
+[9.149446] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.hpp\n'}
+[9.149529] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.hpp\n'}
+[9.149597] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.hpp\n'}
+[9.149663] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__builder.hpp\n'}
+[9.149716] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.hpp\n'}
+[9.149774] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.hpp\n'}
+[9.149817] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__traits.hpp\n'}
+[9.149892] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp\n'}
+[9.149963] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp\n'}
+[9.150012] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__builder.hpp\n'}
+[9.150087] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.hpp\n'}
+[9.150156] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__traits.hpp\n'}
+[9.150243] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.hpp\n'}
+[9.150298] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__traits.hpp\n'}
+[9.150347] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.hpp\n'}
+[9.150424] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__builder.hpp\n'}
+[9.150490] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.hpp\n'}
+[9.150558] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.150601] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.150647] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h\n'}
+[9.150710] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.150753] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/dds_fastrtps\n'}
+[9.150799] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.150841] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.150883] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.150925] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.150966] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.151008] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[9.151213] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so\n'}
+[9.151426] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""\n'}
+[9.151494] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces\n'}
+[9.151548] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg\n'}
+[9.151616] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail\n'}
+[9.151679] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.151723] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.cpp\n'}
+[9.151765] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.cpp\n'}
+[9.151804] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.151844] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.151887] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.152394] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.152481] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.cpp\n'}
+[9.152525] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.cpp\n'}
+[9.152576] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.cpp\n'}
+[9.152624] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_cpp.hpp\n'}
+[9.152697] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.cpp\n'}
+[9.152746] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so\n'}
+[9.153123] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so" to ""\n'}
+[9.153441] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so\n'}
+[9.155188] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so" to ""\n'}
+[9.155285] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/pythonpath.sh\n'}
+[9.155331] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/pythonpath.dsv\n'}
+[9.155374] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info\n'}
+[9.155418] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt\n'}
+[9.155461] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt\n'}
+[9.155504] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/PKG-INFO\n'}
+[9.155546] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/top_level.txt\n'}
+[9.155589] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces\n'}
+[9.155631] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg\n'}
+[9.155675] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py\n'}
+[9.155717] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py\n'}
+[9.155760] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py\n'}
+[9.155802] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data_s.c\n'}
+[9.155844] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py\n'}
+[9.155886] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table_s.c\n'}
+[9.155935] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles_s.c\n'}
+[9.155978] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate_s.c\n'}
+[9.156020] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle_s.c\n'}
+[9.156061] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py\n'}
+[9.156103] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py\n'}
+[9.156145] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py\n'}
+[9.156260] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates_s.c\n'}
+[9.156308] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py\n'}
+[9.156349] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/libmy_interfaces__rosidl_generator_py.so\n'}
+[9.156396] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c\n'}
+[9.156444] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.156487] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c\n'}
+[9.156529] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.156571] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c\n'}
+[9.156612] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.168492] (-) TimerEvent: {}
+[9.202373] (my_interfaces) StdoutLine: {'line': b"Listing '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces'...\n"}
+[9.202545] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py'...\n"}
+[9.202596] (my_interfaces) StdoutLine: {'line': b"Listing '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg'...\n"}
+[9.202640] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py'...\n"}
+[9.202684] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py'...\n"}
+[9.202742] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py'...\n"}
+[9.202786] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py'...\n"}
+[9.202830] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py'...\n"}
+[9.202874] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py'...\n"}
+[9.202917] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py'...\n"}
+[9.211263] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.212088] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[9.212593] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.213065] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[9.213617] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[9.214324] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[9.214524] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so\n'}
+[9.215274] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/alex/Diplomatiki/ros/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so" to ""\n'}
+[9.215456] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/CkTable.idl\n'}
+[9.215937] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/AgentData.idl\n'}
+[9.216310] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.idl\n'}
+[9.216945] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.idl\n'}
+[9.217338] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.idl\n'}
+[9.217455] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.idl\n'}
+[9.217686] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/CkTable.msg\n'}
+[9.218064] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/AgentData.msg\n'}
+[9.218385] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.msg\n'}
+[9.218674] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.msg\n'}
+[9.218769] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.msg\n'}
+[9.218984] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.msg\n'}
+[9.219441] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/package_run_dependencies/my_interfaces\n'}
+[9.219741] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/parent_prefix_path/my_interfaces\n'}
+[9.219852] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.sh\n'}
+[9.220104] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.dsv\n'}
+[9.220520] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/path.sh\n'}
+[9.220815] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/environment/path.dsv\n'}
+[9.221089] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.bash\n'}
+[9.221198] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.sh\n'}
+[9.221455] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.zsh\n'}
+[9.221846] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/local_setup.dsv\n'}
+[9.222186] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.dsv\n'}
+[9.222302] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/ament_index/resource_index/packages/my_interfaces\n'}
+[9.222719] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport.cmake\n'}
+[9.223006] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport-noconfig.cmake\n'}
+[9.223110] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport.cmake\n'}
+[9.223373] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake\n'}
+[9.223756] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport.cmake\n'}
+[9.224040] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake\n'}
+[9.224146] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport.cmake\n'}
+[9.224543] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport-noconfig.cmake\n'}
+[9.224662] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cppExport.cmake\n'}
+[9.225042] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake\n'}
+[9.225153] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake\n'}
+[9.225568] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport.cmake\n'}
+[9.225971] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake\n'}
+[9.226644] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport.cmake\n'}
+[9.226793] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport-noconfig.cmake\n'}
+[9.227166] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport.cmake\n'}
+[9.227437] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport-noconfig.cmake\n'}
+[9.227541] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake-extras.cmake\n'}
+[9.227618] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[9.227722] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[9.227819] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[9.227921] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[9.228025] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake\n'}
+[9.228123] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake\n'}
+[9.229083] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig.cmake\n'}
+[9.229439] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig-version.cmake\n'}
+[9.229546] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/alex/Diplomatiki/ros/install/my_interfaces/share/my_interfaces/package.xml\n'}
+[9.231660] (my_interfaces) CommandEnded: {'returncode': 0}
+[9.257242] (my_interfaces) JobEnded: {'identifier': 'my_interfaces', 'rc': 0}
+[9.257804] (ergodic_exploration) JobStarted: {'identifier': 'ergodic_exploration'}
+[9.268675] (-) TimerEvent: {}
+[9.368956] (-) TimerEvent: {}
+[9.469195] (-) TimerEvent: {}
+[9.569672] (-) TimerEvent: {}
+[9.669994] (-) TimerEvent: {}
+[9.770360] (-) TimerEvent: {}
+[9.839121] (ergodic_exploration) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/ergodic_exploration', 'build', '--build-base', '/home/alex/Diplomatiki/ros/build/ergodic_exploration/build', 'install', '--record', '/home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/alex/Diplomatiki/ros/src/ergodic_exploration', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'PYTHONWARNINGS': 'ignore::UserWarning:google.protobuf', 'USER': 'alex', 'LC_TIME': 'el_GR.UTF-8', 'XDG_SESSION_TYPE': 'wayland', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/home/alex/Diplomatiki/ros/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/alex', 'OLDPWD': '/home/alex/Diplomatiki/ros/rosbag', 'DESKTOP_SESSION': 'ubuntu', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'LC_MONETARY': 'el_GR.UTF-8', 'MANAGERPID': '1453', 'SYSTEMD_EXEC_PID': '1806', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '4157', 'IM_CONFIG_PHASE': '1', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/alex/Diplomatiki/ros/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'alex', '_': '/usr/bin/colcon', 'JOURNAL_STREAM': '8:15022', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'USERNAME': 'alex', 'TERM': 'xterm-256color', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/home/alex/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin', 'SESSION_MANAGER': 'local/alexlinux:@/tmp/.ICE-unix/1593,unix/alexlinux:/tmp/.ICE-unix/1593', 'INVOCATION_ID': '7dab4ed9de8342e9a75e1166c1428b67', 'PAPERSIZE': 'a4', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'el_GR.UTF-8', 'GNOME_SETUP_DISPLAY': ':1', 'XDG_RUNTIME_DIR': '/run/user/1000', 'DISPLAY': ':0', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'LC_TELEPHONE': 'el_GR.UTF-8', 'TILIX_ID': 'dfb69f4e-dd3a-48cd-9d61-1fadacbe6573', 'XMODIFIERS': '@im=ibus', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/.mutter-Xwaylandauth.UXO5C3', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/home/alex/Diplomatiki/ros/install/ergodic_exploration:/home/alex/Diplomatiki/ros/install/my_interfaces:/opt/ros/humble', 'SHELL': '/bin/bash', 'LC_NAME': 'el_GR.UTF-8', 'QT_ACCESSIBILITY': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'LC_MEASUREMENT': 'el_GR.UTF-8', 'LC_IDENTIFICATION': 'el_GR.UTF-8', 'QT_IM_MODULE': 'ibus', 'PWD': '/home/alex/Diplomatiki/ros/build/ergodic_exploration', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/alex/Diplomatiki/ros/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/ros/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'el_GR.UTF-8', 'LC_PAPER': 'el_GR.UTF-8', 'COLCON': '1', 'VTE_VERSION': '6800', 'CMAKE_PREFIX_PATH': '/home/alex/Diplomatiki/ros/install/my_interfaces'}, 'shell': False}
+[9.870479] (-) TimerEvent: {}
+[9.970861] (-) TimerEvent: {}
+[10.065257] (ergodic_exploration) StdoutLine: {'line': b'running egg_info\n'}
+[10.070996] (-) TimerEvent: {}
+[10.078021] (ergodic_exploration) StdoutLine: {'line': b'creating ../../build/ergodic_exploration/ergodic_exploration.egg-info\n'}
+[10.078452] (ergodic_exploration) StdoutLine: {'line': b'writing ../../build/ergodic_exploration/ergodic_exploration.egg-info/PKG-INFO\n'}
+[10.079212] (ergodic_exploration) StdoutLine: {'line': b'writing dependency_links to ../../build/ergodic_exploration/ergodic_exploration.egg-info/dependency_links.txt\n'}
+[10.079602] (ergodic_exploration) StdoutLine: {'line': b'writing entry points to ../../build/ergodic_exploration/ergodic_exploration.egg-info/entry_points.txt\n'}
+[10.079818] (ergodic_exploration) StdoutLine: {'line': b'writing requirements to ../../build/ergodic_exploration/ergodic_exploration.egg-info/requires.txt\n'}
+[10.080037] (ergodic_exploration) StdoutLine: {'line': b'writing top-level names to ../../build/ergodic_exploration/ergodic_exploration.egg-info/top_level.txt\n'}
+[10.080140] (ergodic_exploration) StdoutLine: {'line': b"writing manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[10.110644] (ergodic_exploration) StdoutLine: {'line': b"reading manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[10.111048] (ergodic_exploration) StdoutLine: {'line': b"adding license file 'LICENSE'\n"}
+[10.111806] (ergodic_exploration) StdoutLine: {'line': b"writing manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[10.111999] (ergodic_exploration) StdoutLine: {'line': b'running build\n'}
+[10.112053] (ergodic_exploration) StdoutLine: {'line': b'running build_py\n'}
+[10.112173] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration\n'}
+[10.112342] (ergodic_exploration) StdoutLine: {'line': b'copying ergodic_exploration/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration\n'}
+[10.112452] (ergodic_exploration) StdoutLine: {'line': b'copying ergodic_exploration/environment.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration\n'}
+[10.112605] (ergodic_exploration) StdoutLine: {'line': b'copying ergodic_exploration/agent_node.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration\n'}
+[10.112874] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.112960] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113109] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113237] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113340] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113464] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113575] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113675] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113817] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.113923] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114029] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114140] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114418] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114627] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114787] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.114920] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115100] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115231] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115359] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115552] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115678] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115851] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.115996] (ergodic_exploration) StdoutLine: {'line': b'copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib\n'}
+[10.117339] (ergodic_exploration) StdoutLine: {'line': b'running install\n'}
+[10.121254] (ergodic_exploration) StdoutLine: {'line': b'running install_lib\n'}
+[10.135642] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration\n'}
+[10.135858] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration/__init__.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration\n'}
+[10.135919] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration/environment.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration\n'}
+[10.136002] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration/agent_node.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration\n'}
+[10.136050] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.136120] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.136350] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.136810] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.136916] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.136990] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137037] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137080] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137123] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137213] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137293] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.137338] (ergodic_exploration) StdoutLine: {'line': b'copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib\n'}
+[10.138078] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/__init__.py to __init__.cpython-310.pyc\n'}
+[10.138463] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/environment.py to environment.cpython-310.pyc\n'}
+[10.147375] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration/agent_node.py to agent_node.cpython-310.pyc\n'}
+[10.150338] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/vis.py to vis.cpython-310.pyc\n'}
+[10.160755] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/model_dynamics.py to model_dynamics.cpython-310.pyc\n'}
+[10.167305] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/__init__.py to __init__.cpython-310.pyc\n'}
+[10.168643] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/eid.py to eid.cpython-310.pyc\n'}
+[10.170876] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/basis.py to basis.cpython-310.pyc\n'}
+[10.171281] (-) TimerEvent: {}
+[10.173421] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/barrier.py to barrier.cpython-310.pyc\n'}
+[10.173842] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/agent.py to agent.cpython-310.pyc\n'}
+[10.178763] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/replay_buffer.py to replay_buffer.cpython-310.pyc\n'}
+[10.179646] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/Utilities.py to Utilities.cpython-310.pyc\n'}
+[10.180786] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/obstacles.py to obstacles.cpython-310.pyc\n'}
+[10.182525] (ergodic_exploration) StdoutLine: {'line': b'byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/ergodic_controllers.py to ergodic_controllers.cpython-310.pyc\n'}
+[10.184864] (ergodic_exploration) StdoutLine: {'line': b'running install_data\n'}
+[10.185109] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages\n'}
+[10.185692] (ergodic_exploration) StdoutLine: {'line': b'copying resource/ergodic_exploration -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages\n'}
+[10.185788] (ergodic_exploration) StdoutLine: {'line': b'copying package.xml -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration\n'}
+[10.185833] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[10.185879] (ergodic_exploration) StdoutLine: {'line': b'copying launch/drones_in_small_space.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[10.185973] (ergodic_exploration) StdoutLine: {'line': b'copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[10.186018] (ergodic_exploration) StdoutLine: {'line': b'copying launch/big_environment_1_L_0_40.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[10.186073] (ergodic_exploration) StdoutLine: {'line': b'creating /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.186115] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/car.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.187200] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/hermes.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.187887] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/hermes_original.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.188837] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/boat.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.188995] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/drone_small.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.189178] (ergodic_exploration) StdoutLine: {'line': b'copying meshes/drone_big.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[10.190559] (ergodic_exploration) StdoutLine: {'line': b'running install_egg_info\n'}
+[10.206262] (ergodic_exploration) StdoutLine: {'line': b'Copying ../../build/ergodic_exploration/ergodic_exploration.egg-info to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info\n'}
+[10.206980] (ergodic_exploration) StdoutLine: {'line': b'running install_scripts\n'}
+[10.236313] (ergodic_exploration) StdoutLine: {'line': b'Installing agent_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[10.236524] (ergodic_exploration) StdoutLine: {'line': b'Installing environment_node script to /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[10.237295] (ergodic_exploration) StdoutLine: {'line': b"writing list of installed files to '/home/alex/Diplomatiki/ros/build/ergodic_exploration/install.log'\n"}
+[10.271394] (-) TimerEvent: {}
+[10.276973] (ergodic_exploration) CommandEnded: {'returncode': 0}
+[10.281674] (ergodic_exploration) JobEnded: {'identifier': 'ergodic_exploration', 'rc': 0}
+[10.282503] (-) EventReactorShutdown: {}

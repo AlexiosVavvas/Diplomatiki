@@ -1,0 +1,158 @@
+# Obstacle Configuration File - Large Grid Example (40x40)
+# This file demonstrates various obstacle types and configurations
+# for a large exploration domain (0-40 x 0-40)
+
+obstacles:
+  # Small circle obstacles scattered across the domain
+  - pos: [5.0, 5.0]
+    dimensions: 0.8
+    obs_type: 'circle'
+    obs_name: "Small Circle 1"
+    
+  - pos: [15.0, 8.0]
+    dimensions: 1.2
+    obs_type: 'circle'
+    obs_name: "Medium Circle 1"
+    
+  - pos: [25.0, 12.0]
+    dimensions: 2.0
+    obs_type: 'circle'
+    obs_name: "Large Circle 1"
+    
+  - pos: [35.0, 18.0]
+    dimensions: 1.0
+    obs_type: 'circle'
+    obs_name: "Small Circle 2"
+
+  # Rectangle obstacles of various sizes
+  - pos: [10.0, 15.0]
+    dimensions: [3.0, 1.5]
+    obs_type: 'rectangle'
+    obs_name: "Small Rectangle 1"
+    
+  - pos: [20.0, 25.0]
+    dimensions: [5.0, 2.0]
+    obs_type: 'rectangle'
+    obs_name: "Medium Rectangle 1"
+    
+  - pos: [30.0, 30.0]
+    dimensions: [8.0, 4.0]
+    obs_type: 'rectangle'
+    obs_name: "Large Rectangle 1"
+
+  # Building-like structures (multiple rectangles)
+  - pos: [8.0, 35.0]
+    dimensions: [2.0, 6.0]
+    obs_type: 'rectangle'
+    obs_name: "Building Block 1"
+    
+  - pos: [12.0, 32.0]
+    dimensions: [4.0, 3.0]
+    obs_type: 'rectangle'
+    obs_name: "Building Block 2"
+    
+  - pos: [18.0, 35.0]
+    dimensions: [2.5, 5.0]
+    obs_type: 'rectangle'
+    obs_name: "Building Block 3"
+
+  # Circular cluster in one corner
+  - pos: [32.0, 8.0]
+    dimensions: 1.5
+    obs_type: 'circle'
+    obs_name: "Cluster Circle 1"
+    
+  - pos: [35.0, 6.0]
+    dimensions: 1.0
+    obs_type: 'circle'
+    obs_name: "Cluster Circle 2"
+    
+  - pos: [37.0, 10.0]
+    dimensions: 0.8
+    obs_type: 'circle'
+    obs_name: "Cluster Circle 3"
+
+  # Long corridor obstacles
+  - pos: [6.0, 20.0]
+    dimensions: [1.0, 12.0]
+    obs_type: 'rectangle'
+    obs_name: "Vertical Corridor Wall 1"
+    
+  - pos: [25.0, 5.0]
+    dimensions: [10.0, 1.5]
+    obs_type: 'rectangle'
+    obs_name: "Horizontal Corridor Wall 1"
+
+  # Complex shaped area using multiple rectangles
+  - pos: [38.0, 25.0]
+    dimensions: [3.0, 8.0]
+    obs_type: 'rectangle'
+    obs_name: "Complex Shape Part 1"
+    
+  - pos: [35.0, 28.0]
+    dimensions: [2.0, 3.0]
+    obs_type: 'rectangle'
+    obs_name: "Complex Shape Part 2"
+
+  # Scattered small obstacles for navigation challenges
+  - pos: [12.0, 3.0]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Nav Challenge 1"
+    
+  - pos: [14.0, 5.0]
+    dimensions: 0.7
+    obs_type: 'circle'
+    obs_name: "Nav Challenge 2"
+    
+  - pos: [16.0, 2.5]
+    dimensions: 0.5
+    obs_type: 'circle'
+    obs_name: "Nav Challenge 3"
+
+  # Custom walls (fixed positions) - creating internal barriers
+  - pos: [20.0, 15.0]
+    dimensions: [0, 8.0]
+    obs_type: 'wall'
+    obs_name: "Central Vertical Divider"
+    
+  - pos: [15.0, 20.0]
+    dimensions: [12.0, 0]
+    obs_type: 'wall'
+    obs_name: "Central Horizontal Divider"
+    
+  - pos: [35.0, 35.0]
+    dimensions: [0, 6.0]
+    obs_type: 'wall'
+    obs_name: "Corner Barrier 1"
+    
+  - pos: [5.0, 38.0]
+    dimensions: [8.0, 0]
+    obs_type: 'wall'
+    obs_name: "Corner Barrier 2"
+
+  # Large obstacle in center (commented out by default)
+  # - pos: [20.0, 20.0]
+  #   dimensions: [6.0, 6.0]
+  #   obs_type: 'rectangle'
+  #   obs_name: "Central Large Obstacle"
+
+  # Maze-like structure (commented out by default)
+  # - pos: [28.0, 15.0]
+  #   dimensions: [1.0, 8.0]
+  #   obs_type: 'rectangle'
+  #   obs_name: "Maze Wall 1"
+  #   
+  # - pos: [32.0, 18.0]
+  #   dimensions: [6.0, 1.0]
+  #   obs_type: 'rectangle'
+  #   obs_name: "Maze Wall 2"
+  #   
+  # - pos: [30.0, 22.0]
+  #   dimensions: [1.0, 4.0]
+  #   obs_type: 'rectangle'
+  #   obs_name: "Maze Wall 3"
+
+# All obstacles will use model default values for kappa and rho0 parameters
+# These defaults are automatically determined by the selected agent model type
+# (SingleIntegrator, DoubleIntegrator, SimpleBoatSecondOrder, etc.)

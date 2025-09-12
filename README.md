@@ -84,6 +84,12 @@ The system now leverages **ROS2 Humble** for inter-agent communication and real-
 <img src="images/images/ros/rviz_screen_airplane.png" width="80%" alt="RViz 3D Visualization">
 </div>
 *Airplane control 12-DoF non linear model, with direct inputs (elevator, aileron, rudder angles + throttle command)*
+<div align="center">
+<img src="images/images/ros/rviz_tight_space_drone_2_focused.png" width="80%" alt="RViz 3D Visualization">
+</div>
+<div align="center">
+<img src="images/images/ros/rviz_tight_space_drone.png" width="80%" alt="RViz 3D Visualization">
+</div>
 <br><br>
 *RViz 3D visualization showing multi-agent trajectories, target positions, and obstacle avoidance in real-time. The environment node publishes visualization markers for comprehensive 3D monitoring of the ergodic exploration system.*
 
