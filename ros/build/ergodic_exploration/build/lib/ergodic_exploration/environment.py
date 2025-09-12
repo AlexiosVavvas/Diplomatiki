@@ -14,11 +14,15 @@ from rcl_interfaces.srv import GetParameters
 import colorsys
 from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 
+# ===================-----------------------------------------------
 
 # Map Parameters
 MAP_WIDTH = 20.0        # [m] - Usually 20 (Airplane 200)
 MAP_HEIGHT = 20.0       # [m] - Usually 20 (Airplane 200)
 MAP_RESOLUTION = 0.05   # [pixels/m] - Usually 0.05 (Airplane 1.0)
+
+# ===================-----------------------------------------------
+
 
 class EnvironmentNode(Node):
     def __init__(self):
@@ -93,9 +97,6 @@ class EnvironmentNode(Node):
         self.target_estimate_marker_timer = self.create_timer(0.5, self.publish_target_estimate_markers)  # Every 0.5 seconds
 
         self.get_logger().info(f'Environment node initialized with map size: {self.grid_width}x{self.grid_height} pixels')
-
-        # Create a basis
-        # self.base = Basis(self.map_width, self.map_height, Kmax=4, phi_=lambda s: 1/100, precalc_phik_coeff=True, num_gauss_points=22)
 
 
     def discover_agents(self):
@@ -448,7 +449,9 @@ class EnvironmentNode(Node):
             # Set position (z coordinate will be 0.0 for ground vehicles, actual altitude for airplanes)
             pose_stamped.pose.position.x = x
             pose_stamped.pose.position.y = y
-            pose_stamped.pose.position.z = z
+            pose_stamped.pose.position.z = z if (self.agent_states[agent_id].get('is_airplane', False) \
+                                                 or self.agent_states[agent_id].get('is_boat', False) \
+                                                 or self.agent_states[agent_id].get('is_car', False)) else 5.0
             
             # Set orientation (no rotation for now)
             pose_stamped.pose.orientation.x = 0.0
@@ -1128,8 +1131,11 @@ class EnvironmentNode(Node):
                     # self.get_logger().info(f'Agent {agent_id}: Using AIRPLANE MESH marker, mesh_resource={marker.mesh_resource}, altitude={marker.pose.position.z:.2f}')
                     
                 else:
-                    # Use cylinder for non-boat agents
-                    marker.type = Marker.CYLINDER
+                    # Use drone mesh for non-boat, non-car, non-airplane agents
+                    marker.type = Marker.MESH_RESOURCE
+                    
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/drone_small.stl"
                     
                     # Set orientation (no rotation)
                     marker.pose.orientation.x = 0.0
@@ -1137,12 +1143,18 @@ class EnvironmentNode(Node):
                     marker.pose.orientation.z = 0.0
                     marker.pose.orientation.w = 1.0
                     
-                    # Set scale (cylinder dimensions)
-                    marker.scale.x = 0.3  # Diameter
-                    marker.scale.y = 0.3  # Diameter
-                    marker.scale.z = 1.0  # Height
+                    # Set scale (mesh dimensions)
+                    marker.scale.x = 1.0
+                    marker.scale.y = 1.0
+                    marker.scale.z = 1.0
                     
-                    # self.get_logger().info(f'Agent {agent_id}: Using CYLINDER marker')
+                    # Adjust z position for mesh
+                    marker.pose.position.z = float(position[2]) + 5.0
+                    
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # self.get_logger().info(f'Agent {agent_id}: Using DRONE_SMALL MESH marker')
                 
                 # Set color based on agent ID
                 marker.color = self.get_agent_color(agent_id)

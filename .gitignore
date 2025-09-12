@@ -1,2 +1,4 @@
 rt_erg_lib/
 ros/rosbag/
+ros/src/ergodic_exploration/meshes/drone_big.stl.backup
+ros/src/ergodic_exploration/meshes/drone_small.stl.backup

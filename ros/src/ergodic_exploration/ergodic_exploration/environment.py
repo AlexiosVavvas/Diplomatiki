@@ -449,7 +449,9 @@ class EnvironmentNode(Node):
             # Set position (z coordinate will be 0.0 for ground vehicles, actual altitude for airplanes)
             pose_stamped.pose.position.x = x
             pose_stamped.pose.position.y = y
-            pose_stamped.pose.position.z = z
+            pose_stamped.pose.position.z = z if (self.agent_states[agent_id].get('is_airplane', False) \
+                                                 or self.agent_states[agent_id].get('is_boat', False) \
+                                                 or self.agent_states[agent_id].get('is_car', False)) else 4.0
             
             # Set orientation (no rotation for now)
             pose_stamped.pose.orientation.x = 0.0
@@ -1129,8 +1131,11 @@ class EnvironmentNode(Node):
                     # self.get_logger().info(f'Agent {agent_id}: Using AIRPLANE MESH marker, mesh_resource={marker.mesh_resource}, altitude={marker.pose.position.z:.2f}')
                     
                 else:
-                    # Use cylinder for non-boat agents
-                    marker.type = Marker.CYLINDER
+                    # Use drone mesh for non-boat, non-car, non-airplane agents
+                    marker.type = Marker.MESH_RESOURCE
+                    
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/drone_small.stl"
                     
                     # Set orientation (no rotation)
                     marker.pose.orientation.x = 0.0
@@ -1138,12 +1143,18 @@ class EnvironmentNode(Node):
                     marker.pose.orientation.z = 0.0
                     marker.pose.orientation.w = 1.0
                     
-                    # Set scale (cylinder dimensions)
-                    marker.scale.x = 0.3  # Diameter
-                    marker.scale.y = 0.3  # Diameter
-                    marker.scale.z = 1.0  # Height
+                    # Set scale (mesh dimensions)
+                    marker.scale.x = 1.0
+                    marker.scale.y = 1.0
+                    marker.scale.z = 1.0
                     
-                    # self.get_logger().info(f'Agent {agent_id}: Using CYLINDER marker')
+                    # Adjust z position for mesh
+                    marker.pose.position.z = float(position[2]) + 5.0
+                    
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # self.get_logger().info(f'Agent {agent_id}: Using DRONE_SMALL MESH marker')
                 
                 # Set color based on agent ID
                 marker.color = self.get_agent_color(agent_id)

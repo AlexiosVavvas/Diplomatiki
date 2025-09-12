@@ -211,8 +211,7 @@ def main(args=None):
         u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
         INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
         Q_ = 2 * 10**3
-        R_ = 1 * np.eye(4)
-        R_[3,3] = 0.1  # Less penalty on throttle changes
+        R_ = 1 * np.eye(4); R_[3,3] = 0.1  # Less penalty on throttle changes
         RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
         TS = 0.02; T_H = 2; deltaT_ERG = 2
         SIMUL_DT = 0.005
@@ -406,6 +405,7 @@ def main(args=None):
     # phi_rec = ReconstructedPhi(agent.basis, precalc_phik=False)
     # vis.plotPhiOnlyOriginalAndReconstructed(agent, phi_rec_from_agent=phi_rec, grid_res=100, clip_to_min_max=False)
     # plt.show()
+    # print("Using sys.exit() to stop here for now...")
     # sys.exit(0)
 
     # --------------------------------------------------------------------------------------------------

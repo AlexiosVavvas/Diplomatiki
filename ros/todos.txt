@@ -7,8 +7,6 @@ Ideas for another time
 
 
 Features
-    - Add drone stl in the place of Double Integrator
-
     - change boundaries service, change kmax service (maybe have many precomputed to chose from)
     
     - Wall obstacles only 10 meters long by default? change that for Rviz etc
@@ -32,6 +30,7 @@ Done -----------------------------
     - Visualise DeltaT 
     - python dashboard --agents 1 3 5
     - Airplance dynamics
+    - Add drone stl in the place of Double Integrator
 
 
 

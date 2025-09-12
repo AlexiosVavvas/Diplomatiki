@@ -11,6 +11,8 @@ def generate_launch_description():
     # Define agent configurations (agent_id, x_pos, y_pos)
     agent_configs = [
         {'agent_id': '1', 'x_pos': '6',  'y_pos': '18', 'l_bounds' : ['0.0', '20.0', '0.0', '20.0'],  'model_type': 'DoubleIntegrator',      'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
+        {'agent_id': '6', 'x_pos': '15', 'y_pos': '18', 'l_bounds' : ['0.0', '20.0', '0.0', '20.0'],  'model_type': 'DoubleIntegrator',      'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
+        {'agent_id': '7', 'x_pos': '10', 'y_pos': '5',  'l_bounds' : ['0.0', '20.0', '0.0', '20.0'],  'model_type': 'DoubleIntegrator',      'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
         {'agent_id': '2', 'x_pos': '15', 'y_pos': '3',  'l_bounds' : ['0.0', '20.0', '0.0', '10.0'],  'model_type': 'SimpleCarSecondOrder',  'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
         {'agent_id': '3', 'x_pos': '6',  'y_pos': '3',  'l_bounds' : ['0.0', '20.0', '0.0', '10.0'],  'model_type': 'SimpleCarSecondOrder',  'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
         {'agent_id': '4', 'x_pos': '7',  'y_pos': '12', 'l_bounds' : ['0.0', '20.0', '10.0', '20.0'], 'model_type': 'SimpleBoatSecondOrder', 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
