@@ -42,7 +42,7 @@ typedef struct my_interfaces__msg__SingleObstacle
   /// Dimensions based on type:
   /// - circle:
   /// - rectangle: [width, height]
-  /// - wall: [normal_x, normal_y]
+  /// - wall: [normal_x, normal_y, wall_length_in_m]
   rosidl_runtime_c__double__Sequence dimensions;
   /// Potential field parameter
   double kappa;

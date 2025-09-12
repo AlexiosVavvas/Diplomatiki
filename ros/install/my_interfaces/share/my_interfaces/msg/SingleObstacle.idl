@@ -26,7 +26,7 @@ module my_interfaces {
         "Dimensions based on type:" "\n"
         "- circle:" "\n"
         "- rectangle: [width, height]" "\n"
-        "- wall: [normal_x, normal_y]")
+        "- wall: [normal_x, normal_y, wall_length_in_m]")
       @unit (value="radius")
       sequence<double> dimensions;
 

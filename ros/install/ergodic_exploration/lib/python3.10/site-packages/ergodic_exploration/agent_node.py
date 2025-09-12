@@ -381,10 +381,11 @@ def main(args=None):
 
 
     # Avoiding Walls ----------------------
-    obs_walls  = [Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_min                  ],  dimensions=[0, +1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
-                  Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_max                  ],  dimensions=[0, -1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
-                  Obstacle(pos=[agent.L1_min,                   agent.L2_min + agent.L2_size/2],  dimensions=[+1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
-                  Obstacle(pos=[agent.L1_max,                   agent.L2_min + agent.L2_size/2],  dimensions=[-1, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
+    L1 = agent.L1_size; L2 = agent.L2_size
+    obs_walls  = [Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_min                  ],  dimensions=[0, +L1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Bottom Wall"),
+                  Obstacle(pos=[agent.L1_min + agent.L1_size/2, agent.L2_max                  ],  dimensions=[0, -L1], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Top Wall"   ),
+                  Obstacle(pos=[agent.L1_min,                   agent.L2_min + agent.L2_size/2],  dimensions=[+L2, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Left Wall"  ),
+                  Obstacle(pos=[agent.L1_max,                   agent.L2_min + agent.L2_size/2],  dimensions=[-L2, 0], obs_type='wall', kappa=KAPPA_WALL, rho0=RHO_WALL, obs_name="Right Wall" )]
 
     # Save obstacles to memory
     # saveObstaclesToMemory(agent, obs_list=obs_grid)

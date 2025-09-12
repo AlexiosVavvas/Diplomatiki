@@ -855,7 +855,7 @@ class Agent(Node):
                 elif obs.type == "circle":
                     msg.dimensions = [obs.r]
                 elif obs.type == "wall":
-                    msg.dimensions = [float(obs.n[0]), float(obs.n[1])]
+                    msg.dimensions = [float(obs.n[0]), float(obs.n[1]), float(obs.wall_length)]
                 else:
                     raise ValueError(f"Unknown obstacle type: {obs.type}")
                 msg.kappa = float(obs.kappa)

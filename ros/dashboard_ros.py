@@ -936,14 +936,14 @@ class LiveDashboard(Node):
                             #            ha='center', va='center', fontsize=8, color='white', weight='bold')
                     
                     elif obs['type'] == 'wall':
-                        if len(obs['dimensions']) >= 2:
+                        if len(obs['dimensions']) == 3:
                             # Wall represented by normal vector
                             normal_x = obs['dimensions'][0]
                             normal_y = obs['dimensions'][1]
+                            wall_length = obs['dimensions'][2]
                             
                             # Create a line perpendicular to the normal through the given point
                             # For visualization, we'll draw a thick line segment
-                            wall_length = 20.0  # Arbitrary length for visualization
                             
                             # Perpendicular direction to the normal
                             perp_x = -normal_y

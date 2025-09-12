@@ -20,6 +20,7 @@ from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 MAP_WIDTH = 20.0        # [m] - Usually 20 (Airplane 200)
 MAP_HEIGHT = 20.0       # [m] - Usually 20 (Airplane 200)
 MAP_RESOLUTION = 0.05   # [pixels/m] - Usually 0.05 (Airplane 1.0)
+WALL_THICKNESS = 0.1    # [m] - Thickness of wall obstacles in the occupancy grid
 
 # ===================-----------------------------------------------
 
@@ -598,14 +599,14 @@ class EnvironmentNode(Node):
                     grid_idx = grid_y * self.grid_width + grid_x
                     grid[grid_idx] = 100  # Occupied
 
-    def fill_wall_obstacle(self, grid, wall_x, wall_y, normal_x, normal_y):
+    def fill_wall_obstacle(self, grid, wall_x, wall_y, normal_x, normal_y, wall_length):
         """Fill a wall obstacle in the grid (simplified as a line)"""
         # For simplicity, treat wall as a thick line along the normal direction
         # This is a basic implementation - you might want to enhance this based on your wall model
         
         # Create a small rectangular obstacle perpendicular to the normal
-        wall_thickness = 0.1  # 10cm thick wall
-        wall_length = 10.0     # 10m long wall
+        wall_thickness = WALL_THICKNESS  # 10cm thick wall
+        wall_length = wall_length
 
         # Calculate rectangle dimensions based on normal
         if abs(normal_x) > abs(normal_y):  # More horizontal normal
@@ -634,19 +635,20 @@ class EnvironmentNode(Node):
             dimensions = obstacle['dimensions']
             
             try:
-                if obs_type == "circle" and len(dimensions) >= 1:
+                if obs_type == "circle" and len(dimensions) == 1:
                     radius = dimensions[0]
                     self.fill_circle_obstacle(grid, pos_x, pos_y, radius)
                     
-                elif obs_type == "rectangle" and len(dimensions) >= 2:
+                elif obs_type == "rectangle" and len(dimensions) == 2:
                     width = dimensions[0]
                     height = dimensions[1]
                     self.fill_rectangle_obstacle(grid, pos_x, pos_y, width, height)
                     
-                elif obs_type == "wall" and len(dimensions) >= 2:
+                elif obs_type == "wall" and len(dimensions) == 3:
                     normal_x = dimensions[0]
                     normal_y = dimensions[1]
-                    self.fill_wall_obstacle(grid, pos_x, pos_y, normal_x, normal_y)
+                    wall_length = dimensions[2]
+                    self.fill_wall_obstacle(grid, pos_x, pos_y, normal_x, normal_y, wall_length)
                     
             except Exception as e:
                 self.get_logger().warn(f'Error processing obstacle {obstacle["name"]}: {str(e)}')

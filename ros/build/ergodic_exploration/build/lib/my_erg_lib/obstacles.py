@@ -17,7 +17,11 @@ class Obstacle():
         """
         Parameters:
             - pos: position of the obstacle
-            - dimensions: dimensions of the obstacle (radius, w-h, or normal vector according to the type)
+            - dimensions: dimensions of the obstacle
+                o Circle: radius
+                o Rectangle: width, height
+                o Wall: normal vector (the length of the vector defines the length of the wall for plotting purposes only, the wall is infinite) 
+                    eg. norm[0, +10], horizontal wall, only working up, size = 10m
             - obs_type: type of the obstacle (circle, rectangle, wall)
             - f_min: force applied
                 o Circle: f @ x = r + eps
@@ -106,7 +110,7 @@ class Obstacle():
             The wall is defined by the equation: (x - p) . n = 0
             where: 
                 - x is the point on the wall
-                - p is the point defining the wall
+                - p is the point defining the wall center
                 - n is the normal vector
             Equation: 
                 (x - x0) nx + (y - y0) ny = 0
@@ -119,6 +123,7 @@ class Obstacle():
             """
             n = np.asarray(dimensions)
             assert n.size == 2 and np.linalg.norm(n) > 0, "Wall obstacle must have a normal vector of size 2 and non-zero length"
+            self.wall_length = np.linalg.norm(n)  # For plotting purposes only
             n = n / np.linalg.norm(n)
             self.n = n
 
