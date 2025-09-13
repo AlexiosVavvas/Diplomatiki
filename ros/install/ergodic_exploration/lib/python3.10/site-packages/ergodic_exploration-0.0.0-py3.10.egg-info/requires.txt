@@ -1,7 +1,0 @@
-setuptools
-numpy
-scipy
-matplotlib
-
-[test]
-pytest
