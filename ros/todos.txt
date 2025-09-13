@@ -22,6 +22,8 @@ Features
     
     - How do 2 talk if they dont have the same L1 L2 ??
 
+    - Obstacles obstructing sensor measurement view 
+
 
 Today
 

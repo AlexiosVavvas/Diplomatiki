@@ -16,6 +16,7 @@ ergodic_exploration/environment.py
 launch/big_environment_1.launch.py
 launch/boats_simple.launch.py
 launch/drones_in_small_space.launch.py
+launch/fixed_wing_free_fly.launch.py
 launch/multi_agent.launch.py
 meshes/boat.stl
 meshes/car.stl

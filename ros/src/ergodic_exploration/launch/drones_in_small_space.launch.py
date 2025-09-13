@@ -10,9 +10,9 @@ def generate_launch_description():
     
     # Define agent configurations (agent_id, x_pos, y_pos)
     agent_configs = [
-        {'agent_id': '1', 'x_pos': '9',  'y_pos': '3', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'],  'model_type': 'DoubleIntegrator', 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
-        {'agent_id': '2', 'x_pos': '2',  'y_pos': '3', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'],  'model_type': 'DoubleIntegrator', 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
-        {'agent_id': '3', 'x_pos': '7',  'y_pos': '9', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'],  'model_type': 'DoubleIntegrator', 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false'},
+        {'agent_id': '1', 'x_pos': '9',  'y_pos': '3', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'], 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false', 'agent_config' : 'src/ergodic_exploration/launch/drones_in_small_place_agent.yaml'},
+        {'agent_id': '2', 'x_pos': '2',  'y_pos': '3', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'], 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false', 'agent_config' : 'src/ergodic_exploration/launch/drones_in_small_place_agent.yaml'},
+        {'agent_id': '3', 'x_pos': '7',  'y_pos': '9', 'l_bounds' : ['0.0', '10.0', '0.0', '10.0'], 'antenna_rad': '0.1', 'antenna_range_flag': 'false', 'talk_alike_flag' : 'false', 'agent_config' : 'src/ergodic_exploration/launch/drones_in_small_place_agent.yaml'},
     ]
     # Create nodes list
     nodes = []
@@ -26,7 +26,7 @@ def generate_launch_description():
             name=f'agent_{config["agent_id"]}',
             parameters=[],
             arguments=[
-            '--model_type', config['model_type'],
+            '--agent_config', config['agent_config'],
             '--agent_id', config['agent_id'],
             '--init_pos', config['x_pos'], config['y_pos'],
             '--l_bounds'] + config['l_bounds'] + [

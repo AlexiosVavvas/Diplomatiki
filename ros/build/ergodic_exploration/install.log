@@ -29,6 +29,7 @@
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages/ergodic_exploration
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/package.xml
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/big_environment_1.launch.py
+/home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/fixed_wing_free_fly.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/drones_in_small_space.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/boats_simple.launch.py
 /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.py

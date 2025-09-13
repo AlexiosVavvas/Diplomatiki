@@ -50,6 +50,166 @@ def signalHandler(signum, frame):
 # Set up signal handler
 signal.signal(signal.SIGINT, signalHandler)
 
+def setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS):
+    """
+    Load agent configuration from YAML and handle command line overrides.
+    
+    Returns:
+        dict: Complete configuration dictionary with all parameters
+    """
+    import numpy as np
+    from my_erg_lib.Utilities import loadAgentConfigFromYaml
+    
+    # Load agent configuration from YAML
+    try:
+        agent_config = loadAgentConfigFromYaml(parsed_args.agent_config, L1_BOUNDS, L2_BOUNDS)
+    except KeyError as e:
+        print(f"ERROR: Invalid agent configuration: {e}")
+        sys.exit(3)
+        
+    if agent_config is None:
+        print(f"ERROR: Failed to load agent configuration from {parsed_args.agent_config}")
+        sys.exit(2)
+
+    # Extract configuration values (with command line argument overrides)
+    MODEL_TYPE = agent_config['model_type']
+    if parsed_args.model_type is not None and parsed_args.model_type != MODEL_TYPE:
+        MODEL_TYPE = parsed_args.model_type
+        print(f"INFO: Model type overridden by command line: {MODEL_TYPE} (config had: {agent_config['model_type']})")
+        
+        # Warning and confirmation for model type override
+        print()
+        print("=" * 60)
+        print("WARNING: Model type has been overridden!")
+        print("=" * 60)
+        print(f"Configuration file specifies: {agent_config['model_type']}")
+        print(f"Command line override to:     {MODEL_TYPE}")
+        print()
+        print("Changing the model type can significantly affect:")
+        print("  • Agent dynamics and behavior")
+        print("  • Control parameters and limits")
+        print("  • Required configuration parameters")
+        print("  • System performance and stability")
+        print()
+        print("Make sure the current configuration is compatible")
+        print("with the new model type before proceeding.")
+        print("=" * 60)
+        
+        try:
+            user_input = input("Do you want to continue with the overridden model type? (y/N): ").strip().lower()
+            if user_input not in ['y', 'yes']:
+                print("Operation cancelled by user. Exiting...")
+                sys.exit(1)
+            else:
+                print(f"Proceeding with model type: {MODEL_TYPE}")
+                print("=" * 60)
+        except KeyboardInterrupt:
+            print("\nOperation interrupted by user. Exiting...")
+            sys.exit(1)
+    
+    # Get default values from config or use hardcoded defaults if not in config
+    config_antenna_radius = agent_config.get('antenna_radius', np.inf)
+    if 'antenna_radius' not in agent_config:
+        print(f"INFO: Using hardcoded default for antenna_radius: {config_antenna_radius} \t (not specified in config)")
+    
+    config_kmax = agent_config.get('kmax', 4)
+    if 'kmax' not in agent_config:
+        print(f"INFO: Using hardcoded default for kmax: {config_kmax} \t (not specified in config)")
+    
+    config_antenna_range_flag = agent_config.get('antenna_range_flag', False)
+    if 'antenna_range_flag' not in agent_config:
+        print(f"INFO: Using hardcoded default for antenna_range_flag: {config_antenna_range_flag} \t (not specified in config)")
+    
+    config_talk_alike_flag = agent_config.get('talk_alike_flag', False)
+    if 'talk_alike_flag' not in agent_config:
+        print(f"INFO: Using hardcoded default for talk_alike_flag: {config_talk_alike_flag} \t (not specified in config)")
+    
+    config_same_l_bounds_flag = agent_config.get('same_l_bounds_flag', True)
+    if 'same_l_bounds_flag' not in agent_config:
+        print(f"INFO: Using hardcoded default for same_l_bounds_flag: {config_same_l_bounds_flag} \t (not specified in config)")
+    
+    ANTENNA_RADIUS = config_antenna_radius
+    if parsed_args.antenna_rad is not None:
+        ANTENNA_RADIUS = parsed_args.antenna_rad
+        print(f"INFO: Antenna radius overridden by command line: {ANTENNA_RADIUS} (config had: {config_antenna_radius})")
+    
+    KMAX = config_kmax
+    if parsed_args.kmax is not None and parsed_args.kmax != KMAX:
+        KMAX = parsed_args.kmax
+        print(f"INFO: KMAX overridden by command line: {KMAX} (config had: {config_kmax})")
+    
+    ANTENNA_RANGE_FLAG = config_antenna_range_flag
+    if parsed_args.antenna_range_flag is not None and parsed_args.antenna_range_flag != ANTENNA_RANGE_FLAG:
+        ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
+        print(f"INFO: Antenna range flag overridden by command line: {ANTENNA_RANGE_FLAG} (config had: {config_antenna_range_flag})")
+    
+    TALK_ALIKE_FLAG = config_talk_alike_flag
+    if parsed_args.talk_alike_flag is not None and parsed_args.talk_alike_flag != TALK_ALIKE_FLAG:
+        TALK_ALIKE_FLAG = parsed_args.talk_alike_flag
+        print(f"INFO: Talk alike flag overridden by command line: {TALK_ALIKE_FLAG} (config had: {config_talk_alike_flag})")
+    
+    SAME_L_BOUNDS_FLAG = config_same_l_bounds_flag
+    if parsed_args.same_l_bounds_flag is not None and parsed_args.same_l_bounds_flag != SAME_L_BOUNDS_FLAG:
+        SAME_L_BOUNDS_FLAG = parsed_args.same_l_bounds_flag
+        print(f"INFO: Same L bounds flag overridden by command line: {SAME_L_BOUNDS_FLAG} (config had: {config_same_l_bounds_flag})")
+    
+    # System parameters from config - all required
+    try:
+        LOCALISE_TARGETS_FLAG = agent_config['flags']['localise_targets']
+        UPDATE_EID_FLAG = agent_config['flags']['update_eid']
+        SAVE_IMAGES_FLAG = agent_config['flags']['save_images']
+        IMAX = agent_config['system']['imax']
+    except KeyError as e:
+        print(f"ERROR: Missing required system flag or parameter in agent configuration: {e}")
+        print(f"Please check your configuration file: {parsed_args.agent_config}")
+        print("Required sections: 'flags' (localise_targets, update_eid, save_images) and 'system' (imax)")
+        sys.exit(3)
+
+    # Target positions from config - required
+    try:
+        REAL_TARGET_POSITIONS = agent_config['targets']['real_positions']
+    except KeyError as e:
+        print(f"ERROR: Missing required target configuration: {e}")
+        print(f"Please check your configuration file: {parsed_args.agent_config}")
+        print("Required section: 'targets' -> 'real_positions'")
+        sys.exit(3)
+
+    # EKF parameters from config - all required
+    try:
+        ekf_config = agent_config['targets']['ekf']
+        EKF_PARAMS = {
+            'sigma_init': ekf_config['sigma_init'],
+            'R': ekf_config['R'],
+            'Q': ekf_config['Q'],
+            'a_limits': ekf_config['a_limits'],
+            'sensor_range': ekf_config['sensor_range'],
+            'sensor_R': ekf_config['sensor_R']
+        }
+    except KeyError as e:
+        print(f"ERROR: Missing required EKF parameter in agent configuration: {e}")
+        print(f"Please check your configuration file: {parsed_args.agent_config}")
+        print("Required section: 'targets' -> 'ekf' with all EKF parameters")
+        sys.exit(3)
+
+    print(f"Loaded configuration: Model={MODEL_TYPE}, Config file={parsed_args.agent_config}\n")
+    
+    # Return complete configuration
+    return {
+        'raw_config': agent_config,
+        'MODEL_TYPE': MODEL_TYPE,
+        'ANTENNA_RADIUS': ANTENNA_RADIUS,
+        'KMAX': KMAX,
+        'ANTENNA_RANGE_FLAG': ANTENNA_RANGE_FLAG,
+        'TALK_ALIKE_FLAG': TALK_ALIKE_FLAG,
+        'SAME_L_BOUNDS_FLAG': SAME_L_BOUNDS_FLAG,
+        'LOCALISE_TARGETS_FLAG': LOCALISE_TARGETS_FLAG,
+        'UPDATE_EID_FLAG': UPDATE_EID_FLAG,
+        'SAVE_IMAGES_FLAG': SAVE_IMAGES_FLAG,
+        'IMAX': IMAX,
+        'REAL_TARGET_POSITIONS': REAL_TARGET_POSITIONS,
+        'EKF_PARAMS': EKF_PARAMS
+    }
+
 # -----------------------------------------------------------------------------------
 def main(args=None):
     from my_erg_lib.agent import Agent
@@ -67,203 +227,186 @@ def main(args=None):
     parser.add_argument('--agent_id',           type=int,            required=True,                  help='Agent ID to name the node')
     parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
     parser.add_argument('--l_bounds',           type=float, nargs=4, required=False, default=[0, 10, 0, 10], help='Initial bounds as [x_min, x_max, y_min, y_max] for ergodic exploration')
-    parser.add_argument('--model_type',         type=str,            required=False, default='DoubleIntegrator', help='Dynamics model type (SingleIntegrator, DoubleIntegrator, SimpleBoatSecondOrder)')
-    parser.add_argument('--antenna_rad',        type=float,          required=False, default=np.inf, help='Antenna radius in meters')
-    parser.add_argument('--kmax',               type=int,            required=False, default=4,      help='Maximum Fourier modes to use for reconstruction')
+    parser.add_argument('--agent_config',       type=str,            required=False, default='src/ergodic_exploration/agent_configs/default.yaml', help='Path to agent configuration YAML file')
+    parser.add_argument('--model_type',         type=str,            required=False, default=None, help='Override model type from config (SingleIntegrator, DoubleIntegrator, etc.)')
+    parser.add_argument('--antenna_rad',        type=float,          required=False, default=None, help='Override antenna radius in meters')
+    parser.add_argument('--kmax',               type=int,            required=False, default=None, help='Override maximum Fourier modes for reconstruction')
     parser.add_argument('--obstacles_yaml',     type=str,                           required=False, default='None', help='Path to YAML file containing obstacle definitions')
-    parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=False, help='Antenna range flag (true/false)')
-    parser.add_argument('--talk_alike_flag',    type=lambda x: x.lower() == 'true', required=False, default=False, help='Weather to communicate only with similar model (boats with boats, cars with cars, etc) (true/false)')
-    parser.add_argument('--same_l_bounds_flag', type=lambda x: x.lower() == 'true', required=False, default=True, help='Whether to communicate only with agents having same L bounds (true/false)')
-    parser.add_argument('--show_init_phi',      type=lambda x: x.lower() == 'true', required=False, default=False, help='Whether to show initial phi function (original + reconstructed) (true/false)')
+    parser.add_argument('--antenna_range_flag', type=lambda x: x.lower() == 'true', required=False, default=None,   help='Override antenna range flag (true/false)')
+    parser.add_argument('--talk_alike_flag',    type=lambda x: x.lower() == 'true', required=False, default=None,   help='Override weather to communicate only with similar model (true/false)')
+    parser.add_argument('--same_l_bounds_flag', type=lambda x: x.lower() == 'true', required=False, default=None,   help='Override whether to communicate only with agents having same L bounds (true/false)')
+    parser.add_argument('--show_init_phi',      type=lambda x: x.lower() == 'true', required=False, default=False,  help='Whether to show initial phi function (original + reconstructed) (true/false)')
     # Parse known args only, keep ROS args separate
     parsed_args, ros_args = parser.parse_known_args()  
     AGENT_ID = parsed_args.agent_id
     INIT_POS_2D = np.array(parsed_args.init_pos)
-    ANTENNA_RANGE_FLAG = parsed_args.antenna_range_flag
-    ANTENNA_RADIUS = parsed_args.antenna_rad if ANTENNA_RANGE_FLAG else np.inf
-    MODEL_TYPE = parsed_args.model_type
-    TALK_ALIKE_FLAG = parsed_args.talk_alike_flag
-    SAME_L_BOUNDS_FLAG = parsed_args.same_l_bounds_flag
-    KMAX = parsed_args.kmax if parsed_args.kmax > 0 else 4
     L1_BOUNDS = [parsed_args.l_bounds[0], parsed_args.l_bounds[1]]
     L2_BOUNDS = [parsed_args.l_bounds[2], parsed_args.l_bounds[3]]
     OBSTACLES_YAML_PATH = parsed_args.obstacles_yaml
     SHOW_INIT_PHI = parsed_args.show_init_phi
 
-    # System Read Only Parameters to set in ROS
-    LOCALISE_TARGETS_FLAG = True
-    UPDATE_EID_FLAG = False
-    SAVE_IMAGES_FLAG = False
-    IMAX = np.inf
-
-    # Set up the agent -----------------------------------------------------------------------------
-
-    # ===== Target Positions =====
-    REAL_TARGET_POSITIONS = [      
-            np.array([2, 2, 0]),        # Target 1
-            np.array([4, 8, 0]),        # Target 2
-            np.array([8, 6, 0])         # Target 3
-        ]
-
-    EKF_PARAMS = {
-            # New target estimate EKF parameters
-            'sigma_init': np.eye(3)*5e-1,    # 1e-1 may be more appropriate
-            'R': np.diag([0.1, 0.1]),        # Sensor noise covariance
-            'Q': np.eye(3) * 1e-4,           # Process noise covariance (1e-5)
-            'a_limits': [[L1_BOUNDS[0], L1_BOUNDS[1]], [L2_BOUNDS[0], L2_BOUNDS[1]], [0, 10]],
-            # Sensor Parameters
-            'sensor_range': 3.0,             # Sensor range
-            'sensor_R': np.diag([0.1, 0.1])  # Sensor noise covariance
-        }
+    # Load and setup agent configuration with override handling
+    config = setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS)
+    agent_config = config['raw_config']
+    
+    # Extract final configuration values
+    MODEL_TYPE = config['MODEL_TYPE']
+    ANTENNA_RADIUS = config['ANTENNA_RADIUS'] 
+    KMAX = config['KMAX']
+    ANTENNA_RANGE_FLAG = config['ANTENNA_RANGE_FLAG']
+    TALK_ALIKE_FLAG = config['TALK_ALIKE_FLAG']
+    SAME_L_BOUNDS_FLAG = config['SAME_L_BOUNDS_FLAG']
+    LOCALISE_TARGETS_FLAG = config['LOCALISE_TARGETS_FLAG']
+    UPDATE_EID_FLAG = config['UPDATE_EID_FLAG']
+    SAVE_IMAGES_FLAG = config['SAVE_IMAGES_FLAG']
+    IMAX = config['IMAX']
+    REAL_TARGET_POSITIONS = config['REAL_TARGET_POSITIONS']
+    EKF_PARAMS = config['EKF_PARAMS']
     
 
     # ===== Dynamics Model =====
+    # Load model configuration from YAML
+    dynamics_config = agent_config['dynamics']
+    control_config = agent_config['control']
+    system_config = agent_config['system']
+    
+    # Extract common control parameters - all required
+    try:
+        u_limits_init = control_config['u_limits_init']
+        u_limits = control_config['u_limits']
+        time_to_apply_ulimits = control_config['time_to_apply_ulimits']
+        u_nominal = None  # Will be set based on model type
+        
+        # Extract common ergodic control parameters - all required
+        INF_BUF_FLAG = control_config['inf_buf_flag']
+        Q_ = control_config['Q']
+        R_ = control_config['R']
+        PREDICTION_DT = dynamics_config['dt'] * control_config['prediction_dt_multiplier']
+        RELAX_FACTOR = control_config['relax_factor']
+        
+        # Extract timing parameters - all required
+        TS = control_config['ts']
+        T_H = control_config['t_h']
+        deltaT_ERG = control_config['delta_t_erg']
+        
+        # Extract optimization parameters - all required
+        BAR_WEIGHT = control_config['bar_weight']
+        UPDATE_EID_FREQ = control_config['update_eid_freq']
+        
+        # Extract safety parameters (CBF) - all required
+        CBF_SKIP_ITER = control_config['cbf_skip_iter']
+        DELTA_SAFE = control_config['delta_safe']
+        ALPHA_HDOT = control_config['alpha_hdot']
+        ALPHA_H = control_config['alpha_h']
+        KAPPA_WALL = control_config['kappa_wall']
+        RHO_WALL = control_config['rho_wall']
+        KAPPA_OBS = control_config['kappa_obs']
+        RHO_OBS = control_config['rho_obs']
+        KAPPA_OBS_VIRTUAL = control_config['kappa_obs_virtual']
+        RHO_OBS_VIRTUAL = control_config['rho_obs_virtual']
+        
+        # Extract system parameters - all required
+        PUBLISH_DATA_FREQ = system_config['publish_data_freq']
+        
+    except KeyError as e:
+        print(f"ERROR: Missing required parameter in agent configuration: {e}")
+        print(f"Please check your configuration file: {parsed_args.agent_config}")
+        print("All parameters in 'dynamics', 'control', and 'system' sections are required.")
+        sys.exit(3)
+    
+    # Initialize dynamic model based on configuration
+    try:
+        dt = dynamics_config['dt']
+    except KeyError:
+        print(f"ERROR: Missing required 'dt' parameter in dynamics configuration")
+        print(f"Please check your configuration file: {parsed_args.agent_config}")
+        sys.exit(3)
+    
     # Single integrator model ----
     if MODEL_TYPE == "SingleIntegrator":
-        # SingleIntegrator(dt=0.002)
-        u_limits_init = np.array([[-1, 1], [-1, 1]])
-        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
-        u_nominal = None
-        INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
-        Q_ = 1
-        R_ = 0.001 * np.eye(2)
-        PREDICTION_DT = 0.002 * 25
-        RELAX_FACTOR = 1
-        IMAX = 100e3
-        TS = 0.01; T_H = 0.1; deltaT_ERG = 0.25 * 5
-        BAR_WEIGHT = 0
-        UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 0.15
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.4    # Parameters for avoiding other agents
+        dynamic_model = SingleIntegrator(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
 
-        dynamic_model = SingleIntegrator(dt=0.0012, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
-
-        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
-        
-        print("--> Using model: <SingleIntegrator>")
-
-    # # Double integrator model ----
+    # Double integrator model ----
     elif MODEL_TYPE == "DoubleIntegrator":
-        # DoubleIntegrator(dt=0.0012, x0=[9, 3, 0, 0], damping=2)
-        ULIM = 50 # 30
-        u_limits_init = np.array([[-ULIM, ULIM], [-ULIM, ULIM]])
-        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
-        u_nominal = None
-        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
-        Q_ = 8
-        R_ = 0.001 * np.eye(2)
-        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-        TS = 0.03; T_H = 0.5; deltaT_ERG = 3
-        SIMUL_DT = 0.0012
-        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
-        BAR_WEIGHT = 0
-        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 0.45
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.65    # Parameters for avoiding other agents
-        
-        dynamic_model = DoubleIntegrator(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=2)
-
-        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
-
-        print("--> Using model: <DoubleIntegrator>")
+        try:
+            damping = dynamics_config['damping']
+        except KeyError:
+            print(f"ERROR: Missing required 'damping' parameter for DoubleIntegrator model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            sys.exit(3)
+        dynamic_model = DoubleIntegrator(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=damping)
     
     # Simple Boat Second Order model ----
     elif MODEL_TYPE == "SimpleBoatSecondOrder":
-        # SimpleBoatSecondOrder(dt=0.001, x0=None, m=3.0, Iz=0.25, d_v=5.0, d_w=2.0, k_delta=4.0)
-        u_limits_init = np.array([[-1, 0], [-4, 4]])
-        u_limits = np.array([[-5, 0], [-4, 4]]); time_to_apply_ulimits = 10 # [s] after which to switch u_limits
-        u_nominal = None
-        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
-        Q_ = 8
-        R_ = 0.001 * np.eye(2)
-        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-        TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
-        SIMUL_DT = 0.0012
-        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
-        BAR_WEIGHT = 0
-        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 0.6
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 1    # Parameters for avoiding other agents
-
-        dynamic_model = SimpleBoatSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0])
-
-        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
-
-        print("--> Using model: <SimpleBoatSecondOrder>")
+        try:
+            m = dynamics_config['m']
+            Iz = dynamics_config['Iz']
+            d_v = dynamics_config['d_v']
+            d_w = dynamics_config['d_w']
+            k_delta = dynamics_config['k_delta']
+        except KeyError as e:
+            print(f"ERROR: Missing required parameter '{e}' for SimpleBoatSecondOrder model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameters: m, Iz, d_v, d_w, k_delta")
+            sys.exit(3)
+        
+        dynamic_model = SimpleBoatSecondOrder(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0],
+                                            m=m, Iz=Iz, d_v=d_v, d_w=d_w, k_delta=k_delta)
 
     # Simple Car Second Order model ----
     elif MODEL_TYPE == "SimpleCarSecondOrder":
-        # SimpleCarSecondOrder(dt=0.001, x0=None, m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, max_allowed_rev_thr=-1, steer_priority=0.004)
-        u_limits_init = np.array([[-1, 0], [-10, 10]])
-        u_limits = np.array([[-10, 0], [-10, 10]]); time_to_apply_ulimits = 15 # [s] after which to switch u_limits
-        u_nominal = None
-        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
-        Q_ = 8
-        R_ = 0.001 * np.eye(2)
-        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-        TS = 0.03*5; T_H = 0.5; deltaT_ERG = 2
-        SIMUL_DT = 0.0012 * 2
-        PREDICTION_DT = SIMUL_DT * 5  # model dt * 5
-        BAR_WEIGHT = 0
-        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 0.75
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 0.75    # Parameters for avoiding other agents
+        try:
+            m = dynamics_config['m']
+            L = dynamics_config['L']
+            b_v = dynamics_config['b_v']
+            d_v = dynamics_config['d_v']
+            k_delta = dynamics_config['k_delta']
+            k_steer = dynamics_config['k_steer']
+            Iz = dynamics_config['Iz']
+            d_r = dynamics_config['d_r']
+            u_epsilon = dynamics_config['u_epsilon']
+            max_allowed_rev_thr = dynamics_config['max_allowed_rev_thr']
+            steer_priority = dynamics_config['steer_priority']
+        except KeyError as e:
+            print(f"ERROR: Missing required parameter '{e}' for SimpleCarSecondOrder model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameters: m, L, b_v, d_v, k_delta, k_steer, Iz, d_r, u_epsilon, max_allowed_rev_thr, steer_priority")
+            sys.exit(3)
 
-        dynamic_model = SimpleCarSecondOrder(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0, 0],
-                                                m=8.0, L=0.9, b_v=1.0, d_v=5.0, k_delta=20.0, k_steer=5.0, Iz=0.8, d_r=1.0, u_epsilon=1e-2, 
-                                                max_allowed_rev_thr=-1, steer_priority=0.004) # max = -0.5
-
-        PUBLISH_DATA_FREQ = 30  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
-
-
-        print("--> Using model: <SimpleCarSecondOrder>")
+        dynamic_model = SimpleCarSecondOrder(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0, 0],
+                                           m=m, L=L, b_v=b_v, d_v=d_v, k_delta=k_delta, k_steer=k_steer, 
+                                           Iz=Iz, d_r=d_r, u_epsilon=u_epsilon, 
+                                           max_allowed_rev_thr=max_allowed_rev_thr, steer_priority=steer_priority)
 
     # Fixed Wing model
     elif MODEL_TYPE == "FixedWing12DOFTrainer":
-        # FixedWing12DOFTrainer(dt=0.001, x0=None)
-        u_limits_init = np.array([[-0.4363, 0.4363],  # elevator ±25 deg
-                                  [-0.4363, 0.4363],  # aileron ±25 deg
-                                  [-0.4363, 0.4363],  # rudder ±25 deg
-                                  [0.0,     1.0]])    # throttle 0..1
-        u_limits = u_limits_init; time_to_apply_ulimits = 0 # [s] after which to switch u_limits
-        INF_BUF_FLAG = True         # Whether to use infinite states buffer for ck calculation
-        Q_ = 2 * 10**3
-        R_ = 1 * np.eye(4); R_[3,3] = 0.1  # Less penalty on throttle changes
-        RELAX_FACTOR = 0.95         # U = RF * u + (1-RF) * u_prev
-        TS = 0.02; T_H = 2; deltaT_ERG = 2
-        SIMUL_DT = 0.005
-        PREDICTION_DT = SIMUL_DT * 2  # model dt * 2
-        BAR_WEIGHT = 0
-        UPDATE_EID_FREQ = 110*2*3*4  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_WALL = 0.5; RHO_WALL = 1.5
-        KAPPA_OBS = 1; RHO_OBS = 30
-        KAPPA_OBS_VIRTUAL = 1; RHO_OBS_VIRTUAL = 1    # Parameters for avoiding other agents
+        try:
+            v_trim = dynamics_config['v_trim']
+            use_linear_f = dynamics_config['use_linear_f']
+            use_linear_fx_fu = dynamics_config['use_linear_fx_fu']
+        except KeyError as e:
+            print(f"ERROR: Missing required parameter '{e}' for FixedWing12DOFTrainer model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameters: v_trim, use_linear_f, use_linear_fx_fu")
+            sys.exit(3)
         
-        USE_LINEAR_F = False         # Whether to use linearised model for f(x,u) (True/False)
-        USE_LINEAR_FX_FU = False     # Whether to use linearised model for f_x, f_u (True/False)
-        
-        V_TRIM = 7.5 # [m/s] Desired trim speed
-        #                                                  x0=[x,              y,              z,     φ,  θ,     ψ,      u,       v,  w,  p,  q,  r]
-        dynamic_model = FixedWing12DOFTrainer(dt=SIMUL_DT, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 80.0,  0,  0.07,  0.053,  V_TRIM,  0,  0,  0,  0,  0],
-                                              v_trim=V_TRIM, use_linear_f=USE_LINEAR_F, use_linear_fx_fu=USE_LINEAR_FX_FU)
+        #                                            x0=[x,              y,              z,    φ, θ,    ψ,     u,      v, w, p, q, r]
+        dynamic_model = FixedWing12DOFTrainer(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 80.0, 0, 0.07, 0.053, v_trim, 0, 0, 0, 0, 0],
+                                            v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
         
         # Add trim inputs to every input from now on using a nominal function
-        def _uNomAddTrim(x, t):
-            return dynamic_model.u_trim
-        u_nominal = _uNomAddTrim
+        try:
+            u_nominal_config = control_config['u_nominal']
+            if u_nominal_config == "trim":
+                def _uNomAddTrim(x, t):
+                    return dynamic_model.u_trim
+                u_nominal = _uNomAddTrim
+        except KeyError:
+            print(f"ERROR: Missing required 'u_nominal' parameter for FixedWing12DOFTrainer model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameter: u_nominal (should be 'trim' for FixedWing)")
+            sys.exit(3)
 
-        PUBLISH_DATA_FREQ = 5  # i % PUBLISH_DATA_FREQ == 0 - How often to publish data to ROS topic <AgentData>
-
-        print("--> Using model: <FixedWing12DOFTrainer>")
 
     # Quadrotor model -----------
     elif MODEL_TYPE == "Quadcopter":
@@ -294,7 +437,7 @@ def main(args=None):
         # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
     
     else:
-        print("ERROR: Unsupported model type.")
+        print(f"ERROR: Unsupported model type: {MODEL_TYPE}")
         sys.exit(2)
 
     # Agent - Ergodic Controller -------------
@@ -307,7 +450,7 @@ def main(args=None):
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
                   same_l_bounds_flag=SAME_L_BOUNDS_FLAG, real_target_positions=REAL_TARGET_POSITIONS, ekf_params=EKF_PARAMS,
                   KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL,
-                  phi=lambda s: 1/100) 
+                  phi=lambda s: 1/((L1_BOUNDS[1]-L1_BOUNDS[0])*(L2_BOUNDS[1]-L2_BOUNDS[0])))   # Start with uniform phi
                 #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
 
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_, uLimits=u_limits_init,
@@ -389,7 +532,6 @@ def main(args=None):
         else:
             print("Warning: No obstacles loaded from YAML file. Using empty obstacle list.")
     
-
     # Print uNominal Status
     # print(agent.erg_c.uNominal)
     
