@@ -1,0 +1,4 @@
+Invoking command in '/home/alex/Diplomatiki/build/my_interfaces': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/build/my_interfaces -- -j6 -l6
+Invoked command in '/home/alex/Diplomatiki/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/alex/Diplomatiki/build/my_interfaces -- -j6 -l6
+Invoking command in '/home/alex/Diplomatiki/build/my_interfaces': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/build/my_interfaces
+Invoked command in '/home/alex/Diplomatiki/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/alex/Diplomatiki/build/my_interfaces

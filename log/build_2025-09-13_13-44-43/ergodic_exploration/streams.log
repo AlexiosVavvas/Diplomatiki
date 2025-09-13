@@ -1,0 +1,60 @@
+[0.555s] Invoking command in '/home/alex/Diplomatiki/src/ergodic_exploration': AMENT_PREFIX_PATH=/home/alex/Diplomatiki/install/my_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/alex/Diplomatiki/install/my_interfaces LD_LIBRARY_PATH=/home/alex/Diplomatiki/install/my_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/alex/Diplomatiki/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/install/my_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/build/ergodic_exploration/install.log --single-version-externally-managed install_data
+[0.758s] running egg_info
+[0.770s] writing ../../build/ergodic_exploration/ergodic_exploration.egg-info/PKG-INFO
+[0.771s] writing dependency_links to ../../build/ergodic_exploration/ergodic_exploration.egg-info/dependency_links.txt
+[0.771s] writing entry points to ../../build/ergodic_exploration/ergodic_exploration.egg-info/entry_points.txt
+[0.771s] writing requirements to ../../build/ergodic_exploration/ergodic_exploration.egg-info/requires.txt
+[0.771s] writing top-level names to ../../build/ergodic_exploration/ergodic_exploration.egg-info/top_level.txt
+[0.799s] reading manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[0.799s] adding license file 'LICENSE'
+[0.801s] writing manifest file '../../build/ergodic_exploration/ergodic_exploration.egg-info/SOURCES.txt'
+[0.801s] running build
+[0.801s] running build_py
+[0.801s] copying ergodic_exploration/__init__.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.801s] copying ergodic_exploration/environment.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.801s] copying ergodic_exploration/agent_node.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.801s] copying ergodic_exploration/dummy_agent.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/ergodic_exploration
+[0.802s] copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.802s] copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.802s] copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.802s] copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.802s] copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.803s] copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.804s] copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.805s] copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.805s] copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/build/ergodic_exploration/build/lib/my_erg_lib
+[0.805s] running install
+[0.809s] running install_lib
+[0.823s] running install_data
+[0.823s] copying resource/ergodic_exploration -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ament_index/resource_index/packages
+[0.823s] copying package.xml -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration
+[0.823s] copying launch/big_environment_1.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.824s] copying launch/fixed_wing_free_fly.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.824s] copying launch/drones_in_small_space.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.824s] copying launch/boats_simple.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.824s] copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.824s] copying meshes/car.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.828s] copying meshes/hermes.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.828s] copying meshes/hermes_original.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.828s] copying meshes/boat.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.828s] copying meshes/drone_small.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.828s] copying meshes/drone_big.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.830s] running install_egg_info
+[0.844s] removing '/home/alex/Diplomatiki/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info' (and everything under it)
+[0.844s] Copying ../../build/ergodic_exploration/ergodic_exploration.egg-info to /home/alex/Diplomatiki/install/ergodic_exploration/lib/python3.10/site-packages/ergodic_exploration-0.0.0-py3.10.egg-info
+[0.845s] running install_scripts
+[0.872s] Installing agent_node script to /home/alex/Diplomatiki/install/ergodic_exploration/lib/ergodic_exploration
+[0.872s] Installing environment_node script to /home/alex/Diplomatiki/install/ergodic_exploration/lib/ergodic_exploration
+[0.873s] writing list of installed files to '/home/alex/Diplomatiki/build/ergodic_exploration/install.log'
+[0.908s] Invoked command in '/home/alex/Diplomatiki/src/ergodic_exploration' returned '0': AMENT_PREFIX_PATH=/home/alex/Diplomatiki/install/my_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/alex/Diplomatiki/install/my_interfaces LD_LIBRARY_PATH=/home/alex/Diplomatiki/install/my_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/alex/Diplomatiki/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/alex/Diplomatiki/install/ergodic_exploration/lib/python3.10/site-packages:/home/alex/Diplomatiki/install/my_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/ergodic_exploration build --build-base /home/alex/Diplomatiki/build/ergodic_exploration/build install --record /home/alex/Diplomatiki/build/ergodic_exploration/install.log --single-version-externally-managed install_data

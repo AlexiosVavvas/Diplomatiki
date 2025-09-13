@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "my_interfaces__py",
+		"source" : "/home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py"
+	}
+}
