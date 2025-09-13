@@ -337,7 +337,9 @@ class EnvironmentNode(Node):
                         'uvel': uvel,
                         'omegavel': omegavel,
                         'is_boat': True,
-                        'is_car': False
+                        'is_car': False,
+                        'is_airplane': False,
+                        'is_quadcopter': False
                     }
                     
                     # Debug logging for boat detection
@@ -359,7 +361,8 @@ class EnvironmentNode(Node):
                         'omega': omega,
                         'is_boat': False,
                         'is_car': True,
-                        'is_airplane': False
+                        'is_airplane': False,
+                        'is_quadcopter': False
                     }
                     
                     # Debug logging for car detection
@@ -393,7 +396,8 @@ class EnvironmentNode(Node):
                         'r_rate': r_rate,
                         'is_boat': False,
                         'is_car': False,
-                        'is_airplane': True
+                        'is_airplane': True,
+                        'is_quadcopter': False
                     }
                     
                     # Update position with actual Z coordinate for airplanes
@@ -402,15 +406,54 @@ class EnvironmentNode(Node):
                     # Debug logging for airplane detection
                     # self.get_logger().info(f'Agent {agent_id} detected as airplane - model_type: {model_type}, psi: {psi:.2f}, altitude: {z_pos:.2f}')
                     
+                elif model_type == "Quadcopter" and len(msg.states) >= 12:
+                    # For quadcopter: states are [x, y, z, ψ, θ, φ, x', y', z', ψ', θ', φ']
+                    z_pos = msg.states[2]    # Altitude
+                    psi = msg.states[3]      # Yaw angle
+                    theta = msg.states[4]    # Pitch angle
+                    phi = msg.states[5]      # Roll angle
+                    x_vel = msg.states[6]    # X velocity
+                    y_vel = msg.states[7]    # Y velocity
+                    z_vel = msg.states[8]    # Z velocity
+                    psi_rate = msg.states[9] # Yaw rate
+                    theta_rate = msg.states[10]  # Pitch rate
+                    phi_rate = msg.states[11]    # Roll rate
+                    
+                    self.agent_states[agent_id] = {
+                        'x': x,
+                        'y': y,
+                        'z': z_pos,
+                        'phi': phi,
+                        'theta': theta, 
+                        'psi': psi,
+                        'x_vel': x_vel,
+                        'y_vel': y_vel,
+                        'z_vel': z_vel,
+                        'phi_rate': phi_rate,
+                        'theta_rate': theta_rate,
+                        'psi_rate': psi_rate,
+                        'is_boat': False,
+                        'is_car': False,
+                        'is_airplane': False,
+                        'is_quadcopter': True
+                    }
+                    
+                    # Update position with actual Z coordinate for quadcopters
+                    self.agent_positions[agent_id] = (x, y, z_pos)
+                    
+                    # Debug logging for quadcopter detection
+                    # self.get_logger().info(f'Agent {agent_id} detected as quadcopter - model_type: {model_type}, psi: {psi:.2f}, altitude: {z_pos:.2f}')
+                    
                 else:
-                    # For non-boat, non-car, non-airplane agents, store basic position info
+                    # For non-boat, non-car, non-airplane, non-quadcopter agents, store basic position info
                     self.agent_states[agent_id] = {
                         'x': x,
                         'y': y,
                         'psi': 0.0,  # No orientation
                         'is_boat': False,
                         'is_car': False,
-                        'is_airplane': False
+                        'is_airplane': False,
+                        'is_quadcopter': False
                     }
                     
                     # Debug logging for non-boat, non-car detection
@@ -422,8 +465,10 @@ class EnvironmentNode(Node):
                 # Update and publish agent path
                 # Determine z coordinate based on agent type
                 z_coord = 0.0  # Default for ground vehicles
-                if agent_id in self.agent_states and self.agent_states[agent_id].get('is_airplane', False):
-                    z_coord = self.agent_states[agent_id].get('z', 0.0)
+                if agent_id in self.agent_states:
+                    agent_state = self.agent_states[agent_id]
+                    if agent_state.get('is_airplane', False) or agent_state.get('is_quadcopter', False):
+                        z_coord = agent_state.get('z', 0.0)
                 
                 self.update_agent_path(agent_id, x, y, msg.header, z_coord)
                 
@@ -447,10 +492,11 @@ class EnvironmentNode(Node):
             pose_stamped.header = header
             pose_stamped.header.frame_id = "map"  # Ensure frame_id is map
             
-            # Set position (z coordinate will be 0.0 for ground vehicles, actual altitude for airplanes)
+            # Set position (z coordinate will be 0.0 for ground vehicles, actual altitude for airplanes and quadcopters)
             pose_stamped.pose.position.x = x
             pose_stamped.pose.position.y = y
             pose_stamped.pose.position.z = z if (self.agent_states[agent_id].get('is_airplane', False) \
+                                                 or self.agent_states[agent_id].get('is_quadcopter', False) \
                                                  or self.agent_states[agent_id].get('is_boat', False) \
                                                  or self.agent_states[agent_id].get('is_car', False)) else DEFAULT_DRONE_HEIGHT
             
@@ -1028,8 +1074,9 @@ class EnvironmentNode(Node):
                 is_boat = state.get('is_boat', False)
                 is_car = state.get('is_car', False)
                 is_airplane = state.get('is_airplane', False)
+                is_quadcopter = state.get('is_quadcopter', False)
                 model_type = self.agent_model_types.get(agent_id, 'Unknown')
-                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}, is_car={is_car}, is_airplane={is_airplane}')
+                # self.get_logger().info(f'Creating marker for agent {agent_id}: model_type={model_type}, is_boat={is_boat}, is_car={is_car}, is_airplane={is_airplane}, is_quadcopter={is_quadcopter}')
                 
                 # Check if this is a boat agent
                 if is_boat:
@@ -1132,8 +1179,42 @@ class EnvironmentNode(Node):
                     # Debug logging for mesh marker
                     # self.get_logger().info(f'Agent {agent_id}: Using AIRPLANE MESH marker, mesh_resource={marker.mesh_resource}, altitude={marker.pose.position.z:.2f}')
                     
+                # Check if this is a quadcopter agent
+                elif is_quadcopter:
+                    # Use STL mesh marker for quadcopters to show full 3D orientation
+                    marker.type = Marker.MESH_RESOURCE
+                    
+                    # Use package relative path for the STL file
+                    marker.mesh_resource = "package://ergodic_exploration/meshes/drone_small.stl"
+                    
+                    # Set mesh orientation based on roll, pitch, and yaw angles
+                    phi = state['phi']      # Roll
+                    theta = state['theta']  # Pitch
+                    psi = state['psi']      # Yaw
+                    
+                    # Convert Euler angles to quaternion
+                    qx, qy, qz, qw = self.euler_to_quaternion(phi*4, theta*4, psi*4)
+                    marker.pose.orientation.x = qx
+                    marker.pose.orientation.y = qy
+                    marker.pose.orientation.z = qz
+                    marker.pose.orientation.w = qw
+                    
+                    # Set mesh scale
+                    marker.scale.x = 1.4
+                    marker.scale.y = 1.4
+                    marker.scale.z = 1.4
+
+                    # Use the actual Z position from the state
+                    marker.pose.position.z = float(state.get('z', position[2]))
+                    
+                    # Enable mesh_use_embedded_materials if needed
+                    marker.mesh_use_embedded_materials = False
+                    
+                    # Debug logging for mesh marker
+                    # self.get_logger().info(f'Agent {agent_id}: Using QUADCOPTER MESH marker, mesh_resource={marker.mesh_resource}, altitude={marker.pose.position.z:.2f}')
+                    
                 else:
-                    # Use drone mesh for non-boat, non-car, non-airplane agents
+                    # Use drone mesh for non-boat, non-car, non-airplane, non-quadcopter agents
                     marker.type = Marker.MESH_RESOURCE
                     
                     # Use package relative path for the STL file
@@ -1215,6 +1296,11 @@ class EnvironmentNode(Node):
                     psi = state.get('psi', 0.0)
                     self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, yaw: {psi:.2f} rad ({math.degrees(psi):.1f}°)')
                 elif state.get('is_airplane', False):
+                    phi = state.get('phi', 0.0)
+                    theta = state.get('theta', 0.0)
+                    psi = state.get('psi', 0.0)
+                    self.get_logger().info(f'  Agent {agent_id} [{model_type}]: {position_str}, roll: {phi:.2f}, pitch: {theta:.2f}, yaw: {psi:.2f} rad')
+                elif state.get('is_quadcopter', False):
                     phi = state.get('phi', 0.0)
                     theta = state.get('theta', 0.0)
                     psi = state.get('psi', 0.0)

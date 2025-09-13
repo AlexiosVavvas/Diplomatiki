@@ -1,0 +1,14 @@
+obstacles:
+  # Circle obstacles - dimensions is a single value for radius
+  - pos: [1.5, 0]
+    dimensions: 2.0
+    obs_type: 'circle'
+    obs_name: "Circle Obstacle 1"
+    kappa: 0.5        # Optional - uses KAPPA_OBS default if not specified
+    rho0: 2.0       # Optional - uses RHO_OBS default if not specified
+    
+
+    # ros2 run ergodic_exploration agent_node --agent_id 1 --agent_config src/ergodic_exploration/agent_configs/quadcopter.yaml --init_pos -5 8 --l_bounds -10 10 -10 10 --obstacles_yaml /home/alex/Diplomatiki/obstacle_one_middle.yaml --kmax 6
+
+
+

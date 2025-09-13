@@ -408,33 +408,42 @@ def main(args=None):
             sys.exit(3)
 
 
-    # Quadrotor model -----------
     elif MODEL_TYPE == "Quadcopter":
-        # TODO: Quad not working well with CBFs yet, the others do for now
-        print("ERROR: Quadcopter model needs work, not available yet.")
-        # Stop the program, exit main
-        sys.exit(1)
-
-        # x0 = [8, 4, 2, 0, 0, 0, 0,  0,  0,  0,  0,  0]
-        # UP_MTR_LIM = 22         # Motor Upper Limit Thrust in [N]
-        # LOW_MTR_LIM = -22       # Motor Lower Limit Thrust in [N]
-        # mtr_limits = [[LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM], [LOW_MTR_LIM, UP_MTR_LIM]]
-        # model = Quadcopter(dt=0.002, x0=x0, z_target=2, motor_limits=mtr_limits, zero_out_states=["x", "y", "ψ"],
-        #                    mass=2, damping=3.5, R=np.diag([1, 1, 1, 1])*1)
-        # INF_BUF_FLAG = True     # Whether to use infinite states buffer for ck calculation
-        # TS = 0.1; T_H = 0.1*15  # TS = 0.1, T_H = 0.25*5
-        # deltaT_ERG = 0.1*10     # When using inf buffer it should be wayy smaller (w/o: deltaT_ERG = 0.1*160, w: 0.1*30)
-        # Q_ = 8
-        # R_ = 0.001 * np.eye(model.num_of_inputs)
-        # u_limits = model.input_limits
-        # u_nominal = model.calcLQRcontrol
-        # PREDICTION_DT = model.dt * 40
-        # RELAX_FACTOR = 0.8
-        # IMAX = 20e3
-        # BAR_WEIGHT = 0 # 50
-        # UPDATE_EID_FREQ = 110  # How often to update the EID phi function (30 means every 30 ergodic iterations) (or 30 x Ts [s])
-        # CBF_SKIP_ITER = 8            # How often to apply the CBF safety filter (every n iterations). Skipping some cause it takes time
-        # DELTA_SAFE = 0.1; ALPHA_HDOT = 100; ALPHA_H = 20; KAPPA_SAFE = 0.5; RHO_SAFE = 1.5
+        try:
+            mass = dynamics_config['mass']
+            damping = dynamics_config['damping']
+            z_target = dynamics_config['z_target']
+            motor_limits = dynamics_config['motor_limits']
+            zero_out_states = dynamics_config.get('zero_out_states', None)
+            Q_lqr = dynamics_config.get('Q_lqr', None)
+            R_lqr = dynamics_config.get('R_lqr', None)
+        except KeyError as e:
+            print(f"ERROR: Missing required parameter '{e}' for Quadcopter model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameters: mass, damping, z_target, motor_limits")
+            sys.exit(3)
+        
+        # Convert Q_lqr and R_lqr lists to diagonal matrices if provided
+        Q_lqr_matrix = np.diag(Q_lqr) if Q_lqr is not None else None
+        R_lqr_matrix = np.diag(R_lqr) if R_lqr is not None else None
+        
+        # Set initial position with z_target
+        x0 = [INIT_POS_2D[0], INIT_POS_2D[1], z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+        dynamic_model = Quadcopter(dt=dt, x0=x0, z_target=z_target, motor_limits=motor_limits, 
+                                 zero_out_states=zero_out_states, mass=mass, damping=damping,
+                                 Q=Q_lqr_matrix, R=R_lqr_matrix)
+        
+        # Set nominal control to LQR if specified
+        try:
+            u_nominal_config = control_config['u_nominal']
+            if u_nominal_config == "lqr":
+                u_nominal = dynamic_model.calcLQRcontrol
+        except KeyError:
+            print(f"ERROR: Missing required 'u_nominal' parameter for Quadcopter model")
+            print(f"Please check your configuration file: {parsed_args.agent_config}")
+            print("Required parameter: u_nominal (should be 'lqr' for Quadcopter)")
+            sys.exit(3)
     
     else:
         print(f"ERROR: Unsupported model type: {MODEL_TYPE}")

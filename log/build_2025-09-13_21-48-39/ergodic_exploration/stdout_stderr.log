@@ -78,6 +78,7 @@ copying launch/big_environment_1.launch.py -> /home/alex/Diplomatiki/install/erg
 copying launch/fixed_wing_free_fly.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/drones_in_small_space.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/boats_simple.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
+copying launch/three_drones_big.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch
 creating /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes
 copying meshes/car.stl -> /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes

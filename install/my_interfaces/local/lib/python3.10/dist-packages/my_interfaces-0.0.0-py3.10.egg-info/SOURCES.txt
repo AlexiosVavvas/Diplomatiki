@@ -4,10 +4,3 @@ my_interfaces.egg-info/PKG-INFO
 my_interfaces.egg-info/SOURCES.txt
 my_interfaces.egg-info/dependency_links.txt
 my_interfaces.egg-info/top_level.txt
-my_interfaces/msg/__init__.py
-my_interfaces/msg/_agent_data.py
-my_interfaces/msg/_ck_table.py
-my_interfaces/msg/_multiple_obstacles.py
-my_interfaces/msg/_multiple_target_estimates.py
-my_interfaces/msg/_single_obstacle.py
-my_interfaces/msg/_single_target_estimate.py

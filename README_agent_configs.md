@@ -38,6 +38,7 @@ Each agent configuration file contains the following main sections:
 | `simple_boat_second_order.yaml` | SimpleBoatSecondOrder | Marine vehicle dynamics |
 | `simple_car_second_order.yaml` | SimpleCarSecondOrder | Ground vehicle dynamics |
 | `fixed_wing_12dof_trainer.yaml` | FixedWing12DOFTrainer | Aircraft dynamics model |
+| `quadcopter.yaml` | Quadcopter | Quadrotor dynamics with 12 DOF and LQR stabilization |
 
 ## Usage
 

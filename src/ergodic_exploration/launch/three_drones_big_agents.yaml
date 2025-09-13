@@ -1,0 +1,101 @@
+# Quadcopter Agent Configuration
+# Agent type and model parameters
+agent:
+  model_type: "Quadcopter"
+  
+  # Dynamics model parameters
+  dynamics:
+    dt: 0.002
+    mass: 2.0
+    damping: 3.5
+    z_target: 2.0
+    motor_limits:
+      - [-22, 22]  # Motor 1: Front right
+      - [-22, 22]  # Motor 2: Front left  
+      - [-22, 22]  # Motor 3: Rear left
+      - [-22, 22]  # Motor 4: Rear right
+    zero_out_states: ["x", "y", "ψ"]  # States to zero out for LQR control
+    # LQR matrices for quadcopter stabilization
+    #       x     y     z     ψ      θ    φ    x_dot  y_dot  z_dot   ψ_dot  θ_dot  φ_dot
+    Q_lqr: [0.01, 0.01, 0.08, 0.001, 0.1, 0.1, 0.001, 0.001, 0.5,    0.001, 0.001, 0.001]  # Diagonal values for state weighting
+    R_lqr: [1, 1, 1, 1]  # Diagonal values for input weighting (4 inputs: thrust, pitch, roll, yaw)
+    
+  # Control parameters
+  control:
+    # Control limits will be derived from motor limits automatically
+    u_limits_init: [[0, 50], [-20, 20], [-20, 20], [-20, 20]]  # [thrust, pitch, roll, yaw]
+    u_limits: [[0, 50], [-50, 50], [-50, 50], [-50, 50]]
+    time_to_apply_ulimits: 5  # [s] after which to switch u_limits
+    u_nominal: "lqr"  # Use LQR control as nominal controller
+    
+    # Ergodic controller parameters
+    Q: 120000.0
+    R: [[10, 0.0, 0.0, 0.0], [0.0, 10, 0.0, 0.0], [0.0, 0.0, 10, 0.0], [0.0, 0.0, 0.0, 10]]
+    prediction_dt_multiplier: 20  # PREDICTION_DT = dt * multiplier
+    relax_factor: 0.8
+    
+    # Timing parameters
+    ts: 0.15                # Sampling time
+    t_h: 1.5                # Horizon time (T_H = 0.1*15)
+    delta_t_erg: 1.0        # Ergodic time window (deltaT_ERG = 0.1*10)
+    
+    # Optimization parameters
+    inf_buf_flag: true      # Whether to use infinite states buffer
+    bar_weight: 0           # 50 for obstacles, 0 for no obstacles
+    update_eid_freq: 110    # How often to update EID phi function
+    
+    # Safety parameters (CBF)
+    cbf_skip_iter: 2        # How often to apply CBF safety filter
+    delta_safe: 0.1
+    alpha_hdot: 100
+    alpha_h: 20
+    kappa_wall: 0
+    rho_wall: 0.01
+    kappa_obs: 0
+    rho_obs: 0.01
+    kappa_obs_virtual: 0    # Parameters for avoiding other agents
+    rho_obs_virtual: 0.01
+    
+  # System parameters
+  system:
+    imax: ".inf"            # Maximum iterations (20e3)
+    publish_data_freq: 30   # How often to publish data to ROS topic
+
+  # Agent communication and range parameters (optional - can be overridden by command line)
+  antenna_radius: ".inf"        # Infinite range by default
+  kmax: 4                       # Maximum Fourier modes for reconstruction
+  antenna_range_flag: false     # Whether antenna range is limited
+  talk_alike_flag: false        # Whether to communicate only with similar models
+  same_l_bounds_flag: true      # Whether to communicate only with agents having same L bounds
+
+# Target and EKF configuration
+targets:
+  # Ground truth target positions [x, y, z]
+  real_positions:
+    - [-7.3, 9.1, 0.0]
+    - [3.5, -8.2, 0.0]
+    - [6.8, 2.4, 0.0]
+    - [-9.7, -4.6, 0.0]
+    - [1.2, 7.7, 0.0]
+    - [8.9, -3.3, 0.0]
+  
+  # EKF parameters for target estimation
+  ekf:
+    # Initial estimate covariance (3x3 diagonal values)
+    sigma_init_diag: [0.5, 0.5, 0.5]
+    
+    # Sensor noise covariance (2x2 diagonal values)
+    R_diag: [0.1, 0.1]
+    
+    # Process noise covariance (3x3 diagonal values) 
+    Q_diag: [0.0001, 0.0001, 0.0001]
+    
+    # Sensor parameters
+    sensor_range: 3.0
+    sensor_R_diag: [0.1, 0.1]  # Sensor noise covariance
+
+# System flags
+flags:
+  localise_targets: true
+  update_eid: false
+  save_images: false

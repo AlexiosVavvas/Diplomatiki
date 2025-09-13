@@ -32,6 +32,7 @@
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch/fixed_wing_free_fly.launch.py
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch/drones_in_small_space.launch.py
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch/boats_simple.launch.py
+/home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch/three_drones_big.launch.py
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/launch/multi_agent.launch.py
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes/car.stl
 /home/alex/Diplomatiki/install/ergodic_exploration/share/ergodic_exploration/meshes/hermes.stl

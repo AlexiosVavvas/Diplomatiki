@@ -771,6 +771,77 @@ class Agent(Node):
                                 additional_steer = -thrust_excess * sign_steer * self.model.steer_priority
                                 u_safe[1] += additional_steer
 
+                # TODO: Quad relative degree is more than 2 for roll, pitch, yaw. So cbf returns actions for only throttle (due to our linearization)
+                # elif isinstance(self.model, Quadcopter):
+
+                #     # input order assumed: [thrust, yaw, pitch, roll]
+                #     m = self.model.m
+                #     hover_thrust = m * 9.81
+
+                #     # weights: make thrust very expensive to change; attitude and yaw cheap(er)
+                #     w_thrust = 100.0       # very large -> penalize thrust changes
+                #     w_yaw   = 0.1
+                #     w_pitch = 0.1
+                #     w_roll  = 0.1
+                #     W = np.diag([w_thrust, w_yaw, w_pitch, w_roll])
+                #     Winv = np.linalg.inv(W)
+
+                #     beta_vec = np.asarray(beta).reshape(-1)   # shape (4,)
+                #     if np.linalg.norm(beta_vec) < 1e-9:
+                #         print(f"[Quadcopter CBF] beta_vec norm too small ({np.linalg.norm(beta_vec):.2e}), setting u_safe = 0")
+                #         u_safe = np.zeros_like(udef_now)
+                #     else:
+                #         denom = beta_vec @ (Winv @ beta_vec)
+                #         print(f"[Quadcopter CBF] denom: {denom:.4e}, PSI: {PSI:.4e}")
+                #         if np.abs(denom) < 1e-12:
+                #             print(f"[Quadcopter CBF] denom too small ({denom:.2e}), setting u_safe = 0")
+                #             u_safe = np.zeros_like(udef_now)
+                #         else:
+                #             # weighted-LS closed form
+                #             u_delta = - (Winv @ beta_vec) * (PSI / denom) * 10 ** -4 * 3  # proposed delta to nominal
+                #             print(f"[Quadcopter CBF] u_delta (proposed): {u_delta}")
+
+                #             # enforce a minimum allowed total thrust (so we don't "dive through")
+                #             min_thrust_fraction = 0.95   # tune: 0.6..0.95 depending on safety desired
+                #             min_allowed_total_thrust = min_thrust_fraction * hover_thrust
+                #             proposed_total_thrust = udef_now[0] + u_delta[0]
+                #             print(f"[Quadcopter CBF] proposed_total_thrust: {proposed_total_thrust:.4f}, min_allowed_total_thrust: {min_allowed_total_thrust:.4f}")
+
+                #             if proposed_total_thrust < min_allowed_total_thrust:
+                #                 print(f"[Quadcopter CBF] proposed_total_thrust below minimum, fixing thrust to {min_allowed_total_thrust:.4f}")
+                #                 # fix thrust delta to reach the minimum allowed total thrust
+                #                 u_delta_thrust_fixed = min_allowed_total_thrust - udef_now[0]
+                #                 # compute remaining RHS after accounting for the fixed thrust contribution
+                #                 b0 = beta_vec[0] * u_delta_thrust_fixed * 10
+                #                 residual_rhs = -PSI - b0
+
+                #                 # redistribute residual among attitude channels (indices 1..3)
+                #                 beta_others = beta_vec[1:]
+                #                 W_others = W[1:, 1:]
+                #                 try:
+                #                     Winv_others = np.linalg.inv(W_others)
+                #                 except np.linalg.LinAlgError:
+                #                     print("[Quadcopter CBF] Winv_others not invertible, using thrust only")
+                #                     # fallback: cannot invert, return with clipped thrust only
+                #                     u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
+                #                 else:
+                #                     denom2 = beta_others @ (Winv_others @ beta_others)
+                #                     print(f"[Quadcopter CBF] denom2: {denom2:.4e}, residual_rhs: {residual_rhs:.4e}")
+                #                     if np.abs(denom2) < 1e-12:
+                #                         print("[Quadcopter CBF] denom2 too small, using thrust only")
+                #                         # can't redistribute, use thrust only (clipped)
+                #                         u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
+                #                     else:
+                #                         u_others_delta = - (Winv_others @ beta_others) * (residual_rhs / denom2)
+                #                         print(f"[Quadcopter CBF] u_others_delta: {u_others_delta}")
+                #                         u_safe = np.concatenate(([u_delta_thrust_fixed], u_others_delta))
+                #             else:
+                #                 print(f"[Quadcopter CBF] using u_delta as u_safe: {u_delta}")
+                #                 u_safe = u_delta
+
+                #     # Clip to allowed uLimits
+                #     u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
+
                 else:
                     # Standard least squares solution for safety control
                     u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
