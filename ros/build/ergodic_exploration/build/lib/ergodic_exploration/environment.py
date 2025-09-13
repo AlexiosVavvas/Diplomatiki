@@ -17,8 +17,8 @@ from my_erg_lib.basis import Basis, ReconstructedPhiFromCk
 # ===================-----------------------------------------------
 
 # Map Parameters
-MAP_WIDTH = 10.0            # [m] - Usually 40 (Airplane 200)
-MAP_HEIGHT = 10.0           # [m] - Usually 40 (Airplane 200)
+MAP_WIDTH = 20.0            # [m] - Usually 40 (Airplane 200)
+MAP_HEIGHT = 20.0           # [m] - Usually 40 (Airplane 200)
 MAP_RESOLUTION = 0.05       # [pixels/m] - Usually 0.05 (Airplane 1.0)
 WALL_THICKNESS = 0.1        # [m] - Thickness of wall obstacles in the occupancy grid
 DEFAULT_DRONE_HEIGHT = 0.5  # [m] - Default height for drone markers

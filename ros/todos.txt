@@ -6,15 +6,24 @@ Ideas for another time
     - Ck vis bar maybe not updating (same on plotPhi)
     - Move above obstacles (3d obstacles and ergodic exploration in space)
 
+    - Moving obstacles
+    - Hardcoded static real target positions?
+    - Explore 3rd ergodic dimentions (or even let the user deside which dimensions to explore)
+    - Kmax modular, changing adapting in real time
+    - 3d target localisation
+    - RF beacon sensor model
+
 
 Features
     - change boundaries service 
     - change kmax service (maybe have many precomputed to chose from)
+    
+    - fix simulation time - ros time - real clock time difference between agents
+    
+    - How do 2 talk if they dont have the same L1 L2 ??
 
 
 Today
-    - fix simulation time - ros time - real clock time difference between agents
-    - How do 2 talk if they dont have the same L1 L2 ??
 
 
 

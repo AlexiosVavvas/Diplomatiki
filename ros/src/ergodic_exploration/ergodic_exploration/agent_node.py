@@ -97,7 +97,26 @@ def main(args=None):
     IMAX = np.inf
 
     # Set up the agent -----------------------------------------------------------------------------
+
+    # ===== Target Positions =====
+    REAL_TARGET_POSITIONS = [      
+            np.array([2, 2, 0]),        # Target 1
+            np.array([4, 8, 0]),        # Target 2
+            np.array([8, 6, 0])         # Target 3
+        ]
+
+    EKF_PARAMS = {
+            # New target estimate EKF parameters
+            'sigma_init': np.eye(3)*5e-1,    # 1e-1 may be more appropriate
+            'R': np.diag([0.1, 0.1]),        # Sensor noise covariance
+            'Q': np.eye(3) * 1e-4,           # Process noise covariance (1e-5)
+            'a_limits': [[L1_BOUNDS[0], L1_BOUNDS[1]], [L2_BOUNDS[0], L2_BOUNDS[1]], [0, 10]],
+            # Sensor Parameters
+            'sensor_range': 3.0,             # Sensor range
+            'sensor_R': np.diag([0.1, 0.1])  # Sensor noise covariance
+        }
     
+
     # ===== Dynamics Model =====
     # Single integrator model ----
     if MODEL_TYPE == "SingleIntegrator":
@@ -286,14 +305,14 @@ def main(args=None):
     agent = Agent(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS, Kmax=KMAX, 
                   dynamics_model=dynamic_model,
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
-                  same_l_bounds_flag=SAME_L_BOUNDS_FLAG, KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL,
+                  same_l_bounds_flag=SAME_L_BOUNDS_FLAG, real_target_positions=REAL_TARGET_POSITIONS, ekf_params=EKF_PARAMS,
+                  KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL,
                   phi=lambda s: 1/100) 
                 #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
 
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_, uLimits=u_limits_init,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
-                                                 use_inf_buffer=INF_BUF_FLAG,
-                                                 barrier_weight=BAR_WEIGHT, barrier_eps=0.05, barrier_pow=2)
+                                                 use_inf_buffer=INF_BUF_FLAG)
     
     # System Read Only Parameters to set in ROS
     from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult

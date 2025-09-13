@@ -1,0 +1,35 @@
+# Simple Obstacle Configuration for Boat Testing - 20x20m Grid
+# Just a few basic obstacles for testing boat navigation
+
+obstacles:
+  # A few simple circular obstacles
+  - pos: [5.0, 5.0]
+    dimensions: 1.0
+    obs_type: 'circle'
+    obs_name: "Island 1"
+    
+  - pos: [15.0, 15.0]
+    dimensions: 1.2
+    obs_type: 'circle'
+    obs_name: "Island 2"
+    
+  - pos: [8.0, 16.0]
+    dimensions: 0.8
+    obs_type: 'circle'
+    obs_name: "Rock"
+    
+  - pos: [17.0, 7.0]
+    dimensions: 0.6
+    obs_type: 'circle'
+    obs_name: "Buoy"
+    
+  # A couple of rectangular obstacles
+  - pos: [10.0, 2.0]
+    dimensions: [4.0, 1.0]
+    obs_type: 'rectangle'
+    obs_name: "Dock"
+    
+  - pos: [3.0, 12.0]
+    dimensions: [1.5, 3.0]
+    obs_type: 'rectangle'
+    obs_name: "Pier"

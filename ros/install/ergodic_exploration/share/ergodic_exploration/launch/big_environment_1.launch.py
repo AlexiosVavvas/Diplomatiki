@@ -42,7 +42,7 @@ def generate_launch_description():
             '--talk_alike_flag', config['talk_alike_flag'],
             '--same_l_bounds_flag', 'true',
             '--kmax', '4',
-            '--obstacles_yaml', 'src/ergodic_exploration/launch/big_environment_1_L_0_40.yaml',
+            '--obstacles_yaml', 'src/ergodic_exploration/launch/big_environment_1.yaml',
             '--ros-args', '--log-level', 'WARN'
             ],
             output='screen',

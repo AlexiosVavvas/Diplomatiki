@@ -9,11 +9,12 @@ from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory, removeObstacle
 
 # ROS Library
 from rclpy.node import Node
-from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates  # type: ignore
+from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates
 import re
 
 class Agent(Node):
-    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True,
+    def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, 
+                 antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True, real_target_positions=None, ekf_params=None,
                  KAPPA_OBS_VIRTUAL=1, RHO_OBS_VIRTUAL=0.75):
         
         self.agent_id = agent_id if agent_id is not None else 0
@@ -48,23 +49,38 @@ class Agent(Node):
             assert self.L1_min <= x0[0] <= self.L1_max and self.L2_min <= x0[1] <= self.L2_max, "Initial position x0 must be within the limits of the space." # TODO: Assuming x[0], x[1] are the x, y coordinates
             self.model.reset(x0)
 
-        # TODO: Maybe make a separate target class for this?
-        # Multiple targets setup
-        self.real_target_positions = [      # Real target position (Ground Truth)   # TODO: Maybe take it from an env?
-            np.array([2, 2, 0]),        # Target 1
-            np.array([4, 8, 0]),        # Target 2
-            np.array([8, 6, 0])         # Target 3
-        ]
+        # Real target position (Ground Truth)
+        if real_target_positions is not None:
+            # Assert it contains x, y, z positions for as many targets
+            assert all(len(pos) == 3 for pos in real_target_positions), "Each real target position must be a 3D coordinate (x, y, z)."
+            self.real_target_positions = np.asarray(real_target_positions)
+
         # TODO: Fix comparing real targ pos to agents pos for different dynamics models
         self.num_of_targets = 0     # Number of target estimates so far
         self.target_estimates = []
-        
+
+        default_ekf_params = {
+            # New target estimate EKF parameters
+            'sigma_init': np.eye(3)*5e-1,      # 1e-1 may be more appropriate
+            'R': np.diag([0.1, 0.1]),          # Sensor noise covariance
+            'Q': np.eye(3) * 1e-4,             # Process noise covariance (1e-5)
+            'a_limits': [[self.L1_min, self.L1_max], [self.L2_min, self.L2_max], [0, 10]],
+            # Sensor Parameters
+            'sensor_range': 2,                  # Sensor range in [m]
+            'sensor_R': np.diag([0.01, 0.01])   # Sensor noise covariance
+        }
+        if ekf_params is not None:
+            # Merge user params with defaults (user params override defaults)
+            self.ekf_params = {**default_ekf_params, **ekf_params}
+        else:
+            self.ekf_params = default_ekf_params
+
         # Multiple EKF instances - one per target estimate
         self.ekfs = []
 
         # Lets connect a sensor to track the target position 
-        self.sensor = Sensor(sensor_range=2,
-                             R=np.diag([0.01, 0.01]))         
+        self.sensor = Sensor(sensor_range=self.ekf_params['sensor_range'],
+                             R=self.ekf_params['sensor_R'])
 
         # Initialise obstacle list
         self.obstacle_list = []
@@ -257,9 +273,9 @@ class Agent(Node):
             elev = measurement[1]  # Elevation angle in radians
             # Calculate the new target position based on the measurement
             a_init = np.array([
-                self.model.state[0] + self.sensor.sensor_range/2 * np.sin(beta),  # x position # TODO: Validate those
+                self.model.state[0] + self.sensor.sensor_range/2 * np.sin(beta),  # x position
                 self.model.state[1] + self.sensor.sensor_range/2 * np.cos(beta),  # y position
-                0                                                         # z position (assuming flat ground)
+                0                                                                 # z position (assuming flat ground)
             ])
             # Clip to L1_min->L1_max, L2_min->L2_max
             a_init[0] = np.clip(a_init[0], self.L1_min, self.L1_max)
@@ -271,10 +287,10 @@ class Agent(Node):
         
         ekf_ = EKF(ekf_id=self.ekfs[-1].id + 1 if self.ekfs != [] else 0,  # Increment ID if exists, else start from 0
                    a_init=a_init,
-                   sigma_init=np.eye(3)*5e-1,    # 1e-1 may be more appropriate
-                   R=np.diag([0.1, 0.1]),        # Sensor noise covariance    
-                   Q=np.eye(3) * 1e-4,           # Process noise covariance (1e-5)
-                   a_limits=[[self.L1_min, self.L1_max], [self.L2_min, self.L2_max], [0, 10]],
+                   sigma_init=self.ekf_params['sigma_init'],     # 1e-1 may be more appropriate
+                   R=self.ekf_params['R'],                       # Sensor noise covariance
+                   Q=self.ekf_params['Q'],                       # Process noise covariance (1e-5)
+                   a_limits=self.ekf_params['a_limits'],
                    time_now=current_time)
         
         self.ekfs.append(ekf_)

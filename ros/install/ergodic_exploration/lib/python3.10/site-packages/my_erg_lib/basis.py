@@ -3,8 +3,31 @@ from scipy.integrate import nquad
 import time
 
 class Basis():
+    """
+    Ergodic exploration basis function class for 2D domains.
+    
+    Implements Fourier basis functions for ergodic coverage and target distribution 
+    approximation using cosine basis functions over a rectangular domain.
+    """
 
     def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, phi_=None, precalc_hk_coeff=True, precalc_phik_coeff=True, integration_method='gauss', num_gauss_points=30):
+        """
+        Initialize the Basis class for ergodic exploration.
+        
+        Parameters:
+            - L1_BOUNDS (list/tuple):    Domain bounds for first dimension [min, max]
+            - L2_BOUNDS (list/tuple):    Domain bounds for second dimension [min, max]  
+            - Kmax (int):                Maximum number of basis functions in each dimension (>=1)
+            - phi_ (callable, optional): Target distribution function phi(s) where s=[x1,x2]. 
+                                         Defaults to constant function if None
+            - precalc_hk_coeff (bool):   Whether to precalculate hk normalization coefficients
+            - precalc_phik_coeff (bool): Whether to precalculate phi_k coefficients for target distribution
+            - integration_method (str):  Integration method for phi_k calculation ('gauss' or 'nquad')
+            - num_gauss_points (int):    Number of Gauss-Legendre quadrature points for integration (>=1)
+        
+        Raises:
+            AssertionError: If bounds are invalid, Kmax < 1, or integration parameters are invalid
+        """
         
         # Assert bounds are valid
         assert isinstance(L1_BOUNDS, (list, tuple)) and len(L1_BOUNDS) == 2, "L1_BOUNDS must be a list or tuple of 2 elements [min, max]."

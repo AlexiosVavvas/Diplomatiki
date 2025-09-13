@@ -56,13 +56,13 @@ def loadObstaclesFromYaml(yaml_file_path, L1_BOUNDS, L2_BOUNDS, kappa_obs=1.0, r
     Load obstacles from a YAML configuration file.
     
     Args:
-        yaml_file_path (str): Path to the YAML configuration file
-        L1_BOUNDS (list): [L1_min, L1_max] bounds for the domain
-        L2_BOUNDS (list): [L2_min, L2_max] bounds for the domain
-        kappa_obs (float): Default kappa value for obstacles when not specified in YAML
-        rho_obs (float): Default rho0 value for obstacles when not specified in YAML
-        kappa_wall (float): Default kappa value for walls when not specified in YAML
-        rho_wall (float): Default rho0 value for walls when not specified in YAML
+        - yaml_file_path (str): Path to the YAML configuration file
+        - L1_BOUNDS (list): [L1_min, L1_max] bounds for the domain
+        - L2_BOUNDS (list): [L2_min, L2_max] bounds for the domain
+        - kappa_obs (float): Default kappa value for obstacles when not specified in YAML
+        - rho_obs (float): Default rho0 value for obstacles when not specified in YAML
+        - kappa_wall (float): Default kappa value for walls when not specified in YAML
+        - rho_wall (float): Default rho0 value for walls when not specified in YAML
         
     Returns:
         list: List of Obstacle objects

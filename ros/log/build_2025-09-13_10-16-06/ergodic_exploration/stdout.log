@@ -12,12 +12,12 @@ running build_py
 copying ergodic_exploration/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
 copying ergodic_exploration/environment.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
 copying ergodic_exploration/agent_node.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
+copying ergodic_exploration/dummy_agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/ergodic_exploration
 copying my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
-copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
@@ -28,7 +28,6 @@ copying my_erg_lib/model_dynamics.py -> /home/alex/Diplomatiki/ros/build/ergodic
 copying my_erg_lib/__init__.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
-copying my_erg_lib/barrier.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/replay_buffer.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 copying my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
@@ -36,14 +35,23 @@ copying my_erg_lib/obstacles.py -> /home/alex/Diplomatiki/ros/build/ergodic_expl
 copying my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib
 running install
 running install_lib
-copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/vis.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
-byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/vis.py to vis.cpython-310.pyc
+copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/eid.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/basis.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/agent.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/Utilities.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+copying /home/alex/Diplomatiki/ros/build/ergodic_exploration/build/lib/my_erg_lib/ergodic_controllers.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib
+byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/eid.py to eid.cpython-310.pyc
+byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/basis.py to basis.cpython-310.pyc
+byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/agent.py to agent.cpython-310.pyc
+byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/Utilities.py to Utilities.cpython-310.pyc
+byte-compiling /home/alex/Diplomatiki/ros/install/ergodic_exploration/lib/python3.10/site-packages/my_erg_lib/ergodic_controllers.py to ergodic_controllers.cpython-310.pyc
 running install_data
 copying resource/ergodic_exploration -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ament_index/resource_index/packages
 copying package.xml -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration
+copying launch/big_environment_1.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/drones_in_small_space.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
+copying launch/boats_simple.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
 copying launch/multi_agent.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
-copying launch/big_environment_1_L_0_40.launch.py -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/launch
 copying meshes/car.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
 copying meshes/hermes.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes
 copying meshes/hermes_original.stl -> /home/alex/Diplomatiki/ros/install/ergodic_exploration/share/ergodic_exploration/meshes

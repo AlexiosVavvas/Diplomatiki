@@ -11,8 +11,10 @@ setup.py
 ../../build/ergodic_exploration/ergodic_exploration.egg-info/zip-safe
 ergodic_exploration/__init__.py
 ergodic_exploration/agent_node.py
+ergodic_exploration/dummy_agent.py
 ergodic_exploration/environment.py
-launch/big_environment_1_L_0_40.launch.py
+launch/big_environment_1.launch.py
+launch/boats_simple.launch.py
 launch/drones_in_small_space.launch.py
 launch/multi_agent.launch.py
 meshes/boat.stl
@@ -24,7 +26,6 @@ meshes/hermes_original.stl
 my_erg_lib/Utilities.py
 my_erg_lib/__init__.py
 my_erg_lib/agent.py
-my_erg_lib/barrier.py
 my_erg_lib/basis.py
 my_erg_lib/eid.py
 my_erg_lib/ergodic_controllers.py

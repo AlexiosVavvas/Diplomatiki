@@ -1,13 +1,34 @@
 import numpy as np
 from my_erg_lib.replay_buffer import ReplayBufferFIFO, ActionMask
-from my_erg_lib.barrier import Barrier
 import my_erg_lib.vis as vis
 
 class DecentralisedErgodicController():
+    """
+    Decentralized ergodic controller for multi-agent exploration.
+    
+    Implements ergodic control using spectral analysis and adjoint methods
+    for distributed multi-agent coverage and exploration tasks.
+    """
+    
     def __init__(self, agent, num_of_agents=1,  
-                 uNominal=None, uLimits=None, R=None, Q = 1,
-                 T_horizon = 0.3, T_sampling=0.01, deltaT_erg=0.9, use_inf_buffer=False,
-                 barrier_weight=100, barrier_eps=0.01, barrier_pow=2):
+                 uNominal=None, uLimits=None, R=None, Q=1,
+                 T_horizon=0.3, T_sampling=0.01, deltaT_erg=0.9, use_inf_buffer=False, default_lamda_perc=0.3):
+        """
+        Initialize the decentralized ergodic controller.
+        
+        Parameters:
+            - agent:                          Agent instance from my_erg_lib.agent
+            - num_of_agents (int):            Total number of agents in the system
+            - uNominal (callable, optional):  Nominal control function u(x,t)
+            - uLimits (array-like, optional): Control limits [[umin, umax], ...] for each input
+            - R (array-like, optional):       Control cost matrix (defaults to identity)
+            - Q (float):                      Ergodic cost weighting parameter
+            - T_horizon (float):              Prediction horizon time
+            - T_sampling (float):             Sampling time for control updates
+            - deltaT_erg (float):             Ergodic memory buffer duration
+            - use_inf_buffer (bool):          Whether to use infinite buffer for past states
+            - default_lamda_perc (float):     Default percentage of T_sampling for control duration
+        """
 
         # Connect the agent
         # Make sure agent is of type Agent from my_erg_lib
@@ -27,6 +48,7 @@ class DecentralisedErgodicController():
         self.deltaT_erg = deltaT_erg
         self.t0_erg = 0
         self.use_inf_buffer = use_inf_buffer
+        self.default_lamda_perc = default_lamda_perc  # Default percentage of Ts to use as lamda duration
 
         # Control Parameters
         self.R = R if R is not None else np.eye(agent.model.num_of_inputs)
@@ -42,9 +64,6 @@ class DecentralisedErgodicController():
         else:
             assert len(uLimits) == agent.model.num_of_inputs, "uLimits should contain [lower, upper] pairs for every control (num_of_inputs)."
             self.uLimits = np.asarray(uLimits)
-
-        # Set barrier to avoid going outside the exploration space
-        self.barrier = Barrier(L1_BOUNDS=[agent.L1_min, agent.L1_max], L2_BOUNDS=[agent.L2_min, agent.L2_max], weight=barrier_weight, eps_=barrier_eps, pow_=barrier_pow)
 
         # Make sure everything is in the right format
         assert self.agent.model.dt < T_sampling < T_horizon, "T_sampling must be between dt and T_horizon."
@@ -94,24 +113,12 @@ class DecentralisedErgodicController():
                     ck_ = ck[k1, k2]
                     phi_k = self.agent.basis.calcPhikCoeff(k1, k2)
                     dFdx = self.agent.basis.dFk_dx(x_traj[i][:2], k1, k2, hk)
-                    # TODO: Check: Since Fk(xv) the derivative lacks dimensions to reach x. So i think we should append 0s
+                    # Since the definition is Fk(xv) not Fk(x), the derivative lacks dimensions to reach x. So i think we should append 0s
                     dFdx = np.concatenate((dFdx, np.zeros((self.agent.model.num_of_states - 2,))))
                     
                     # Adding to rho_dot(x[i], t[i])
                     rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
                     
-                    # if we are epsilon close to the barrier, we need to add the barrier term	
-                    eps = self.agent.erg_c.barrier.eps
-                    x1 = x_traj[i][0]; x1_max = self.agent.erg_c.barrier.space_top_lim[0] - eps; x1_min = self.agent.erg_c.barrier.space_bot_lim[0] + eps
-                    x2 = x_traj[i][1]; x2_max = self.agent.erg_c.barrier.space_top_lim[1] - eps; x2_min = self.agent.erg_c.barrier.space_bot_lim[1] + eps
-                    if x1 >= x1_max or x1 <= x1_min or x2 >= x2_max or x2 <= x2_min:
-                        barr_dx = self.agent.erg_c.barrier.dx(x_traj[i][:2])
-                    else: 
-                        barr_dx = np.zeros((2,))
-                    # However we need to append 0s to the non ergodic dimensions before adding to rho_dot
-                    barr_dx = np.concatenate((barr_dx, np.zeros((self.agent.model.num_of_states - 2,))))
-                    rho_dot -= barr_dx
-
             # Update rho using the computed rho_dot
             rho[i] = rho[i+1] - rho_dot * dt 
 
@@ -200,8 +207,7 @@ class DecentralisedErgodicController():
             assert type(Jt_value) == np.float64, f"Jt is not a scalar number, but {type(Jt_value)} (Jt = {Jt_value}). Check the calculation of Jt."
             return Jt_value
 
-        # TODO: Do gradient descent or something faster / clever? - Could change the time step here from t_traj to go faster
-        # TODO: Make sure we dont always choose the first value - Seems like we do
+        # TODO: Do gradient descent or something faster / clever?
         Jt_values = np.array([Jt(t_traj[i], x_traj[i], ustar[i], rho[i]) for i in range(len(t_traj))])
         # We have a problem with the first value. Prev interval for example was [0, 0.03] and now [0.03, 0.06]. Now at 0.03 for the second calc uDef is defined from before, so Jt[0] has info from the prev interval. 
         # We solve it by just ignoring this calculation and using the Jt[1] as the 1st. Not a big deal i guess.
@@ -225,7 +231,8 @@ class DecentralisedErgodicController():
         We need to find the max value of λ that satisfies this condition
         We start with a big value and halve it until the condition is met.
         """
-        lamda = self.Ts * 0.3  #TODO: Hmm, maybe have a better way to calculate this without instability?
+        #TODO: Hmm, maybe have a better way to calculate this without instability?
+        lamda = self.Ts * self.default_lamda_perc  # Currently something like constant 30% of Ts
         return lamda
 
         

@@ -16,20 +16,17 @@ class Obstacle():
     def __init__(self, pos, dimensions, kappa, obs_type, rho0, r0=None, obs_name=None):
         """
         Parameters:
-            - pos: position of the obstacle
+            - pos: position of the obstacle center (2D coordinates)
             - dimensions: dimensions of the obstacle
                 o Circle: radius
                 o Rectangle: width, height
                 o Wall: normal vector (the length of the vector defines the length of the wall for plotting purposes only, the wall is infinite) 
                     eg. norm[0, +10], horizontal wall, only working up, size = 10m
-            - obs_type: type of the obstacle (circle, rectangle, wall)
-            - f_min: force applied
-                o Circle: f @ x = r + eps
-                o Rectangle: f @ x = w + eps_x or h + eps_y
-                o Wall: f @ x = eps
-            - obs_name: name of the obstacle (for debugging)
-            # TODO: Complete here
-
+            - kappa: potential field strength parameter
+            - obs_type: type of the obstacle ('circle', 'rectangle', 'wall')
+            - rho0: obstacle vicinity distance (measured from the border of the obstacle and on)
+            - r0: safety radius for circle obstacles (defaults to radius if not provided)
+            - obs_name: name of the obstacle (for debugging purposes)
         """
         # Save variables
         self.type = obs_type

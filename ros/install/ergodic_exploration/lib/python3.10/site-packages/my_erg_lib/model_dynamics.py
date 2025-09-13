@@ -395,26 +395,6 @@ class Quadcopter(DynamicsBase):
         '''
         return self.f_u(x)
 
-    # TODO: To verify if this is correct
-    def g(self, x):
-        """
-        Affine Dynamics, States Part
-        x' = f(x) = g(x) + h(x) u
-        """
-        return np.array([
-            x[6],  # x'
-            x[7],  # y'
-            x[8],  # z'
-            x[9],  # ψ'
-            x[10], # θ'
-            x[11],  # φ'
-            0,
-            0,
-            -9.81,
-            -self.damping * x[9],  # ψ'' = -damping * ψ'
-            -self.damping * x[10], # θ'' = -damping * θ'
-            -self.damping * x[11]  # φ'' = -damping * φ'
-        ])
 
     def step(self, x, u, dt=None):
         dt = self.dt if dt is None else dt

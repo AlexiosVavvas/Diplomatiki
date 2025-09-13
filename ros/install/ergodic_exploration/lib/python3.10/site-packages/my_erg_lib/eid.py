@@ -3,7 +3,6 @@ import time
 import random
 # TODO: A cool idea could be a measurement model measuring only distance R(x, y). This way we simultate the RF beacon giving us the signal intensity at each point and trying to find the exact location of the stolen property
 
-# class MeasurementModel:
 class MeasurementModel_NonVectorized:
     def __init__(self):
         self.mu = 2  # μ: Number of measurements (beta, phi)
@@ -70,7 +69,6 @@ class MeasurementModel_NonVectorized:
 
         return H_
     
-# class MeasurementModelVEC:
 class MeasurementModel:
     """
     Measurement model for the target state estimation
