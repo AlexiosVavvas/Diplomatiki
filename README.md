@@ -1,9 +1,9 @@
 # Ergodic Control Navigation
 
 ## Project Overview
-This repository contains an implementation of ergodic control algorithms for multi-agent robotic systems with **ROS2 Humble integration**. Ergodic control is a control strategy that drives agents to match a specified spatial distribution, making it useful for exploration, surveillance, and monitoring applications.
+This repository contains an implementation of ergodic control algorithms for multi-agent robotic systems. Ergodic control is a control strategy that drives agents to match a specified spatial distribution, making it useful for exploration, surveillance, and monitoring applications.
 
-The core concept is to make the time-averaged statistics of an agent's trajectory match a desired spatial distribution, creating an efficient exploration pattern that focuses more time on high-importance regions while still covering the entire space. Agents now communicate via ROS2 topics using custom messages for real-time coordination.
+The core concept is to make the time-averaged statistics of an agent's trajectory match a desired spatial distribution, creating an efficient exploration pattern that focuses more time on high-importance regions while still covering the entire space.
 
 ![Quadrotor Ergodic Exploration](images/gifs/phi2_animation.gif)
 *The animation shows a 12-DoF quadrotor model ergodically exploring a spatial distribution, demonstrating how the algorithm balances between visiting high-density regions while maintaining coverage of the entire domain.*
@@ -20,10 +20,6 @@ The core concept is to make the time-averaged statistics of an agent's trajector
 ## Repository Structure
 - `my_erg_lib/`: Custom implementation of the ergodic control library
   - Contains models, controllers, and utility functions for ergodic control
-- `src/ergodic_exploration/`: ROS2 package for multi-agent coordination
-  - Custom message types for Ck coefficients, obstacles, and target estimates
-  - Node-based agent implementation with topic communication
-- `dashboard_ros.py`: Real-time Python dashboard for multi-agent visualization
 - `images/`: Visualization outputs and animations
   - `gifs/`: Animations of system behavior and distribution convergence
 - `more/`: Additional test scripts and experimental features
@@ -31,97 +27,18 @@ The core concept is to make the time-averaged statistics of an agent's trajector
   - Parallel processing implementations
   - Potential field visualization
 
-## ROS2 Integration
-
-<img src="images/images/ros/ros2_humble_icon.png" width="100" alt="ROS2 Humble Logo">
-
-The system now leverages **ROS2 Humble** for inter-agent communication and real-time visualization:
-
-### Custom Message Types
-- **Ck Coefficients**: For sharing Fourier spectral information between agents
-- **Obstacle Positions**: For dynamic obstacle information sharing  
-- **Target Estimates**: For coordinated multi-target tracking
-
-### Node Architecture
-- Each agent runs as an independent ROS2 node for true parallel execution
-- Topic-based communication enables real-time coordination
-- Environment node provides RViz visualization markers and system monitoring
-- Custom Python dashboard provides live system monitoring
-- Real-time Ck coefficient visualization for ergodic performance analysis
-
-<div align="center">
-<img src="images/images/ros/rqt_ros_topology.png" width="80%" alt="ROS2 Node Topology">
-</div>
-*ROS2 node topology showing multi-agent communication structure*
-
-<br><br>
-
-
-
-<div align="center">
-<img src="images/images/ros/dashboard_ros_agent_traj.png" width="80%" alt="Multi-Agent Dashboard">
-</div>
-*Real-time dashboard visualization showing cooperative space coverage with obstacles. Black crosses indicate ground truth target positions, while colored ellipses represent independent target position estimates from each agent's EKF. Each agent performs decentralized target localization using bearing-only measurements but still localises target indipendent of the others.*
-
-
-<br><br>
-
-
-<div align="center">
-<img src="images/images/ros/dashboard_ros_erg_cost_focused.png" width="80%" alt="Cooperative Ergodic Metric">
-</div>
-*Real-time plot of ergodic metric reduction via cooperative area coverage. The line at the bottom is the total ergodic metric*
-
-<br><br>
-
-<div align="center">
-<img src="images/images/ros/rviz_screenshot_w_boat.png" width="80%" alt="RViz 3D Visualization">
-</div>
-<div align="center">
-<img src="images/images/ros/rviz_screenshot_w_boat_and_car.png" width="80%" alt="RViz 3D Visualization">
-</div>
-<div align="center">
-<img src="images/images/ros/rviz_screen_airplane.png" width="80%" alt="RViz 3D Visualization">
-</div>
-*Airplane control 12-DoF non linear model, with direct inputs (elevator, aileron, rudder angles + throttle command)*
-<div align="center">
-<img src="images/images/ros/rviz_tight_space_drone_2_focused.png" width="80%" alt="RViz 3D Visualization">
-</div>
-<div align="center">
-<img src="images/images/ros/rviz_tight_space_drone.png" width="80%" alt="RViz 3D Visualization">
-</div>
-<br><br>
-*RViz 3D visualization showing multi-agent trajectories, target positions, and obstacle avoidance in real-time. The environment node publishes visualization markers for comprehensive 3D monitoring of the ergodic exploration system.*
-
-<br><br>
-
 ## Key Components
 
 ### Dynamics Models
+- `model_dynamics.py`: Implementation of various dynamics models including:
   - `SingleIntegrator`: Simple first-order dynamics
   - `DoubleIntegrator`: Second-order dynamics
-  - `SimpleBoatSecondOrder`: 5-state nonlinear boat model with:
-    - 2D position, heading, surge speed, and yaw rate
-    - Thrust and rudder control inputs
-    - Nonlinear drag and rudder effectiveness
-    - Realistic marine dynamics for small robotic hulls
-  - `SimpleCarSecondOrder`: 6-state nonlinear car model with:
-    - 2D position, heading, speed, steering angle, and yaw rate
-    - Drive force and steering command inputs
-    - Nonlinear drag, steering actuator, and yaw dynamics
-    - Suitable for small UGVs and ground robots
   - `Quadcopter`: Full 12-DoF quadrotor model with realistic dynamics including:
     - Position (x, y, z)
     - Orientation (roll, pitch, yaw)
     - Linear and angular velocities
     - Motor command mixing and thrust generation
     - LQR stabilization with customizable gains for obstacle avoidance
-  - `FixedWing12DOFTrainer`: Full 12-DoF fixed-wing airplane model with:
-    - 3D position and orientation (Euler angles)
-    - Linear and angular velocities
-    - Nonlinear aerodynamic forces and moments
-    - Control surfaces (elevator, aileron, rudder) and throttle input
-    - Runge-Kutta 4 integration and trim/linearization utilities
 
 ### Control
 - `ergodic_controllers.py`: Core implementation of ergodic control strategies:
@@ -228,9 +145,6 @@ This approach guarantees that the agent remains in the safe set `{x : h(x) ≥ 0
   - Animation generation for ergodic coverage analysis
   - Potential field visualization for obstacle avoidance
   - Trajectory replay with time-series plotting
-- `dashboard_ros.py`: Real-time multi-agent dashboard for ROS2 systems
-- `vis_ck_erg.py`: Real-time Ck coefficient visualization and ergodic cost monitoring
-- **RViz Integration**: 3D visualization support with environment node for marker publishing
 
 ### Spectral Distribution Analysis
 - `ReconstructedPhi` and `ReconstructedPhiFromCk`: Classes for analyzing and reconstructing spatial distributions
@@ -245,82 +159,6 @@ This approach guarantees that the agent remains in the safe set `{x : h(x) ≥ 0
 - PIL: For image processing and saving animations
 
 ## Usage
-
-### Running the System
-
-#### Build and Setup
-```bash
-# Build the ROS2 workspace
-colcon build
-
-# Source the setup (or use ./b_and_source.sh for faster execution)
-source install/setup.bash
-```
-
-#### Single Agent
-```bash
-ros2 run ergodic_exploration agent_node --agent_id 1 --init_pos 9 3
-```
-
-#### Multiple Agents with Launch File
-Create a launch file (e.g., `multi_agent_launch.yaml`):
-```yaml
-launch:
-- arg:
-    name: "num_agents"
-    default: "3"
-    description: "Number of agents to launch"
-
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_1"
-    args: "--agent_id 1 --init_pos 9 3 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
-
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_2"
-    args: "--agent_id 2 --init_pos 5 7 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
-
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_3"
-    args: "--agent_id 3 --init_pos 2 1 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
-```
-
-#### Real-time Dashboard
-In a separate terminal:
-```bash
-# Source the environment
-. source.sh
-
-# Launch the visualization dashboard
-python dashboard_ros.py
-```
-
-#### RViz Visualization
-For 3D visualization of the multi-agent system in RViz:
-```bash
-# Launch RViz with the custom configuration
-ros2 run rviz2 rviz2 -d rviz_configuration.rviz
-```
-
-#### Ck Coefficient Visualization
-For real-time visualization of ergodic cost and Ck coefficients:
-```bash
-# Visualize specific agent's ergodic performance (replace '1' with desired agent ID)
-python vis_ck_erg.py --mode realtime --plot-mode ros-only 1
-```
-
-### Library Usage
 This library is designed for multi-agent robotic control in various scenarios:
 
 ```python
@@ -433,9 +271,6 @@ for i in range(10000):
 ```
 
 ## Key Features
-- **ROS2 Humble Integration**: True parallel multi-agent execution with topic-based communication
-- **Custom Message Types**: Specialized messages for Ck coefficients, obstacles, and target estimates
-- **Real-time Dashboard**: Python-based visualization for live system monitoring
 - **Advanced Safety Architecture**: Novel CBF (Control Barrier Function) safety filter that acts as an intelligent safety layer, only intervening when collision risk is detected
 - Spectral decomposition of target distributions using Fourier basis functions
 - Receding horizon control for ergodic exploration
