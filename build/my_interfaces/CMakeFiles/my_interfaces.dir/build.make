@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/alex/Diplomatiki/src/my_interfaces
+CMAKE_SOURCE_DIR = /home/avavvas/dipl/src/my_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/alex/Diplomatiki/build/my_interfaces
+CMAKE_BINARY_DIR = /home/avavvas/dipl/build/my_interfaces
 
 # Utility rule file for my_interfaces.
 
@@ -66,12 +66,12 @@ include CMakeFiles/my_interfaces.dir/compiler_depend.make
 # Include the progress variables for this target.
 include CMakeFiles/my_interfaces.dir/progress.make
 
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/CkTable.msg
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/AgentData.msg
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/SingleObstacle.msg
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/MultipleObstacles.msg
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/SingleTargetEstimate.msg
-CMakeFiles/my_interfaces: /home/alex/Diplomatiki/src/my_interfaces/msg/MultipleTargetEstimates.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/CkTable.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/AgentData.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/SingleObstacle.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleObstacles.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/SingleTargetEstimate.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleTargetEstimates.msg
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
@@ -148,6 +148,6 @@ CMakeFiles/my_interfaces.dir/clean:
 .PHONY : CMakeFiles/my_interfaces.dir/clean
 
 CMakeFiles/my_interfaces.dir/depend:
-	cd /home/alex/Diplomatiki/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/avavvas/dipl/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/my_interfaces.dir/depend
 

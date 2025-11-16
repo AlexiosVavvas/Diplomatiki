@@ -94,33 +94,78 @@ class DecentralisedErgodicController():
         '''
         Simulate the adjoint state to get rho(t)
         Integrating with simple Euler method Backwards from rho(ti+T) = 0
+        
+        (Optimized with vectorized operations)
         '''
-        dt = t_traj[1] - t_traj[0]  # Time step: Dt is not a variable here. We chose it to be the same as the forward pass
+        # import time
+        # t_start = time.perf_counter()
+        
+        dt = t_traj[1] - t_traj[0]
         rho = np.zeros((len(x_traj), self.agent.model.num_of_states))
 
-        # Integrating with simple Euler method Backwards from ρ(ti+T) = 0
-        for i in range(len(x_traj)-2, -1, -1):
-            # Jacobian of the dynamics with respect to x
-            f_x = self.agent.model.f_x(x=x_traj[i], u=u_traj[i])
+        # Precompute mode coefficients and factors (done once per call)
+        Kmax = self.agent.Kmax
+        num_modes = (Kmax + 1) ** 2
+        
+        mode_k1 = np.zeros(num_modes, dtype=int)
+        mode_k2 = np.zeros(num_modes, dtype=int)
+        mode_k1_factor = np.zeros(num_modes)
+        mode_k2_factor = np.zeros(num_modes)
+        mode_coeff = np.zeros(num_modes)
+        
+        idx = 0
+        for k1 in range(Kmax+1):
+            for k2 in range(Kmax+1):
+                lamda_k = self.agent.basis.LamdaK_cache[(k1, k2)]
+                hk = self.agent.basis.calcHk(k1, k2)
+                phi_k = self.agent.basis.calcPhikCoeff(k1, k2)
+                
+                mode_k1[idx] = k1
+                mode_k2[idx] = k2
+                mode_coeff[idx] = (-2 * Q / T / num_of_agents) * lamda_k * (ck[k1, k2] - phi_k)
+                mode_k1_factor[idx] = -(k1 * np.pi / self.agent.basis.L1_size) / hk
+                mode_k2_factor[idx] = -(k2 * np.pi / self.agent.basis.L2_size) / hk
+                idx += 1
 
+        pi_over_L1 = np.pi / self.agent.basis.L1_size
+        pi_over_L2 = np.pi / self.agent.basis.L2_size
+        dFdx_erg = np.zeros((2,))  # Ergodic contribution to dFdx
+        
+        # Integrate backwards from ρ(ti+T) = 0
+        for i in range(len(x_traj)-2, -1, -1):
+            f_x = self.agent.model.f_x(x=x_traj[i], u=u_traj[i])
             rho_dot = -np.dot(f_x.T, rho[i+1])
             
-            for k1 in range(self.agent.Kmax+1):
-                for k2 in range(self.agent.Kmax+1):
-                    # Calculating summation terms
-                    lamda_k = self.agent.basis.LamdaK_cache[(k1, k2)]
-                    hk = self.agent.basis.calcHk(k1, k2)
-                    ck_ = ck[k1, k2]
-                    phi_k = self.agent.basis.calcPhikCoeff(k1, k2)
-                    dFdx = self.agent.basis.dFk_dx(x_traj[i][:2], k1, k2, hk)
-                    # Since the definition is Fk(xv) not Fk(x), the derivative lacks dimensions to reach x. So i think we should append 0s
-                    dFdx = np.concatenate((dFdx, np.zeros((self.agent.model.num_of_states - 2,))))
-                    
-                    # Adding to rho_dot(x[i], t[i])
-                    rho_dot += (-2 * Q / T / num_of_agents) * lamda_k * (ck_ - phi_k) * dFdx
-                    
-            # Update rho using the computed rho_dot
-            rho[i] = rho[i+1] - rho_dot * dt 
+            # Normalize position
+            x1_norm = x_traj[i][0] - self.agent.basis.L1_min
+            x2_norm = x_traj[i][1] - self.agent.basis.L2_min
+            
+            # Vectorized computation of all modes at once
+            args1 = mode_k1 * pi_over_L1 * x1_norm
+            args2 = mode_k2 * pi_over_L2 * x2_norm
+            
+            sin1_all = np.sin(args1)
+            cos1_all = np.cos(args1)
+            sin2_all = np.sin(args2)
+            cos2_all = np.cos(args2)
+            
+            # Compute derivatives for all modes
+            dFdx_1 = mode_k1_factor * sin1_all * cos2_all
+            dFdx_2 = mode_k2_factor * cos1_all * sin2_all
+            
+            # Weighted sum across all modes
+            dFdx_erg[0] = np.dot(mode_coeff, dFdx_1)
+            dFdx_erg[1] = np.dot(mode_coeff, dFdx_2)
+            
+            # Add ergodic contribution (zeros for non-ergodic dimensions)
+            rho_dot[:2] += dFdx_erg
+            
+            rho[i] = rho[i+1] - rho_dot * dt
+
+        # t_elapsed = (time.perf_counter() - t_start) * 1000  # Convert to ms
+        # Ts_ms = self.Ts * 1000  # Ts in ms
+        # percentage = (t_elapsed / Ts_ms) * 100
+        # print(f"[ADJOINT] {t_elapsed:.1f}ms \t({percentage:.1f}% of Ts)")
 
         return rho, t_traj
 

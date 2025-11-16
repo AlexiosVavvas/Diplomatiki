@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/alex/Diplomatiki/src/my_interfaces
+CMAKE_SOURCE_DIR = /home/avavvas/dipl/src/my_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/alex/Diplomatiki/build/my_interfaces
+CMAKE_BINARY_DIR = /home/avavvas/dipl/build/my_interfaces
 
 # Utility rule file for my_interfaces__cpp.
 
@@ -183,8 +183,8 @@ rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geome
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geometry_msgs/msg/VelocityStamped.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geometry_msgs/msg/Wrench.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geometry_msgs/msg/WrenchStamped.idl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code for ROS interfaces"
-	/usr/bin/python3 /opt/ros/humble/share/rosidl_generator_cpp/cmake/../../../lib/rosidl_generator_cpp/rosidl_generator_cpp --generator-arguments-file /home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_cpp__arguments.json
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code for ROS interfaces"
+	/usr/bin/python3 /opt/ros/humble/share/rosidl_generator_cpp/cmake/../../../lib/rosidl_generator_cpp/rosidl_generator_cpp --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp__arguments.json
 
 rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__builder.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__builder.hpp
@@ -316,6 +316,6 @@ CMakeFiles/my_interfaces__cpp.dir/clean:
 .PHONY : CMakeFiles/my_interfaces__cpp.dir/clean
 
 CMakeFiles/my_interfaces__cpp.dir/depend:
-	cd /home/alex/Diplomatiki/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces__cpp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/avavvas/dipl/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces__cpp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/my_interfaces__cpp.dir/depend
 

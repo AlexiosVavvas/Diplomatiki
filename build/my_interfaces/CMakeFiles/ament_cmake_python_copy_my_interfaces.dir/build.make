@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/alex/Diplomatiki/src/my_interfaces
+CMAKE_SOURCE_DIR = /home/avavvas/dipl/src/my_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/alex/Diplomatiki/build/my_interfaces
+CMAKE_BINARY_DIR = /home/avavvas/dipl/build/my_interfaces
 
 # Utility rule file for ament_cmake_python_copy_my_interfaces.
 
@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/compiler_depend.mak
 include CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/progress.make
 
 CMakeFiles/ament_cmake_python_copy_my_interfaces:
-	/usr/bin/cmake -E copy_directory /home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces
+	/usr/bin/cmake -E copy_directory /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces /home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces
 
 ament_cmake_python_copy_my_interfaces: CMakeFiles/ament_cmake_python_copy_my_interfaces
 ament_cmake_python_copy_my_interfaces: CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/clean:
 .PHONY : CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/clean
 
 CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/depend:
-	cd /home/alex/Diplomatiki/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/avavvas/dipl/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces/CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ament_cmake_python_copy_my_interfaces.dir/depend
 

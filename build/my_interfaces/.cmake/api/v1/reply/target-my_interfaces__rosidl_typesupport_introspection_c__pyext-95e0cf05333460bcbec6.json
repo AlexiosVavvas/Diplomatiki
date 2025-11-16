@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so"
+			"path" : "rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so"
 		}
 	],
 	"backtrace" : 5,
@@ -272,18 +272,18 @@
 					"define" : "ROS_PACKAGE_NAME=\"my_interfaces\""
 				},
 				{
-					"define" : "my_interfaces__rosidl_typesupport_fastrtps_c__pyext_EXPORTS"
+					"define" : "my_interfaces__rosidl_typesupport_introspection_c__pyext_EXPORTS"
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 30,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c"
 				},
 				{
 					"backtrace" : 30,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py"
 				},
 				{
 					"backtrace" : 30,
@@ -291,7 +291,7 @@
 				},
 				{
 					"backtrace" : 7,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_introspection_c"
 				},
 				{
 					"backtrace" : 31,
@@ -336,27 +336,27 @@
 				{
 					"backtrace" : 7,
 					"isSystem" : true,
-					"path" : "/opt/ros/humble/include/fastcdr"
-				},
-				{
-					"backtrace" : 7,
-					"isSystem" : true,
-					"path" : "/opt/ros/humble/include/rosidl_runtime_cpp"
-				},
-				{
-					"backtrace" : 7,
-					"isSystem" : true,
-					"path" : "/opt/ros/humble/include/rosidl_typesupport_fastrtps_cpp"
-				},
-				{
-					"backtrace" : 7,
-					"isSystem" : true,
-					"path" : "/opt/ros/humble/include/rosidl_typesupport_fastrtps_c"
+					"path" : "/opt/ros/humble/include/rosidl_typesupport_introspection_c"
 				},
 				{
 					"backtrace" : 14,
 					"isSystem" : true,
-					"path" : "/opt/ros/humble/include/rosidl_typesupport_introspection_c"
+					"path" : "/opt/ros/humble/include/fastcdr"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/rosidl_runtime_cpp"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/rosidl_typesupport_fastrtps_cpp"
+				},
+				{
+					"backtrace" : 14,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/rosidl_typesupport_fastrtps_c"
 				},
 				{
 					"backtrace" : 14,
@@ -379,7 +379,7 @@
 		},
 		{
 			"backtrace" : 19,
-			"id" : "my_interfaces__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df"
+			"id" : "my_interfaces__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 20,
@@ -394,7 +394,7 @@
 			"id" : "my_interfaces__py::@195c5e1881d16a8fdb9f"
 		}
 	],
-	"id" : "my_interfaces__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+	"id" : "my_interfaces__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
 	"install" : 
 	{
 		"destinations" : 
@@ -410,7 +410,7 @@
 		],
 		"prefix" : 
 		{
-			"path" : "/home/alex/Diplomatiki/install/my_interfaces"
+			"path" : "/home/avavvas/dipl/install/my_interfaces"
 		}
 	},
 	"link" : 
@@ -422,7 +422,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces:/home/alex/Diplomatiki/build/my_interfaces:/opt/ros/humble/lib:",
+				"fragment" : "-Wl,-rpath,/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces:/home/avavvas/dipl/build/my_interfaces:/opt/ros/humble/lib:",
 				"role" : "libraries"
 			},
 			{
@@ -437,7 +437,7 @@
 			},
 			{
 				"backtrace" : 7,
-				"fragment" : "libmy_interfaces__rosidl_typesupport_fastrtps_c.so",
+				"fragment" : "libmy_interfaces__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
@@ -512,12 +512,12 @@
 			},
 			{
 				"backtrace" : 14,
-				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_fastrtps_c.so",
+				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 16,
-				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_fastrtps_c.so",
+				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
@@ -525,17 +525,13 @@
 				"role" : "libraries"
 			},
 			{
-				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_fastrtps_c.so",
-				"role" : "libraries"
-			},
-			{
 				"backtrace" : 14,
-				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_introspection_c.so",
+				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 16,
-				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_introspection_c.so",
+				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
@@ -551,6 +547,10 @@
 			{
 				"backtrace" : 16,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_generator_c.so",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
@@ -629,8 +629,8 @@
 		],
 		"language" : "C"
 	},
-	"name" : "my_interfaces__rosidl_typesupport_fastrtps_c__pyext",
-	"nameOnDisk" : "my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so",
+	"name" : "my_interfaces__rosidl_typesupport_introspection_c__pyext",
+	"nameOnDisk" : "my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so",
 	"paths" : 
 	{
 		"build" : ".",
@@ -652,7 +652,7 @@
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c",
 			"sourceGroupIndex" : 0
 		}
 	],

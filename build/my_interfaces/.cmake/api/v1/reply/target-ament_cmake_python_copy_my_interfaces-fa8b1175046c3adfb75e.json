@@ -61,19 +61,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 141,
+				"line" : 122,
 				"parent" : 6
 			}
 		]
 	},
-	"dependencies" : 
-	[
-		{
-			"id" : "ament_cmake_python_copy_my_interfaces::@6890427a1f51a3e7e1df"
-		}
-	],
-	"id" : "ament_cmake_python_build_my_interfaces_egg::@6890427a1f51a3e7e1df",
-	"name" : "ament_cmake_python_build_my_interfaces_egg",
+	"id" : "ament_cmake_python_copy_my_interfaces::@6890427a1f51a3e7e1df",
+	"name" : "ament_cmake_python_copy_my_interfaces",
 	"paths" : 
 	{
 		"build" : ".",
@@ -101,13 +95,13 @@
 		{
 			"backtrace" : 7,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/ament_cmake_python_build_my_interfaces_egg",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/ament_cmake_python_copy_my_interfaces",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/ament_cmake_python_build_my_interfaces_egg.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/ament_cmake_python_copy_my_interfaces.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

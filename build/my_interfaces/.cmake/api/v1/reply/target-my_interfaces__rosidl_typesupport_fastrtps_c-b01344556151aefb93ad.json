@@ -188,11 +188,11 @@
 			[
 				{
 					"backtrace" : 18,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c"
 				},
 				{
 					"backtrace" : 7,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c"
 				},
 				{
 					"backtrace" : 11,
@@ -293,7 +293,7 @@
 		],
 		"prefix" : 
 		{
-			"path" : "/home/alex/Diplomatiki/install/my_interfaces"
+			"path" : "/home/avavvas/dipl/install/my_interfaces"
 		}
 	},
 	"link" : 
@@ -305,7 +305,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/home/alex/Diplomatiki/build/my_interfaces:/opt/ros/humble/lib:",
+				"fragment" : "-Wl,-rpath,/home/avavvas/dipl/build/my_interfaces:/opt/ros/humble/lib:",
 				"role" : "libraries"
 			},
 			{
@@ -421,85 +421,85 @@
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__type_support_c.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__type_support_c.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h.rule",
 			"sourceGroupIndex" : 2
 		}
 	],

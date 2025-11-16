@@ -174,6 +174,16 @@ static bool _MultipleTargetEstimates__cdr_deserialize(
     uint32_t cdrSize;
     cdr >> cdrSize;
     size_t size = static_cast<size_t>(cdrSize);
+
+    // Check there are at least 'size' remaining bytes in the CDR stream before resizing
+    auto old_state = cdr.getState();
+    bool correct_size = cdr.jump(size);
+    cdr.setState(old_state);
+    if (!correct_size) {
+      fprintf(stderr, "sequence size exceeds remaining buffer\n");
+      return false;
+    }
+
     if (ros_message->target_estimates.data) {
       my_interfaces__msg__SingleTargetEstimate__Sequence__fini(&ros_message->target_estimates);
     }
@@ -201,6 +211,16 @@ static bool _MultipleTargetEstimates__cdr_deserialize(
     uint32_t cdrSize;
     cdr >> cdrSize;
     size_t size = static_cast<size_t>(cdrSize);
+
+    // Check there are at least 'size' remaining bytes in the CDR stream before resizing
+    auto old_state = cdr.getState();
+    bool correct_size = cdr.jump(size);
+    cdr.setState(old_state);
+    if (!correct_size) {
+      fprintf(stderr, "sequence size exceeds remaining buffer\n");
+      return false;
+    }
+
     if (ros_message->ground_truths.data) {
       my_interfaces__msg__SingleTargetEstimate__Sequence__fini(&ros_message->ground_truths);
     }

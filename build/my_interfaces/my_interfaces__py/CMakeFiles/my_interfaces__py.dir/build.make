@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/alex/Diplomatiki/src/my_interfaces
+CMAKE_SOURCE_DIR = /home/avavvas/dipl/src/my_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/alex/Diplomatiki/build/my_interfaces
+CMAKE_BINARY_DIR = /home/avavvas/dipl/build/my_interfaces
 
 # Utility rule file for my_interfaces__py.
 
@@ -166,8 +166,8 @@ rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtp
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/geometry_msgs/msg/VelocityStamped.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/geometry_msgs/msg/Wrench.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/geometry_msgs/msg/WrenchStamped.idl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
-	cd /home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
+	cd /home/avavvas/dipl/build/my_interfaces/my_interfaces__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
 
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c
@@ -239,10 +239,10 @@ my_interfaces__py/CMakeFiles/my_interfaces__py.dir/build: my_interfaces__py
 .PHONY : my_interfaces__py/CMakeFiles/my_interfaces__py.dir/build
 
 my_interfaces__py/CMakeFiles/my_interfaces__py.dir/clean:
-	cd /home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py && $(CMAKE_COMMAND) -P CMakeFiles/my_interfaces__py.dir/cmake_clean.cmake
+	cd /home/avavvas/dipl/build/my_interfaces/my_interfaces__py && $(CMAKE_COMMAND) -P CMakeFiles/my_interfaces__py.dir/cmake_clean.cmake
 .PHONY : my_interfaces__py/CMakeFiles/my_interfaces__py.dir/clean
 
 my_interfaces__py/CMakeFiles/my_interfaces__py.dir/depend:
-	cd /home/alex/Diplomatiki/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/alex/Diplomatiki/src/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py /home/alex/Diplomatiki/build/my_interfaces /home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py /home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/avavvas/dipl/build/my_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/avavvas/dipl/src/my_interfaces /home/avavvas/dipl/build/my_interfaces/my_interfaces__py /home/avavvas/dipl/build/my_interfaces /home/avavvas/dipl/build/my_interfaces/my_interfaces__py /home/avavvas/dipl/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : my_interfaces__py/CMakeFiles/my_interfaces__py.dir/depend
 

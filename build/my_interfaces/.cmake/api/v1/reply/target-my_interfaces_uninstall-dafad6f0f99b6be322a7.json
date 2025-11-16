@@ -98,13 +98,13 @@
 		{
 			"backtrace" : 9,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces_uninstall",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces_uninstall",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces_uninstall.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces_uninstall.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

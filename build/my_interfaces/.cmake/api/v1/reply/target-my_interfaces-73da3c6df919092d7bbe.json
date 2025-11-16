@@ -277,13 +277,13 @@
 		{
 			"backtrace" : 2,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/CMakeFiles/my_interfaces.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/CMakeFiles/my_interfaces.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

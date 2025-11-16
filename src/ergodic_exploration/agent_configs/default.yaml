@@ -22,13 +22,13 @@ agent:
     # Ergodic controller parameters
     Q: 8
     R: [[0.001, 0.0], [0.0, 0.001]]
-    prediction_dt_multiplier: 5  # PREDICTION_DT = dt * multiplier
+    prediction_dt_multiplier: 25  # PREDICTION_DT = dt * multiplier
     relax_factor: 0.95
     
     # Timing parameters
     ts: 0.03                # Sampling time
     t_h: 0.5                # Horizon time
-    delta_t_erg: 3.0        # Ergodic time window
+    delta_t_erg: 0.1        # Ergodic time window (3s is a good option when not inf buff flag is true)
     
     # Optimization parameters
     inf_buf_flag: true      # Whether to use infinite states buffer

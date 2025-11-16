@@ -722,7 +722,7 @@
 			"destination" : "share/ament_index/resource_index/rosidl_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/rosidl_interfaces/my_interfaces"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/rosidl_interfaces/my_interfaces"
 			],
 			"type" : "file"
 		},
@@ -733,7 +733,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_c/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -755,7 +755,7 @@
 			"destination" : "share/my_interfaces/environment",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/library_path.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/library_path.dsv"
 			],
 			"type" : "file"
 		},
@@ -778,7 +778,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_c/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -803,7 +803,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_introspection_c/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_introspection_c/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -840,7 +840,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_cpp/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -853,7 +853,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_fastrtps_cpp/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_cpp/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -878,7 +878,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_introspection_cpp/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_introspection_cpp/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -914,7 +914,7 @@
 			"destination" : "share/my_interfaces/environment",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.sh"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.sh"
 			],
 			"type" : "file"
 		},
@@ -924,7 +924,7 @@
 			"destination" : "share/my_interfaces/environment",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.dsv"
 			],
 			"type" : "file"
 		},
@@ -935,7 +935,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info",
 					"to" : "."
 				}
 			],
@@ -948,7 +948,7 @@
 			"paths" : 
 			[
 				{
-					"from" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces",
+					"from" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces",
 					"to" : "."
 				}
 			],
@@ -1013,7 +1013,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/CkTable.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/CkTable.idl"
 			],
 			"type" : "file"
 		},
@@ -1023,7 +1023,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/AgentData.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/AgentData.idl"
 			],
 			"type" : "file"
 		},
@@ -1033,7 +1033,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleObstacle.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleObstacle.idl"
 			],
 			"type" : "file"
 		},
@@ -1043,7 +1043,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleObstacles.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleObstacles.idl"
 			],
 			"type" : "file"
 		},
@@ -1053,7 +1053,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl"
 			],
 			"type" : "file"
 		},
@@ -1063,7 +1063,7 @@
 			"destination" : "share/my_interfaces/msg",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl"
 			],
 			"type" : "file"
 		},
@@ -1133,7 +1133,7 @@
 			"destination" : "share/ament_index/resource_index/package_run_dependencies",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/my_interfaces"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/my_interfaces"
 			],
 			"type" : "file"
 		},
@@ -1143,7 +1143,7 @@
 			"destination" : "share/ament_index/resource_index/parent_prefix_path",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/my_interfaces"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/my_interfaces"
 			],
 			"type" : "file"
 		},
@@ -1163,7 +1163,7 @@
 			"destination" : "share/my_interfaces/environment",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/ament_prefix_path.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/ament_prefix_path.dsv"
 			],
 			"type" : "file"
 		},
@@ -1183,7 +1183,7 @@
 			"destination" : "share/my_interfaces/environment",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/path.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/path.dsv"
 			],
 			"type" : "file"
 		},
@@ -1193,7 +1193,7 @@
 			"destination" : "share/my_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/local_setup.bash"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/local_setup.bash"
 			],
 			"type" : "file"
 		},
@@ -1203,7 +1203,7 @@
 			"destination" : "share/my_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/local_setup.sh"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/local_setup.sh"
 			],
 			"type" : "file"
 		},
@@ -1213,7 +1213,7 @@
 			"destination" : "share/my_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/local_setup.zsh"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/local_setup.zsh"
 			],
 			"type" : "file"
 		},
@@ -1223,7 +1223,7 @@
 			"destination" : "share/my_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/local_setup.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/local_setup.dsv"
 			],
 			"type" : "file"
 		},
@@ -1233,7 +1233,7 @@
 			"destination" : "share/my_interfaces",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_environment_hooks/package.dsv"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/package.dsv"
 			],
 			"type" : "file"
 		},
@@ -1243,7 +1243,7 @@
 			"destination" : "share/ament_index/resource_index/packages",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/packages/my_interfaces"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/packages/my_interfaces"
 			],
 			"type" : "file"
 		},
@@ -1415,7 +1415,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_cmake/rosidl_cmake-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_cmake/rosidl_cmake-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1425,7 +1425,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_export_dependencies/ament_cmake_export_dependencies-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_export_dependencies/ament_cmake_export_dependencies-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1435,7 +1435,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1445,7 +1445,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_export_libraries/ament_cmake_export_libraries-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_export_libraries/ament_cmake_export_libraries-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1455,7 +1455,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_export_targets/ament_cmake_export_targets-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_export_targets/ament_cmake_export_targets-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1465,7 +1465,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_cmake/rosidl_cmake_export_typesupport_targets-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_cmake/rosidl_cmake_export_typesupport_targets-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1475,7 +1475,7 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/rosidl_cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/rosidl_cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake"
 			],
 			"type" : "file"
 		},
@@ -1485,8 +1485,8 @@
 			"destination" : "share/my_interfaces/cmake",
 			"paths" : 
 			[
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_core/my_interfacesConfig.cmake",
-				"/home/alex/Diplomatiki/build/my_interfaces/ament_cmake_core/my_interfacesConfig-version.cmake"
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_core/my_interfacesConfig.cmake",
+				"/home/avavvas/dipl/build/my_interfaces/ament_cmake_core/my_interfacesConfig-version.cmake"
 			],
 			"type" : "file"
 		},

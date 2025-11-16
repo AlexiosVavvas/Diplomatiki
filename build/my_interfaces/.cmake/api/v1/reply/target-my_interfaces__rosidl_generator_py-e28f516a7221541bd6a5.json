@@ -205,11 +205,11 @@
 			[
 				{
 					"backtrace" : 23,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c"
 				},
 				{
 					"backtrace" : 23,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py"
 				},
 				{
 					"backtrace" : 23,
@@ -289,7 +289,7 @@
 		],
 		"prefix" : 
 		{
-			"path" : "/home/alex/Diplomatiki/install/my_interfaces"
+			"path" : "/home/avavvas/dipl/install/my_interfaces"
 		}
 	},
 	"link" : 
@@ -301,7 +301,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/home/alex/Diplomatiki/build/my_interfaces:/opt/ros/humble/lib:",
+				"fragment" : "-Wl,-rpath,/home/avavvas/dipl/build/my_interfaces:/opt/ros/humble/lib:",
 				"role" : "libraries"
 			},
 			{
@@ -410,42 +410,42 @@
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_agent_data_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_agent_data_s.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c",
 			"sourceGroupIndex" : 0
 		}
 	],

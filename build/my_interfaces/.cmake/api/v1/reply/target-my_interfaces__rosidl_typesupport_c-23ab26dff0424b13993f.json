@@ -183,7 +183,7 @@
 			[
 				{
 					"backtrace" : 7,
-					"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_c"
+					"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c"
 				},
 				{
 					"backtrace" : 7,
@@ -264,7 +264,7 @@
 		],
 		"prefix" : 
 		{
-			"path" : "/home/alex/Diplomatiki/install/my_interfaces"
+			"path" : "/home/avavvas/dipl/install/my_interfaces"
 		}
 	},
 	"link" : 
@@ -276,7 +276,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/home/alex/Diplomatiki/build/my_interfaces:/opt/ros/humble/lib:",
+				"fragment" : "-Wl,-rpath,/home/avavvas/dipl/build/my_interfaces:/opt/ros/humble/lib:",
 				"role" : "libraries"
 			},
 			{
@@ -371,48 +371,48 @@
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/agent_data__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/agent_data__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/single_obstacle__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/single_obstacle__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/multiple_obstacles__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/multiple_obstacles__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/single_target_estimate__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/single_target_estimate__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 5,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/multiple_target_estimates__type_support.cpp",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/multiple_target_estimates__type_support.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

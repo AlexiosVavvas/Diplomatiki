@@ -8,7 +8,7 @@
 		],
 		"files" : 
 		[
-			"/home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py/CMakeLists.txt"
+			"/home/avavvas/dipl/build/my_interfaces/my_interfaces__py/CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -34,7 +34,7 @@
 	"paths" : 
 	{
 		"build" : "my_interfaces__py",
-		"source" : "/home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py"
+		"source" : "/home/avavvas/dipl/build/my_interfaces/my_interfaces__py"
 	},
 	"sourceGroups" : 
 	[
@@ -59,19 +59,19 @@
 		{
 			"backtrace" : 1,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/my_interfaces__py/CMakeFiles/my_interfaces__py.rule",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/alex/Diplomatiki/build/my_interfaces/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.rule",
+			"path" : "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

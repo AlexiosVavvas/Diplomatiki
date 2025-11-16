@@ -588,40 +588,57 @@ class Agent(Node):
             U += obs.U(x[:2])
         return U
 
-    def calcPotentialUGradient(self, x):
+    # def calcPotentialUGradient(self, x):
+    #     """
+    #     Calculate the gradient of the potential function U at a given state x.
+    #     """
+    #     grad_U = np.zeros(2)
+    #     for obs in self.obstacle_list:
+    #         grad_U += obs.gradU(x[:2])
+
+    #     return grad_U
+    
+    def calcPotentialUAndGradient(self, x):
         """
-        Calculate the gradient of the potential function U at a given state x.
+        Calculate both the potential function U and its gradient at a given state x.
+        This is more efficient than calling calcPotentialU and calcPotentialUGradient separately,
+        as it computes rho only once per obstacle.
         """
+        U = 0
         grad_U = np.zeros(2)
         for obs in self.obstacle_list:
-            grad_U += obs.gradU(x[:2])
+            U_obs, grad_U_obs = obs.UandGradU(x[:2])
+            U += U_obs
+            grad_U += grad_U_obs
+        return U, grad_U
 
-        return grad_U
-
-    def calcH(self, x, delta=0.0):
+    def calcH(self, x, delta=0.0, u_value_precomputed=None):
         """
         Calculate h(x), the CBF (Control Barrier Function) value at a given state x.
         This function is used to ensure safety constraints are satisfied.
         """
-        U = self.calcPotentialU(x)
+        U = self.calcPotentialU(x) if u_value_precomputed is None else u_value_precomputed
         h = 1 / (1 + U) - delta
         return h
 
-    def calcHGradient(self, x):
+    def calcHGradient(self, x, also_return_h_flag=False):
         """
         Calculate the gradient of h(x) at a given state x.
         This function is used to ensure safety constraints are satisfied.
         ATTENTION: Returns 2x1 vector, only for positional dimensions. Need to append accordingly in order to multiply by f(x) later on.
         """
-        U = self.calcPotentialU(x)
-        grad_U = self.calcPotentialUGradient(x)
+        U, grad_U = self.calcPotentialUAndGradient(x)
         h_grad = -grad_U / (1 + U)**2
 
         # Append zeros for the other dimensions if needed (e.g., for quadcopter)
         if self.model.num_of_states > 2:
             h_grad = np.append(h_grad, np.zeros(self.model.num_of_states - 2))
 
-        return h_grad
+        if also_return_h_flag:
+            h = self.calcH(x, u_value_precomputed=U)
+            return h, h_grad
+        else:
+            return h_grad
 
     def calcHessianH(self, x, epsilon=1e-3):
         # Lets use finite differences to calculate the Hessian of h(x)
@@ -669,12 +686,11 @@ class Agent(Node):
 
     def calcUsafe(self, x, udef_now, alpha_1=1.0, alpha_2=1.0, delta=0.0):
 
-        # Calculate CBF function h(x)
-        h = self.calcH(x, delta)
-        # Calculate CBF gradient
-        grad_h = self.calcHGradient(x[:2])
+        # Calculate CBF function h(x) and ∇(x)
+        h, grad_h = self.calcHGradient(x[:2], also_return_h_flag=True)
         # Calculate CBF Hessian
-        hess_h = self.calcHessianH(x, epsilon=1e-4)
+        hess_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
+        # hess_h = self.calcHessianH(x, epsilon=1e-4)
 
         # System Dynamics
         f = self.model.f(x, udef_now)
@@ -853,7 +869,93 @@ class Agent(Node):
 
         return u_safe
     
+    def calcUsafeTIMING(self, x, udef_now, alpha_1=1.0, alpha_2=1.0, delta=0.0):
+        import time
+        
+        SAMPLING_TIME = 0.03  # Hardcoded sampling time in seconds
+        timing_results = {}
+        
+        # Start total timing
+        t_start_total = time.perf_counter()
 
+        # Calculate CBF function h(x) and ∇(x)
+        t_start = time.perf_counter()
+        h, grad_h = self.calcHGradient(x[:2], also_return_h_flag=True)
+        timing_results['calcHGradient'] = time.perf_counter() - t_start
+        
+        # Calculate CBF Hessian
+        t_start = time.perf_counter()
+        hess_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
+        # hess_h = self.calcHessianH(x, epsilon=1e-4)
+        timing_results['hessian_creation'] = time.perf_counter() - t_start
+
+        # System Dynamics
+        t_start = time.perf_counter()
+        f = self.model.f(x, udef_now)
+        timing_results['model.f'] = time.perf_counter() - t_start
+        
+        t_start = time.perf_counter()
+        f_x = self.model.f_x(x, udef_now)
+        timing_results['model.f_x'] = time.perf_counter() - t_start
+        
+        t_start = time.perf_counter()
+        g = self.model.h(x)
+        timing_results['model.h'] = time.perf_counter() - t_start
+
+        # Compute h_dot and h_ddot
+        t_start = time.perf_counter()
+        h_dot = grad_h.T @ f
+        timing_results['h_dot_computation'] = time.perf_counter() - t_start
+        
+        t_start = time.perf_counter()
+        h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
+        timing_results['h_ddot_computation'] = time.perf_counter() - t_start
+
+        # Compute PSI and beta
+        t_start = time.perf_counter()
+        PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
+        timing_results['PSI_computation'] = time.perf_counter() - t_start
+        
+        t_start = time.perf_counter()
+        beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
+        timing_results['beta_computation'] = time.perf_counter() - t_start
+
+        # Safety control computation
+        t_start = time.perf_counter()
+        if PSI >= 0:
+            # No need to change the control input if PSI > 0, we are not in a danger zone
+            u_safe = np.zeros_like(udef_now)      
+        else:
+            if np.linalg.norm(beta) < 1e-6:
+                u_safe = np.zeros_like(udef_now)
+            else:
+                # Standard least squares solution for safety control
+                u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
+        timing_results['u_safe_computation'] = time.perf_counter() - t_start
+
+        # Apply control limits
+        t_start = time.perf_counter()
+        u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
+        timing_results['control_clipping'] = time.perf_counter() - t_start
+        
+        # Total time
+        timing_results['TOTAL'] = time.perf_counter() - t_start_total
+
+        # Print timing results
+        print("\n" + "="*70)
+        print(f"{'Operation':<30} {'Time (ms)':<15} {'% of Ts (30ms)':<20}")
+        print("="*70)
+        for operation, elapsed_time in timing_results.items():
+            time_ms = elapsed_time * 1000
+            percentage = (elapsed_time / SAMPLING_TIME) * 100
+            if operation == 'TOTAL':
+                print("-"*70)
+            print(f"{operation:<30} {time_ms:>10.4f} ms   {percentage:>10.2f}%")
+        print("="*70 + "\n")
+
+        input("Press Enter to continue...")
+
+        return u_safe
 
     # ROS Related Functions -------------------------------------
 

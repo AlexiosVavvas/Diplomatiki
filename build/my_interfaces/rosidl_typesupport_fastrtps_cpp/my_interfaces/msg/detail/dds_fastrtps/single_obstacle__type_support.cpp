@@ -103,7 +103,7 @@ cdr_deserialize(
   cdr >> ros_message.rho0;
 
   return true;
-}
+}  // NOLINT(readability/fn_size)
 
 size_t
 ROSIDL_TYPESUPPORT_FASTRTPS_CPP_PUBLIC_my_interfaces
