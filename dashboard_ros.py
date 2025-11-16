@@ -2,7 +2,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
-import pandas as pd
+# import pandas as pd
 from matplotlib.widgets import Button
 from matplotlib.patches import Circle, Rectangle, Polygon
 import os
@@ -30,8 +30,15 @@ VISUALISE_VIRTUAL_OBS = False # Whether to visualize virtual obstacles in the da
 # Thread-safe lock for bounds updates
 BOUNDS_LOCK = threading.Lock()
 
-def generateAgentColor(agent_id, max_agents=10):
+# Global flag for blue first agent
+FORCE_BLUE_FIRST = False
+
+def generateAgentColor(agent_id, max_agents=10, force_blue_first=False):
     """Generate a distinct color for each agent using HSV color space."""
+    # If force_blue_first is True and this is agent 1 (assuming 1 is the first agent), make it blue
+    if force_blue_first and agent_id == 1:
+        return (0.0, 0.0, 0.7)  # Pure blue
+    
     # Use golden angle to distribute colors evenly around the color wheel
     hue = (agent_id * 137.5) % 360  # Golden angle: 360 * (3 - sqrt(5)) / 2
     saturation = 0.8
@@ -42,9 +49,9 @@ def generateAgentColor(agent_id, max_agents=10):
     
     return (r, g, b)  # Return as tuple for matplotlib
 
-def getAgentColorRgb255(agent_id, max_agents=10):
+def getAgentColorRgb255(agent_id, max_agents=10, force_blue_first=False):
     """Get RGB color values in 0-255 range for an agent."""
-    r, g, b = generateAgentColor(agent_id, max_agents)
+    r, g, b = generateAgentColor(agent_id, max_agents, force_blue_first)
     return (int(r * 255), int(g * 255), int(b * 255))
 
 def createColoredBox(r, g, b, text=""):
@@ -89,11 +96,17 @@ def updateGlobalBounds(l_bounds_list):
                     print(f"Updated global bounds: L1=[{L1_BOUNDS[0]:.3f}, {L1_BOUNDS[1]:.3f}], L2=[{L2_BOUNDS[0]:.3f}, {L2_BOUNDS[1]:.3f}]")
 
 class LiveDashboard(Node):
-    def __init__(self, allowed_agents=None):
+    def __init__(self, allowed_agents=None, max_plot_points=1000, ekf_agent=None):
         super().__init__('dashboard_node')
         
         # Store allowed agents filter
         self.allowed_agents = set(allowed_agents) if allowed_agents else None
+        
+        # Store EKF agent ID for target position estimation plot
+        self.ekf_agent = ekf_agent
+        
+        # Store max plot points for visualization
+        self.max_plot_points = max_plot_points
         
         # Create QoS profile for best effort communication
         # This allows for faster data transmission with potential message loss
@@ -117,6 +130,14 @@ class LiveDashboard(Node):
         self.delta_t_fig, self.delta_t_ax = plt.subplots(1, 1, figsize=(10, 6))
         self.delta_t_fig.suptitle('Delta T Timestamps', fontsize=14)
         
+        # Create EKF plot if EKF agent is specified
+        if self.ekf_agent is not None:
+            self.ekf_fig, self.ekf_axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+            self.ekf_fig.suptitle(f'Agent {self.ekf_agent} - Target Position Estimates with 3σ Confidence Bands', fontsize=14)
+        else:
+            self.ekf_fig = None
+            self.ekf_axes = None
+        
         # Auto-refresh flag
         self.auto_refresh = True
         self._shutdown_requested = False  # Flag to track shutdown state
@@ -132,6 +153,10 @@ class LiveDashboard(Node):
         # Target estimates data storage (shared across all agents)
         self.target_estimates_data = {}
         self.target_estimates_lock = threading.Lock()
+        
+        # Historical target estimates data for EKF plotting
+        self.target_estimates_history = {}
+        self.target_estimates_history_lock = threading.Lock()
         
         # CK data storage for each agent
         self.ck_data = {}
@@ -163,6 +188,9 @@ class LiveDashboard(Node):
             self.get_logger().info(f'Dashboard initialized with agent filter: {sorted(self.allowed_agents)} - discovering all agents but only processing filtered ones')
         else:
             self.get_logger().info('Dashboard initialized - discovering all agents dynamically')
+            
+        if self.ekf_agent is not None:
+            self.get_logger().info(f'EKF target position plot enabled for agent {self.ekf_agent}')
 
     def displayAgentColors(self):
         """Display discovered agents with their color mappings"""
@@ -182,7 +210,7 @@ class LiveDashboard(Node):
         print("="*60)
         
         for agent_id in sorted(agents_to_display):
-            r, g, b = getAgentColorRgb255(agent_id)
+            r, g, b = getAgentColorRgb255(agent_id, force_blue_first=FORCE_BLUE_FIRST)
             
             # Create colored box and text
             colored_box = createColoredBox(r, g, b)
@@ -357,6 +385,11 @@ class LiveDashboard(Node):
                 with self.target_estimates_lock:
                     if agent_id in self.target_estimates_data:
                         del self.target_estimates_data[agent_id]
+                
+                # Remove historical target estimates data for this agent
+                with self.target_estimates_history_lock:
+                    if agent_id in self.target_estimates_history:
+                        del self.target_estimates_history[agent_id]
             
             if agent_id in self.ck_subscribers:
                 # Destroy CK subscriber
@@ -426,8 +459,8 @@ class LiveDashboard(Node):
                 # If not available, append 0.0 to maintain array consistency
                 data['delta_t_ts'].append(0.0)
 
-            # Keep only the last 100000 data points to avoid memory issues but show more history
-            max_points = int(1e5/2.5)
+            # Keep only the last 300000 data points to avoid memory issues but show more history
+            max_points = int(1e5)
             if len(data['timestamps']) > max_points:
                 for key in data:
                     if key != 'simulation_time_offset':  # Don't truncate the offset value
@@ -469,6 +502,12 @@ class LiveDashboard(Node):
         if self.allowed_agents and agent_id not in self.allowed_agents:
             return
             
+        # Get current simulation time for historical data
+        current_time = 0.0
+        with self.data_lock:
+            if agent_id in self.agent_data and len(self.agent_data[agent_id]['simulation_times']) > 0:
+                current_time = self.agent_data[agent_id]['simulation_times'][-1]
+            
         with self.target_estimates_lock:
             # Store target estimates and ground truths from this agent
             self.target_estimates_data[agent_id] = {
@@ -492,6 +531,39 @@ class LiveDashboard(Node):
                     'position': [gt_msg.position.x, gt_msg.position.y, gt_msg.position.z]
                 }
                 self.target_estimates_data[agent_id]['ground_truths'].append(ground_truth)
+        
+        # Store historical data for EKF plotting (only if this is the EKF agent)
+        if self.ekf_agent == agent_id:
+            with self.target_estimates_history_lock:
+                if agent_id not in self.target_estimates_history:
+                    self.target_estimates_history[agent_id] = {}
+                
+                # Store estimates for each target
+                for est_msg in msg.target_estimates:
+                    target_id = est_msg.target_id
+                    
+                    if target_id not in self.target_estimates_history[agent_id]:
+                        self.target_estimates_history[agent_id][target_id] = {
+                            'times': [],
+                            'positions': [],
+                            'covariances': []
+                        }
+                    
+                    # Append historical data
+                    self.target_estimates_history[agent_id][target_id]['times'].append(current_time)
+                    self.target_estimates_history[agent_id][target_id]['positions'].append(
+                        [est_msg.position.x, est_msg.position.y, est_msg.position.z]
+                    )
+                    self.target_estimates_history[agent_id][target_id]['covariances'].append(
+                        np.array(est_msg.covariance).reshape(3, 3)
+                    )
+                    
+                    # Keep only recent history to avoid memory issues
+                    max_history_points = self.max_plot_points
+                    if len(self.target_estimates_history[agent_id][target_id]['times']) > max_history_points:
+                        for key in ['times', 'positions', 'covariances']:
+                            self.target_estimates_history[agent_id][target_id][key] = \
+                                self.target_estimates_history[agent_id][target_id][key][-max_history_points:]
         
     def ckCallback(self, msg, agent_id):
         """Callback function for CK table data messages"""
@@ -544,9 +616,9 @@ class LiveDashboard(Node):
             # Reshape the flattened array to a square matrix
             ck_table = np.array(msg.ck_values).reshape(msg.table_size, msg.table_size)
             self.ck_data[agent_id]['ck_tables'].append(ck_table.copy())
-            
-            # Keep only the last 10000 data points to avoid memory issues
-            max_points = 10000
+
+            # Keep only the last 300000 data points to avoid memory issues
+            max_points = int(1e5)
             if len(self.ck_data[agent_id]['timestamps']) > max_points:
                 for key in ['timestamps', 'ck_tables', 'total_erg_costs', 'l_bounds']:
                     if key in self.ck_data[agent_id]:
@@ -575,6 +647,11 @@ class LiveDashboard(Node):
         self.traj_ax.clear()
         self.delta_t_ax.clear()
         
+        # Clear EKF plot if it exists
+        if self.ekf_axes is not None:
+            for ax in self.ekf_axes:
+                ax.clear()
+        
         # Reset titles and grids
         self.control_ax.set_title('Control Inputs')
         self.control_ax.grid(True)
@@ -595,8 +672,22 @@ class LiveDashboard(Node):
         self.traj_ax.set_ylim(current_l2_bounds[0], current_l2_bounds[1])
         self.traj_ax.grid(True)
         
+        # Reset EKF plot if it exists
+        if self.ekf_axes is not None:
+            self.ekf_axes[0].set_ylabel('X Position')
+            self.ekf_axes[0].grid(True)
+            self.ekf_axes[1].set_ylabel('Y Position')
+            self.ekf_axes[1].grid(True)
+            self.ekf_axes[2].set_xlabel('Time [s]')
+            self.ekf_axes[2].set_ylabel('Z Position')
+            self.ekf_axes[2].grid(True)
+        
         # Draw all figures
-        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]:
+        figures_to_draw = [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]
+        if self.ekf_fig is not None:
+            figures_to_draw.append(self.ekf_fig)
+        
+        for fig in figures_to_draw:
             fig.canvas.draw()
             
     def updatePlots(self, frame):
@@ -609,6 +700,11 @@ class LiveDashboard(Node):
         self.traj_ax.clear()
         self.delta_t_ax.clear()
         
+        # Clear EKF plot if it exists
+        if self.ekf_axes is not None:
+            for ax in self.ekf_axes:
+                ax.clear()
+        
         # Create a thread-safe shallow copy of the data structure, but reference arrays directly
         with self.data_lock:
             agent_data_refs = {}
@@ -619,7 +715,7 @@ class LiveDashboard(Node):
                     
                 # Only copy the structure, not the large arrays
                 # Also limit to recent data points for performance
-                max_plot_points = 1000  # Limit plotting to last 1000 points
+                max_plot_points = self.max_plot_points  # Use configurable limit
                 agent_data_refs[agent_id] = {
                     'simulation_times': data['simulation_times'][-max_plot_points:],
                     'inputs': data['inputs'][-max_plot_points:],
@@ -634,7 +730,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
-                color = generateAgentColor(agent_id)
+                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
@@ -675,7 +771,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
-                color = generateAgentColor(agent_id)
+                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                 
                 try:
                     # Use the unified simulation times (already calculated in callback)
@@ -718,7 +814,7 @@ class LiveDashboard(Node):
                     continue
                     
                 # Only reference the arrays we need, and limit points for performance
-                max_plot_points = 1000
+                max_plot_points = self.max_plot_points  # Use configurable limit
                 ck_data_refs[agent_id] = {
                     'timestamps': data['timestamps'][-max_plot_points:],
                     'total_erg_costs': data['total_erg_costs'][-max_plot_points:]
@@ -728,7 +824,7 @@ class LiveDashboard(Node):
             if agent_id in agent_data_refs:  # Only plot if agent is active
                 ck_data = ck_data_refs[agent_id]
                 if len(ck_data['timestamps']) > 0 and len(ck_data['total_erg_costs']) > 0:
-                    color = generateAgentColor(agent_id)
+                    color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                     
                     try:
                         time_array = np.array(ck_data['timestamps'])
@@ -775,7 +871,7 @@ class LiveDashboard(Node):
         # Plot each agent's delta_t_ts using the common x-axis range
         for agent_id in valid_agents:
             data = agent_data_refs[agent_id]
-            color = generateAgentColor(agent_id)
+            color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
             
             try:
                 delta_t_ts_array = np.array(data['delta_t_ts'])
@@ -809,7 +905,7 @@ class LiveDashboard(Node):
         for agent_id in sorted(agent_data_refs.keys()):
             data = agent_data_refs[agent_id]
             if len(data['states']) > 0:
-                color = generateAgentColor(agent_id)
+                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                 
                 try:
                     # Extract positions (assuming first two states are x, y)
@@ -826,8 +922,13 @@ class LiveDashboard(Node):
                                                    zorder=3, marker='o')
                                 
                                 # Agent trajectory
+                                # if agent_id == 5 or agent_id == 6:
+                                    # self.traj_ax.plot(x_positions, y_positions, linewidth=1, 
+                                                    # label=f'Agent {agent_id} Path', color=color, zorder=2, linestyle='--', alpha=0.8)
+                                # else:
                                 self.traj_ax.plot(x_positions, y_positions, linewidth=2, 
                                                 label=f'Agent {agent_id} Path', color=color, zorder=2)
+                                    
                 except (ValueError, IndexError) as e:
                     # Skip this agent if data is inconsistent
                     continue
@@ -853,8 +954,15 @@ class LiveDashboard(Node):
         self.traj_ax.set_xlabel('X Position')
         self.traj_ax.set_ylabel('Y Position')
 
+        # Plot EKF target position estimates with confidence bands for specified agent
+        self.drawEKFPlot(agent_data_refs)
+
         # Draw all figures
-        for fig in [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]:
+        figures_to_draw = [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]
+        if self.ekf_fig is not None:
+            figures_to_draw.append(self.ekf_fig)
+            
+        for fig in figures_to_draw:
             fig.canvas.draw()
     
     def drawObstacles(self, ax):
@@ -989,7 +1097,7 @@ class LiveDashboard(Node):
         
         # Draw target estimates and ground truths from each agent
         for agent_id, data in target_data_refs.items():
-            color = generateAgentColor(agent_id)
+            color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
             
             try:                
                 # Draw ground truth positions as black X marks - only the nearest one to each estimate
@@ -1086,7 +1194,7 @@ class LiveDashboard(Node):
                     continue
                     
                 agent_pos = agent_positions[agent_id]
-                agent_color = generateAgentColor(agent_id)
+                agent_color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                 
                 # Draw dotted lines to each agent this agent can communicate with
                 for connected_agent_id in connections:
@@ -1109,6 +1217,141 @@ class LiveDashboard(Node):
             else:
                 print(f"Error drawing communication lines: {e}")
             pass
+    
+    def drawEKFPlot(self, agent_data_refs):
+        """Draw EKF target position estimates with 3-sigma confidence bands for the specified agent"""
+        if self.ekf_agent is None or self.ekf_axes is None:
+            return
+            
+        # Check if the EKF agent has historical target estimate data
+        with self.target_estimates_history_lock:
+            if self.ekf_agent not in self.target_estimates_history:
+                return
+                
+            ekf_history = self.target_estimates_history[self.ekf_agent]
+            
+            if not ekf_history:
+                return
+        
+        # Color palette for different targets
+        colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
+        
+        # Get current estimates and ground truth data for matching nearest ground truths
+        current_estimates = {}
+        current_ground_truths = {}
+        with self.target_estimates_lock:
+            if self.ekf_agent in self.target_estimates_data:
+                # Get current estimates
+                for est in self.target_estimates_data[self.ekf_agent].get('estimates', []):
+                    current_estimates[est['target_id']] = est['position']
+                    
+                # Store all ground truths for nearest-neighbor matching
+                all_ground_truths = self.target_estimates_data[self.ekf_agent].get('ground_truths', [])
+        
+        # For each target estimate, find the nearest ground truth (same logic as trajectory plot)
+        visible_ground_truths = {}
+        for target_id, est_pos in current_estimates.items():
+            if len(all_ground_truths) > 0:
+                est_pos_2d = np.array(est_pos[:2])  # Only x, y coordinates for matching
+                min_distance = float('inf')
+                nearest_gt = None
+                
+                for gt in all_ground_truths:
+                    gt_pos_2d = np.array(gt['position'][:2])  # Only x, y coordinates
+                    distance = np.linalg.norm(est_pos_2d - gt_pos_2d)
+                    if distance < min_distance:
+                        min_distance = distance
+                        nearest_gt = gt
+                
+                # Only store the nearest ground truth for this target
+                if nearest_gt is not None:
+                    visible_ground_truths[target_id] = nearest_gt['position']
+        
+        # Plot historical trajectories for each target
+        for target_id, history in ekf_history.items():
+            if len(history['times']) == 0:
+                continue
+                
+            color = colors[target_id % len(colors)]
+            
+            try:
+                # Convert to numpy arrays for easier handling
+                times = np.array(history['times'])
+                positions = np.array(history['positions'])
+                covariances = np.array(history['covariances'])
+                
+                if len(times) == 0 or len(positions) == 0 or len(covariances) == 0:
+                    continue
+                
+                # Ensure all arrays have the same length
+                min_len = min(len(times), len(positions), len(covariances))
+                if min_len == 0:
+                    continue
+                    
+                times = times[:min_len]
+                positions = positions[:min_len]
+                covariances = covariances[:min_len]
+                
+                # Extract standard deviations from covariances
+                sigmas_x = np.sqrt(covariances[:, 0, 0])  # X variance
+                sigmas_y = np.sqrt(covariances[:, 1, 1])  # Y variance  
+                sigmas_z = np.sqrt(covariances[:, 2, 2])  # Z variance
+                
+                # X position plot
+                self.ekf_axes[0].plot(times, positions[:, 0], color=color, linewidth=2,
+                                    label=f'Target {target_id} - Agent {self.ekf_agent}')
+                self.ekf_axes[0].fill_between(times, 
+                                            positions[:, 0] - 3 * sigmas_x, 
+                                            positions[:, 0] + 3 * sigmas_x, 
+                                            color=color, alpha=0.2)
+                
+                # Y position plot
+                self.ekf_axes[1].plot(times, positions[:, 1], color=color, linewidth=2)
+                self.ekf_axes[1].fill_between(times, 
+                                            positions[:, 1] - 3 * sigmas_y, 
+                                            positions[:, 1] + 3 * sigmas_y, 
+                                            color=color, alpha=0.2)
+                
+                # Z position plot
+                self.ekf_axes[2].plot(times, positions[:, 2], color=color, linewidth=2)
+                self.ekf_axes[2].fill_between(times, 
+                                            positions[:, 2] - 3 * sigmas_z, 
+                                            positions[:, 2] + 3 * sigmas_z, 
+                                            color=color, alpha=0.2)
+                
+                # Plot ground truth as horizontal dashed lines if available
+                if target_id in visible_ground_truths:
+                    gt_pos = visible_ground_truths[target_id]
+                    self.ekf_axes[0].axhline(y=gt_pos[0], color=color, linestyle='--', 
+                                           alpha=0.8, label=f'Real Target {target_id}')
+                    self.ekf_axes[1].axhline(y=gt_pos[1], color=color, linestyle='--', alpha=0.8)
+                    self.ekf_axes[2].axhline(y=gt_pos[2], color=color, linestyle='--', alpha=0.8)
+                    
+            except (ValueError, IndexError) as e:
+                # Skip this target if data is inconsistent
+                continue
+        
+        # Configure axes
+        self.ekf_axes[0].set_ylabel('X Position')
+        self.ekf_axes[0].grid(True)
+        # if self.ekf_axes[0].get_legend_handles_labels()[0]:
+        #     self.ekf_axes[0].legend()
+        
+        self.ekf_axes[1].set_ylabel('Y Position')
+        self.ekf_axes[1].grid(True)
+        
+        self.ekf_axes[2].set_xlabel('Time [s]')
+        self.ekf_axes[2].set_ylabel('Z Position') 
+        self.ekf_axes[2].grid(True)
+        
+        # Set dynamic bounds if available
+        with BOUNDS_LOCK:
+            current_l1_bounds = L1_BOUNDS.copy()
+            current_l2_bounds = L2_BOUNDS.copy()
+            
+        # Set Y limits based on workspace bounds (for X and Y plots)
+        self.ekf_axes[0].set_ylim(current_l1_bounds[0], current_l1_bounds[1])
+        self.ekf_axes[1].set_ylim(current_l2_bounds[0], current_l2_bounds[1])
     
     def cleanup(self):
         """Clean up all subscribers and resources"""
@@ -1154,11 +1397,21 @@ def parseArguments():
     parser = argparse.ArgumentParser(description='ROS2 Multi-Agent Dashboard')
     parser.add_argument('--agents', nargs='+', type=int, metavar='ID',
                         help='Specify agent IDs to filter (e.g., --agents 1 3 4). If not specified, all discovered agents will be shown.')
+    parser.add_argument('--max-path-points', type=int, default=1000, metavar='NUM',
+                        help='Maximum number of path points to display in visualization (default: 1000). Higher values show longer trails but may impact performance.')
+    parser.add_argument('--ekf-agent', type=int, metavar='ID',
+                        help='Specify agent ID to show EKF target position estimates with confidence bands. If not specified, EKF plot will not be shown.')
+    parser.add_argument('--blue', action='store_true',
+                        help='Force the first agent (agent 1) to be colored blue regardless of color methodology.')
     return parser.parse_args()
 
 def main():
     # Parse command line arguments
     args = parseArguments()
+    
+    # Set the global blue flag
+    global FORCE_BLUE_FIRST
+    FORCE_BLUE_FIRST = args.blue
     
     # Initialize ROS
     rclpy.init()
@@ -1167,7 +1420,7 @@ def main():
     dashboard = None
     
     try:
-        dashboard = LiveDashboard(allowed_agents=args.agents)
+        dashboard = LiveDashboard(allowed_agents=args.agents, max_plot_points=args.max_path_points, ekf_agent=args.ekf_agent)
 
         # Shutdown event for clean exit
         shutdown_event = threading.Event()
@@ -1192,12 +1445,22 @@ def main():
         print("- Agents, obstacles, and target estimates will be automatically discovered from running nodes")
         print("- Target estimates shown as colored ellipses (2-sigma confidence), ground truth as black X marks")
         print("- Agent colors are consistent between dashboard and RViz (use same color generation)")
-        print("- Four plot windows: Control Inputs, Ergodic Cost, Agent Trajectories, and Delta T Timestamps")
+        
+        if args.ekf_agent is not None:
+            print(f"- EKF plot window: Shows target position estimates with 3σ confidence bands for Agent {args.ekf_agent}")
+            print("- Five plot windows: Control Inputs, Ergodic Cost, Agent Trajectories, Delta T Timestamps, and EKF Target Positions")
+        else:
+            print("- Four plot windows: Control Inputs, Ergodic Cost, Agent Trajectories, and Delta T Timestamps")
+            
+        print(f"- Max path points displayed: {dashboard.max_plot_points} (change with --max-path-points)")
         
         if args.agents:
             print(f"- FILTERING: Only processing data for agents: {sorted(args.agents)}")
         else:
             print("- Processing data for all discovered agents")
+            
+        if args.blue:
+            print("- BLUE OVERRIDE: Agent 1 will be colored blue regardless of color methodology")
         
         print("\nWaiting for agent discovery...")
 

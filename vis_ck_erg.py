@@ -7,13 +7,15 @@ for specific agents in a ROS2 environment. It subscribes to CkTable messages
 and visualizes the phi function reconstruction using ck_values_average_in_range.
 
 Usage:
-    python vis_ck_erg.py AGENT_ID [--mode {realtime,static}] [--plot-mode {all,ros-only}]
+    python vis_ck_erg.py AGENT_ID [--mode {realtime,static}] [--plot-mode {all,ros-only}] [--3d] [--color-range MIN MAX]
 
 Examples:
     python vis_ck_erg.py 1                              # Real-time, all plots for agent 1
     python vis_ck_erg.py 2 --mode static                # Static, all plots for agent 2
     python vis_ck_erg.py 1 --plot-mode ros-only         # Real-time, ROS plot only for agent 1
     python vis_ck_erg.py 3 --mode static --plot-mode ros-only  # Static, ROS plot only for agent 3
+    python vis_ck_erg.py 1 --3d                         # Real-time, 3D surface visualization for agent 1
+    python vis_ck_erg.py 1 --3d --color-range 0 0.1     # Real-time, 3D surface with fixed color range and z-limits
 """
 
 import numpy as np
@@ -29,6 +31,7 @@ except ImportError:
         # Use default backend if both fail
         pass
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import threading
 from matplotlib.animation import FuncAnimation
 import argparse
@@ -140,6 +143,14 @@ L2_max = 1
 L1_size = L1_max - L1_min
 L2_size = L2_max - L2_min
 
+# Color range settings for visualization
+# When USE_FIXED_COLOR_RANGE is False, colors scale dynamically with data (original behavior)
+# When True, uses fixed VISUALIZATION_VMIN/VMAX for consistent colorbar
+USE_FIXED_COLOR_RANGE = False
+USE_3D_PLOT = False
+VISUALIZATION_VMIN = 0.0
+VISUALIZATION_VMAX = 0.1
+
 # Create the phi function to match agent_node.py
 from src.ergodic_exploration.ergodic_exploration.agent_node import createPhiFunc
 phi_func = createPhiFunc(L1_BOUNDS=[L1_min, L1_max], L2_BOUNDS=[L2_min, L2_max])
@@ -150,7 +161,45 @@ base.phi_rec = ReconstructedPhi(base, precalc_phik=False)
 
 # =============----------------------------
 
-
+def calculate_phi_integral(phi_function, bounds=None, num_points=100):
+    """
+    Calculate the numerical integral of a phi function over its domain using Simpson's rule.
+    
+    Args:
+        phi_function: Function to integrate, should accept [x1, x2] as input
+        bounds: [L1_min, L1_max, L2_min, L2_max] or None to use global bounds
+        num_points: Number of grid points per dimension for integration
+    
+    Returns:
+        float: The numerical integral value
+    """
+    if bounds is None:
+        bounds = [L1_min, L1_max, L2_min, L2_max]
+    
+    L1_min_local, L1_max_local, L2_min_local, L2_max_local = bounds
+    
+    # Create grid points
+    x1_points = np.linspace(L1_min_local, L1_max_local, num_points)
+    x2_points = np.linspace(L2_min_local, L2_max_local, num_points)
+    
+    # Calculate step sizes
+    dx1 = (L1_max_local - L1_min_local) / (num_points - 1)
+    dx2 = (L2_max_local - L2_min_local) / (num_points - 1)
+    
+    # Evaluate function on grid
+    Z = np.zeros((num_points, num_points))
+    for i, x1 in enumerate(x1_points):
+        for j, x2 in enumerate(x2_points):
+            try:
+                Z[j, i] = phi_function([x1, x2])
+            except Exception as e:
+                print(f"Error evaluating phi function at [{x1}, {x2}]: {e}")
+                Z[j, i] = 0.0
+    
+    # Numerical integration using trapezoidal rule (more robust than Simpson's for arbitrary grid sizes)
+    integral = np.trapz([np.trapz(row, x1_points) for row in Z], x2_points)
+    
+    return integral
 
 def plotPhi(phi_rec_from_ck, phi_rec_from_agent, phi_rec_from_ros_ck, all_traj=None, grid_res=50, clip_to_min_max=False, ergodic_cost=None):
     phi_original = base.phi
@@ -342,10 +391,16 @@ class RealTimeVisualizer:
         self.setup_plots()
         
     def setup_plots(self):
-        if self.plot_mode == 'ros-only':
-            self.setup_ros_only_plot()
+        if USE_3D_PLOT:
+            if self.plot_mode == 'ros-only':
+                self.setup_ros_only_plot_3d()
+            else:
+                self.setup_all_plots_3d()
         else:
-            self.setup_all_plots()
+            if self.plot_mode == 'ros-only':
+                self.setup_ros_only_plot()
+            else:
+                self.setup_all_plots()
     
     def setup_ros_only_plot(self):
         """Setup single plot showing only ROS Ck visualization"""
@@ -362,8 +417,16 @@ class RealTimeVisualizer:
 
         # Initialize empty plot
         self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
-        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
-                                  origin='lower', cmap='viridis')
+        
+        # Set color range based on configuration
+        if USE_FIXED_COLOR_RANGE:
+            self.vmin, self.vmax = VISUALIZATION_VMIN, VISUALIZATION_VMAX
+            self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
+                                      origin='lower', cmap='viridis', vmin=self.vmin, vmax=self.vmax)
+        else:
+            # Use dynamic color range (original behavior)
+            self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
+                                      origin='lower', cmap='viridis')
         self.cbar3 = plt.colorbar(self.im3, ax=self.ax3, label='Function Value')
         
         # Initialize ergodic cost text (will be updated in animation)
@@ -417,8 +480,16 @@ class RealTimeVisualizer:
 
         # Initialize empty plot
         self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
-        self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
-                                  origin='lower', cmap='viridis')
+        
+        # Set color range based on configuration
+        if USE_FIXED_COLOR_RANGE:
+            self.vmin, self.vmax = VISUALIZATION_VMIN, VISUALIZATION_VMAX
+            self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
+                                      origin='lower', cmap='viridis', vmin=self.vmin, vmax=self.vmax)
+        else:
+            # Use dynamic color range (original behavior)
+            self.im3 = self.ax3.imshow(self.Z_rec_from_ros_ck, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), 
+                                      origin='lower', cmap='viridis')
         self.cbar3 = plt.colorbar(self.im3, ax=self.ax3, label='Function Value')
         
         # Initialize ergodic cost text (will be updated in animation)
@@ -477,12 +548,116 @@ class RealTimeVisualizer:
         
         print(f"Plot bounds updated to: x1=[{self.base.L1_min}, {self.base.L1_max}], x2=[{self.base.L2_min}, {self.base.L2_max}]")
     
+    def setup_ros_only_plot_3d(self):
+        """Setup single 3D surface plot showing only ROS Ck visualization"""
+        # Create figure with 3D subplot
+        self.fig = plt.figure(self.agent_id, figsize=(10, 8))
+        self.ax3 = self.fig.add_subplot(111, projection='3d')
+        
+        self.ax3.set_title(f'Agent {self.agent_id} - ROS Ck 3D Surface (ck_values_average_in_range)')
+        self.ax3.set_xlabel('x1')
+        self.ax3.set_ylabel('x2')
+        self.ax3.set_zlabel('Function Value')
+
+        # Create meshgrid for 3D plotting
+        self.X, self.Y = np.meshgrid(self.x1, self.x2)
+        self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
+        
+        # Create initial 3D surface
+        if USE_FIXED_COLOR_RANGE:
+            self.vmin, self.vmax = VISUALIZATION_VMIN, VISUALIZATION_VMAX
+            self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                              cmap='viridis', vmin=self.vmin, vmax=self.vmax,
+                                              alpha=0.8, antialiased=True)
+            # Set z-axis limits to match color range for consistent visualization
+            self.ax3.set_zlim(self.vmin, self.vmax)
+        else:
+            self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                              cmap='viridis', alpha=0.8, antialiased=True)
+        
+        # Add colorbar
+        self.cbar3 = plt.colorbar(self.surf3, ax=self.ax3, label='Function Value', shrink=0.6)
+        
+        # Initialize ergodic cost text
+        self.ergodic_cost_text = self.ax3.text2D(0.02, 0.98, 'Ergodic Cost: N/A', 
+                                                 transform=self.ax3.transAxes, 
+                                                 bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8),
+                                                 fontsize=12, verticalalignment='top')
+        
+        plt.tight_layout()
+        
+    def setup_all_plots_3d(self):
+        """Setup all plots with 3D surface for ROS Ck visualization"""
+        # Calculate static data for first two plots
+        Z_original = np.zeros((len(self.x1), len(self.x2)))
+        Z_agent_fourier_rec = np.zeros((len(self.x1), len(self.x2)))
+        
+        for i in range(len(self.x1)):
+            for j in range(len(self.x2)):
+                Z_original[j, i] = self.base.phi([self.x1[i], self.x2[j]])
+                Z_agent_fourier_rec[j, i] = self.phi_rec([self.x1[i], self.x2[j]])
+        
+        # Create figure with mixed 2D and 3D plots
+        self.fig = plt.figure(figsize=(20, 6))
+        
+        # Original function plot (2D)
+        self.ax1 = self.fig.add_subplot(131)
+        im1 = self.ax1.imshow(Z_original, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap='viridis')
+        self.ax1.set_title('Original Function Φ')
+        self.ax1.set_xlabel('x1')
+        self.ax1.set_ylabel('x2')
+        self.ax1.set_aspect('auto')
+        plt.colorbar(im1, ax=self.ax1, label='Function Value')
+        
+        # Fourier reconstruction plot (2D)
+        self.ax2 = self.fig.add_subplot(132)
+        im2 = self.ax2.imshow(Z_agent_fourier_rec, extent=(base.L1_min, base.L1_max, base.L2_min, base.L2_max), origin='lower', cmap='viridis')
+        self.ax2.set_title(f'Fourier Reconstruction (Kmax = {base.Kmax})')
+        self.ax2.set_xlabel('x1')
+        self.ax2.set_ylabel('x2')
+        self.ax2.set_aspect('auto')
+        plt.colorbar(im2, ax=self.ax2, label='Function Value')
+        
+        # Dynamic 3D surface plot - ROS ck_values_average_in_range
+        self.ax3 = self.fig.add_subplot(133, projection='3d')
+        self.ax3.set_title(f'Real-time 3D Surface from Agent {self.agent_id}')
+        self.ax3.set_xlabel('x1')
+        self.ax3.set_ylabel('x2')
+        self.ax3.set_zlabel('Function Value')
+
+        # Create meshgrid and initialize 3D surface
+        self.X, self.Y = np.meshgrid(self.x1, self.x2)
+        self.Z_rec_from_ros_ck = np.zeros((len(self.x1), len(self.x2)))
+        
+        if USE_FIXED_COLOR_RANGE:
+            self.vmin, self.vmax = VISUALIZATION_VMIN, VISUALIZATION_VMAX
+            self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                              cmap='viridis', vmin=self.vmin, vmax=self.vmax,
+                                              alpha=0.8, antialiased=True)
+            # Set z-axis limits to match color range for consistent visualization
+            self.ax3.set_zlim(self.vmin, self.vmax)
+        else:
+            self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                              cmap='viridis', alpha=0.8, antialiased=True)
+        
+        # Add colorbar
+        self.cbar3 = plt.colorbar(self.surf3, ax=self.ax3, label='Function Value', shrink=0.6)
+        
+        # Initialize ergodic cost text
+        self.ergodic_cost_text = self.ax3.text2D(0.02, 0.98, 'Ergodic Cost: N/A', 
+                                                 transform=self.ax3.transAxes, 
+                                                 bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8),
+                                                 fontsize=10, verticalalignment='top')
+        
+        plt.tight_layout()
+    
     def update_plot(self, frame):
         """Update function for animation"""
         # Check for shutdown request
         if shutdown_manager.shutdown_requested.is_set() or not self.running:
             self.stop()
-            return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and hasattr(self, 'ergodic_cost_text')) else []
+            # Return empty list for both cases since we're shutting down
+            return []
         
         # Check if bounds have changed and update plot if needed
         if hasattr(self.ck_subscriber, 'bounds_changed_flag') and self.ck_subscriber.bounds_changed_flag:
@@ -491,7 +666,11 @@ class RealTimeVisualizer:
             
         # Check if we have new ck data from ROS
         if self.ck_subscriber.latest_ck_values_average is None:
-            return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and hasattr(self, 'ergodic_cost_text')) else []
+            # No data available, return appropriate value based on blitting mode
+            if USE_3D_PLOT:
+                return []  # 3D mode uses blit=False
+            else:
+                return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and hasattr(self, 'ergodic_cost_text')) else []
         
         # Use ck_values_average_in_range for visualization
         ck_values = self.ck_subscriber.latest_ck_values_average
@@ -499,7 +678,6 @@ class RealTimeVisualizer:
         # Calculate ergodic cost
         try:
             ergodic_cost = self.ck_subscriber.ergodic_cost
-            # print(f"Agent {self.agent_id} - Ergodic Cost (avg in range): {ergodic_cost:.4f}")
             # Update the text display on the plot
             if hasattr(self, 'ergodic_cost_text'):
                 self.ergodic_cost_text.set_text(f'Ergodic Cost: {ergodic_cost:.4f} (-> {100 * self.ck_subscriber.erg_cost_reduction_perc:.2f}%)')
@@ -517,15 +695,49 @@ class RealTimeVisualizer:
                 for j in range(len(self.x2)):
                     self.Z_rec_from_ros_ck[j, i] = phi_rec_from_ros_ck([self.x1[i], self.x2[j]])
             
-            # Update image data
-            self.im3.set_array(self.Z_rec_from_ros_ck)
-            self.im3.set_clim(vmin=self.Z_rec_from_ros_ck.min(), vmax=self.Z_rec_from_ros_ck.max())
+            if USE_3D_PLOT:
+                # Update 3D surface
+                self.ax3.clear()
+                
+                # Recreate the surface with updated data
+                if USE_FIXED_COLOR_RANGE:
+                    self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                                      cmap='viridis', vmin=self.vmin, vmax=self.vmax,
+                                                      alpha=0.8, antialiased=True)
+                    # Set z-axis limits to match color range for consistent visualization
+                    self.ax3.set_zlim(self.vmin, self.vmax)
+                else:
+                    self.surf3 = self.ax3.plot_surface(self.X, self.Y, self.Z_rec_from_ros_ck, 
+                                                      cmap='viridis', alpha=0.8, antialiased=True)
+                
+                # Reset axes properties
+                if self.plot_mode == 'ros-only':
+                    self.ax3.set_title(f'Agent {self.agent_id} - ROS Ck 3D Surface (ck_values_average_in_range)')
+                else:
+                    self.ax3.set_title(f'Real-time 3D Surface from Agent {self.agent_id}')
+                self.ax3.set_xlabel('x1')
+                self.ax3.set_ylabel('x2')
+                self.ax3.set_zlabel('Function Value')
+                
+            else:
+                # Update 2D image data
+                self.im3.set_array(self.Z_rec_from_ros_ck)
+                
+                # Apply color scaling based on configuration
+                if not USE_FIXED_COLOR_RANGE:
+                    # Dynamic color range (original behavior)
+                    self.im3.set_clim(vmin=self.Z_rec_from_ros_ck.min(), vmax=self.Z_rec_from_ros_ck.max())
             
         except Exception as e:
             print(f"Error updating plot: {e}")
         
-        # Return both the image and text for animation updates
-        return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and self.im3 is not None and hasattr(self, 'ergodic_cost_text')) else []
+        # Return animation objects based on plot type and blitting mode
+        if USE_3D_PLOT:
+            # 3D mode uses blit=False, so return value is not needed
+            return []
+        else:
+            # 2D mode uses blit=True, so return the artists that need to be redrawn
+            return [self.im3, self.ergodic_cost_text] if (hasattr(self, 'im3') and self.im3 is not None and hasattr(self, 'ergodic_cost_text')) else []
     
     def on_key_press(self, event):
         """Handle keyboard events"""
@@ -534,6 +746,31 @@ class RealTimeVisualizer:
                 print("\nKey pressed. Shutting down gracefully...")
                 shutdown_manager.shutdown_requested.set()
                 self.stop()
+        elif event.key in ['i', 'I']:
+            # Calculate and print the integral of the reconstructed function
+            if (hasattr(self.ck_subscriber, 'latest_ck_values_average') and 
+                self.ck_subscriber.latest_ck_values_average is not None):
+                try:
+                    print("\nCalculating integral of reconstructed function...")
+                    # Create phi reconstruction from current ROS data
+                    phi_rec_from_ros_ck = ReconstructedPhiFromCk(self.base, self.ck_subscriber.latest_ck_values_average)
+                    
+                    # Calculate the integral over the domain
+                    bounds = [self.base.L1_min, self.base.L1_max, self.base.L2_min, self.base.L2_max]
+                    integral_value = calculate_phi_integral(phi_rec_from_ros_ck, bounds=bounds, num_points=100)
+                    
+                    print(f"\n=== INTEGRAL CALCULATION ===")
+                    print(f"Agent {self.agent_id} - Reconstructed Function Integral:")
+                    print(f"Domain: x1 ∈ [{self.base.L1_min:.3f}, {self.base.L1_max:.3f}], x2 ∈ [{self.base.L2_min:.3f}, {self.base.L2_max:.3f}]")
+                    print(f"Integral value: {integral_value:.6f}")
+                    print(f"Domain area: {(self.base.L1_max - self.base.L1_min) * (self.base.L2_max - self.base.L2_min):.6f}")
+                    print(f"Average function value: {integral_value / ((self.base.L1_max - self.base.L1_min) * (self.base.L2_max - self.base.L2_min)):.6f}")
+                    print("============================\n")
+                    
+                except Exception as e:
+                    print(f"\nError calculating integral: {e}\n")
+            else:
+                print("\nNo ROS data available for integral calculation. Please wait for data...\n")
     
     def on_close(self, event):
         """Handle window close event"""
@@ -561,9 +798,14 @@ class RealTimeVisualizer:
             # Create animation with better error handling
             self.ani = None
             try:
+                # Disable blitting for 3D plots as it causes AttributeError with Poly3DCollection
+                use_blit = not USE_3D_PLOT
                 self.ani = FuncAnimation(self.fig, self.update_plot, interval=self.update_interval, 
-                                       blit=True, cache_frame_data=False, repeat=True)
-                print("Animation started successfully. Use Ctrl+C or 'Q' to exit gracefully.")
+                                       blit=use_blit, cache_frame_data=False, repeat=True)
+                if USE_3D_PLOT:
+                    print("Animation started successfully (3D mode - blitting disabled). Use Ctrl+C or 'Q' to exit gracefully.")
+                else:
+                    print("Animation started successfully. Use Ctrl+C or 'Q' to exit gracefully.")
                 
                 # Use plt.show() in a way that handles backend issues
                 plt.show(block=True)
@@ -640,6 +882,7 @@ def start_realtime_visualization(agent_id, plot_mode='all'):
         
         print(f"Starting real-time visualization for agent_{agent_id}")
         print("Press 'Q' key or Ctrl+C to exit gracefully")
+        print("Press 'I' key to calculate and print the integral of the reconstructed function")
         
         # Start the visualization
         visualizer.start_animation()
@@ -692,6 +935,11 @@ def start_static_visualization(agent_id, plot_mode='all'):
         
         print(f"Received ck data from agent_{agent_id}. Creating static visualization...")
         print("Close the window or press Ctrl+C to exit")
+        print("Press 'I' key to calculate and print the integral of the reconstructed function")
+        
+        # Note: 3D plotting is currently only supported in real-time mode
+        if USE_3D_PLOT:
+            print("Warning: 3D plotting is currently only supported in real-time mode. Using 2D for static visualization.")
         
         if plot_mode == 'ros-only':
             # Show only the ROS Ck plot
@@ -708,6 +956,24 @@ def start_static_visualization(agent_id, plot_mode='all'):
             if event.key in ['q', 'Q', 'escape']:
                 print("\nKey pressed. Closing...")
                 plt.close('all')
+            elif event.key in ['i', 'I']:
+                # Calculate and print the integral of the reconstructed function
+                try:
+                    print("\nCalculating integral of reconstructed function...")
+                    # Calculate the integral over the domain
+                    bounds = [base.L1_min, base.L1_max, base.L2_min, base.L2_max]
+                    integral_value = calculate_phi_integral(phi_rec_from_ros_ck, bounds=bounds, num_points=100)
+                    
+                    print(f"\n=== INTEGRAL CALCULATION ===")
+                    print(f"Agent {agent_id} - Reconstructed Function Integral:")
+                    print(f"Domain: x1 ∈ [{base.L1_min:.3f}, {base.L1_max:.3f}], x2 ∈ [{base.L2_min:.3f}, {base.L2_max:.3f}]")
+                    print(f"Integral value: {integral_value:.6f}")
+                    print(f"Domain area: {(base.L1_max - base.L1_min) * (base.L2_max - base.L2_min):.6f}")
+                    print(f"Average function value: {integral_value / ((base.L1_max - base.L1_min) * (base.L2_max - base.L2_min)):.6f}")
+                    print("============================\n")
+                    
+                except Exception as e:
+                    print(f"\nError calculating integral: {e}\n")
         
         def on_close(event):
             print("\nWindow closed.")
@@ -716,7 +982,7 @@ def start_static_visualization(agent_id, plot_mode='all'):
         fig = plt.gcf()
         fig.canvas.mpl_connect('key_press_event', on_key_press)
         fig.canvas.mpl_connect('close_event', on_close)
-        fig.suptitle(f'Agent {agent_id} - Static Visualization (Press Q or close window to exit)', 
+        fig.suptitle(f'Agent {agent_id} - Static Visualization (Press Q to exit, I for integral)', 
                     fontsize=14, y=0.95)
         
         plt.show()
@@ -737,15 +1003,47 @@ def main():
                        help='Visualization mode (default: realtime)')
     parser.add_argument('--plot-mode', choices=['all', 'ros-only'], default='all',
                        help='Plot display mode: "all" shows all 3 plots, "ros-only" shows only the ROS Ck plot (default: all)')
+    parser.add_argument('--color-range', nargs=2, type=float, metavar=('MIN', 'MAX'),
+                       help='Use fixed color range for consistent colorbar and 3D z-axis limits (default: dynamic auto-scaling). Example: --color-range 0 0.05')
+    parser.add_argument('--3d', action='store_true',
+                       help='Use 3D surface plot instead of 2D heatmap for visualization')
     
     try:
         args = parser.parse_args()
         
+        # Update color range if specified
+        if args.color_range:
+            global USE_FIXED_COLOR_RANGE, VISUALIZATION_VMIN, VISUALIZATION_VMAX
+            USE_FIXED_COLOR_RANGE = True
+            VISUALIZATION_VMIN, VISUALIZATION_VMAX = args.color_range
+            print(f"Using fixed color range: {VISUALIZATION_VMIN} to {VISUALIZATION_VMAX}")
+        else:
+            print("Using dynamic color range (default behavior)")
+        
+        # Update 3D plotting mode if specified
+        if getattr(args, '3d', False):
+            global USE_3D_PLOT
+            USE_3D_PLOT = True
+            print("Using 3D surface visualization")
+        else:
+            print("Using 2D heatmap visualization")
+        
         print(f"Starting visualization for agent_{args.agent_id}")
         print(f"Mode: {args.mode}")
         print(f"Plot mode: {args.plot_mode}")
+        print(f"Visualization: {'3D surface' if USE_3D_PLOT else '2D heatmap'}")
+        if USE_FIXED_COLOR_RANGE:
+            print(f"Color range: {VISUALIZATION_VMIN} to {VISUALIZATION_VMAX} (fixed)")
+        else:
+            print("Color range: dynamic (auto-scaling)")
         print("Make sure the agent is running and publishing CkTable messages!")
+        print("\nVisualization Options:")
+        print("  Default: 2D heatmap visualization")
+        print("  --3d: 3D surface visualization")
+        print("  --color-range MIN MAX: Fixed range (consistent colorbar and 3D z-limits)")
+        print("  Default color: Dynamic scaling (colorbar changes with data)")
         print("\nGraceful shutdown: Press Ctrl+C or 'Q' key to exit")
+        print("Integral calculation: Press 'I' key to print the integral of the reconstructed function")
         
         if args.mode == 'realtime':
             start_realtime_visualization(args.agent_id, args.plot_mode)

@@ -64,8 +64,35 @@ cleanup() {
     exit 0
 }
 
+# Function to cleanup on script exit (normal or interrupted)
+cleanup_on_exit() {
+    echo ""
+    echo "Cleaning up dummy agent processes..."
+    
+    # Kill dummy agent processes
+    for pid in "${PIDS[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "Terminating dummy agent process $pid"
+            kill -TERM "$pid" 2>/dev/null
+        fi
+    done
+    
+    # Give processes time to shut down gracefully
+    sleep 1
+    
+    # Force kill any remaining processes
+    for pid in "${PIDS[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            kill -KILL "$pid" 2>/dev/null
+        fi
+    done
+    
+    echo "Cleanup completed."
+}
+
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
+trap cleanup_on_exit EXIT
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -194,12 +221,15 @@ fi
 # Start ROS bag playback
 echo "Starting ROS bag playback..."
 echo "Command: $ROSBAG_CMD"
-eval "$ROSBAG_CMD" &
-ROSBAG_PID=$!
-PIDS+=($ROSBAG_PID)
+echo "Keyboard controls available:"
+echo "  SPACE: Pause/Resume"
+echo "  UP ARROW: Increase rate 10%"
+echo "  DOWN ARROW: Decrease rate 10%"
+echo "  RIGHT ARROW: Play next message"
+echo ""
 
-# Wait for rosbag to finish or for interrupt signal
-wait $ROSBAG_PID
+# Execute rosbag play in foreground so it can access stdin for keyboard controls
+eval "$ROSBAG_CMD"
 ROSBAG_EXIT_CODE=$?
 
 if [[ $ROSBAG_EXIT_CODE -eq 0 ]]; then
@@ -208,5 +238,4 @@ else
     echo "ROS bag playback terminated with exit code: $ROSBAG_EXIT_CODE"
 fi
 
-# Cleanup
-cleanup
+# Normal exit will trigger cleanup_on_exit via EXIT trap
