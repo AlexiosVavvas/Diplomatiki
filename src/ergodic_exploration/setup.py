@@ -20,6 +20,7 @@ setup(
         'numpy',
         'scipy', 
         'matplotlib',
+        'flightgear-python'
     ],
     zip_safe=True,
     maintainer='alex',
@@ -33,6 +34,7 @@ setup(
         'console_scripts': [
             'agent_node = ergodic_exploration.agent_node:main',
             'environment_node = ergodic_exploration.environment:main',
+            'fg_visualizer_node = ergodic_exploration.fg_visualizer_node:main',
         ],
     },
 )
