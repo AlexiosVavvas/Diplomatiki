@@ -210,8 +210,8 @@ endif()
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   execute_process(
         COMMAND
-        "/usr/bin/python3" "-m" "compileall"
-        "/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces"
+        "/home/avavvas/venvs/venv/bin/python3" "-m" "compileall"
+        "/home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces"
       )
 endif()
 

@@ -8,6 +8,7 @@
     "/home/avavvas/dipl/src/my_interfaces:msg/MultipleObstacles.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/SingleTargetEstimate.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/MultipleTargetEstimates.msg",
-    "/home/avavvas/dipl/src/my_interfaces:msg/ObsAvoidanceDebug.msg"
+    "/home/avavvas/dipl/src/my_interfaces:msg/ObsAvoidanceDebug.msg",
+    "/home/avavvas/dipl/src/my_interfaces:msg/JoystickData.msg"
   ]
 }

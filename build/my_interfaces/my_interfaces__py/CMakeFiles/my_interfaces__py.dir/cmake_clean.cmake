@@ -9,6 +9,8 @@ file(REMOVE_RECURSE
   "../rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c"
   "../rosidl_generator_py/my_interfaces/msg/_ck_table.py"
   "../rosidl_generator_py/my_interfaces/msg/_ck_table_s.c"
+  "../rosidl_generator_py/my_interfaces/msg/_joystick_data.py"
+  "../rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c"
   "../rosidl_generator_py/my_interfaces/msg/_multiple_obstacles.py"
   "../rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c"
   "../rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates.py"

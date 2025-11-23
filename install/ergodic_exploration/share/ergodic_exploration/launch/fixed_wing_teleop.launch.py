@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/ergodic_exploration/launch/fixed_wing_teleop.launch.py

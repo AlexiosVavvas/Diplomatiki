@@ -23,6 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SingleTargetEstimate.msg"
   "msg/MultipleTargetEstimates.msg"
   "msg/ObsAvoidanceDebug.msg"
+  "msg/JoystickData.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )
 

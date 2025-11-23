@@ -74,6 +74,7 @@ CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleObsta
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/SingleTargetEstimate.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleTargetEstimates.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/ObsAvoidanceDebug.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/JoystickData.msg
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl

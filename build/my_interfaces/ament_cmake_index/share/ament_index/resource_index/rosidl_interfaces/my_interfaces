@@ -4,6 +4,8 @@ msg/AircraftData.idl
 msg/AircraftData.msg
 msg/CkTable.idl
 msg/CkTable.msg
+msg/JoystickData.idl
+msg/JoystickData.msg
 msg/MultipleObstacles.idl
 msg/MultipleObstacles.msg
 msg/MultipleTargetEstimates.idl

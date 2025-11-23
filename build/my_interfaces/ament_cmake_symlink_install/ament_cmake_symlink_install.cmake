@@ -343,19 +343,19 @@ ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "
 # install(FILES "/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.dsv" "DESTINATION" "share/my_interfaces/environment")
 ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/build/my_interfaces/ament_cmake_environment_hooks/pythonpath.dsv" "DESTINATION" "share/my_interfaces/environment")
 
-# install(DIRECTORY "/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info")
-ament_cmake_symlink_install_directory("/home/avavvas/dipl/src/my_interfaces" DIRECTORY "/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info")
+# install(DIRECTORY "/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/" "DESTINATION" "lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info")
+ament_cmake_symlink_install_directory("/home/avavvas/dipl/src/my_interfaces" DIRECTORY "/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/" "DESTINATION" "lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info")
 
-# install(DIRECTORY "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
-ament_cmake_symlink_install_directory("/home/avavvas/dipl/src/my_interfaces" DIRECTORY "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
+# install(DIRECTORY "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/" "DESTINATION" "lib/python3.10/site-packages/my_interfaces" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
+ament_cmake_symlink_install_directory("/home/avavvas/dipl/src/my_interfaces" DIRECTORY "/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/" "DESTINATION" "lib/python3.10/site-packages/my_interfaces" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
 
-# install("TARGETS" "my_interfaces__rosidl_typesupport_fastrtps_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces")
+# install("TARGETS" "my_interfaces__rosidl_typesupport_fastrtps_c__pyext" "DESTINATION" "lib/python3.10/site-packages/my_interfaces")
 include("/home/avavvas/dipl/build/my_interfaces/ament_cmake_symlink_install_targets_0_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
 
-# install("TARGETS" "my_interfaces__rosidl_typesupport_introspection_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces")
+# install("TARGETS" "my_interfaces__rosidl_typesupport_introspection_c__pyext" "DESTINATION" "lib/python3.10/site-packages/my_interfaces")
 include("/home/avavvas/dipl/build/my_interfaces/ament_cmake_symlink_install_targets_1_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
 
-# install("TARGETS" "my_interfaces__rosidl_typesupport_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/my_interfaces")
+# install("TARGETS" "my_interfaces__rosidl_typesupport_c__pyext" "DESTINATION" "lib/python3.10/site-packages/my_interfaces")
 include("/home/avavvas/dipl/build/my_interfaces/ament_cmake_symlink_install_targets_2_${CMAKE_INSTALL_CONFIG_NAME}.cmake")
 
 # install(FILES "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/CkTable.idl" "DESTINATION" "share/my_interfaces/msg")
@@ -382,6 +382,9 @@ ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "
 # install(FILES "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl" "DESTINATION" "share/my_interfaces/msg")
 ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl" "DESTINATION" "share/my_interfaces/msg")
 
+# install(FILES "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/JoystickData.idl" "DESTINATION" "share/my_interfaces/msg")
+ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/JoystickData.idl" "DESTINATION" "share/my_interfaces/msg")
+
 # install(FILES "/home/avavvas/dipl/src/my_interfaces/msg/CkTable.msg" "DESTINATION" "share/my_interfaces/msg")
 ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/src/my_interfaces/msg/CkTable.msg" "DESTINATION" "share/my_interfaces/msg")
 
@@ -405,6 +408,9 @@ ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "
 
 # install(FILES "/home/avavvas/dipl/src/my_interfaces/msg/ObsAvoidanceDebug.msg" "DESTINATION" "share/my_interfaces/msg")
 ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/src/my_interfaces/msg/ObsAvoidanceDebug.msg" "DESTINATION" "share/my_interfaces/msg")
+
+# install(FILES "/home/avavvas/dipl/src/my_interfaces/msg/JoystickData.msg" "DESTINATION" "share/my_interfaces/msg")
+ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/src/my_interfaces/msg/JoystickData.msg" "DESTINATION" "share/my_interfaces/msg")
 
 # install(FILES "/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/my_interfaces" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")
 ament_cmake_symlink_install_files("/home/avavvas/dipl/src/my_interfaces" FILES "/home/avavvas/dipl/build/my_interfaces/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/my_interfaces" "DESTINATION" "share/ament_index/resource_index/package_run_dependencies")

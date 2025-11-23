@@ -230,4 +230,7 @@ CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_genera
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__struct.h \
- /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.h
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__type_support.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__struct.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.h

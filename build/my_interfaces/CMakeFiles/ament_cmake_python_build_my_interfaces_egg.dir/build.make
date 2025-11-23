@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_build_my_interfaces_egg.dir/compiler_depen
 include CMakeFiles/ament_cmake_python_build_my_interfaces_egg.dir/progress.make
 
 CMakeFiles/ament_cmake_python_build_my_interfaces_egg:
-	cd /home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces && /usr/bin/python3 setup.py egg_info
+	cd /home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces && /home/avavvas/venvs/venv/bin/python3 setup.py egg_info
 
 ament_cmake_python_build_my_interfaces_egg: CMakeFiles/ament_cmake_python_build_my_interfaces_egg
 ament_cmake_python_build_my_interfaces_egg: CMakeFiles/ament_cmake_python_build_my_interfaces_egg.dir/build.make

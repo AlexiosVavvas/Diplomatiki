@@ -90,6 +90,7 @@ rosidl_generator_c/my_interfaces/msg/ck_table.h: rosidl_adapter/my_interfaces/ms
 rosidl_generator_c/my_interfaces/msg/ck_table.h: rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl
+rosidl_generator_c/my_interfaces/msg/ck_table.h: rosidl_adapter/my_interfaces/msg/JoystickData.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
@@ -155,7 +156,7 @@ rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/geometry_
 rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/geometry_msgs/msg/Wrench.idl
 rosidl_generator_c/my_interfaces/msg/ck_table.h: /opt/ros/humble/share/geometry_msgs/msg/WrenchStamped.idl
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C code for ROS interfaces"
-	/usr/bin/python3 /opt/ros/humble/share/rosidl_generator_c/cmake/../../../lib/rosidl_generator_c/rosidl_generator_c --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c__arguments.json
+	/home/avavvas/venvs/venv/bin/python3 /opt/ros/humble/share/rosidl_generator_c/cmake/../../../lib/rosidl_generator_c/rosidl_generator_c --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c__arguments.json
 
 rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h
@@ -250,6 +251,18 @@ rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__struct.h: rosid
 rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h
 
+rosidl_generator_c/my_interfaces/msg/joystick_data.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/joystick_data.h
+
+rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.h
+
+rosidl_generator_c/my_interfaces/msg/detail/joystick_data__struct.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/joystick_data__struct.h
+
+rosidl_generator_c/my_interfaces/msg/detail/joystick_data__type_support.h: rosidl_generator_c/my_interfaces/msg/ck_table.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/joystick_data__type_support.h
+
 rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c: rosidl_generator_c/my_interfaces/msg/ck_table.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c
 
@@ -273,6 +286,9 @@ rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions
 
 rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c: rosidl_generator_c/my_interfaces/msg/ck_table.h
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c
+
+rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c: rosidl_generator_c/my_interfaces/msg/ck_table.h
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c
 
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o: CMakeFiles/my_interfaces__rosidl_generator_c.dir/flags.make
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o: rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c
@@ -386,6 +402,20 @@ CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interface
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c -o CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.s
 
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o: CMakeFiles/my_interfaces__rosidl_generator_c.dir/flags.make
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o: rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o: CMakeFiles/my_interfaces__rosidl_generator_c.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o -MF CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o.d -o CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o -c /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c
+
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c > CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.i
+
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c -o CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.s
+
 # Object files for target my_interfaces__rosidl_generator_c
 my_interfaces__rosidl_generator_c_OBJECTS = \
 "CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o" \
@@ -395,7 +425,8 @@ my_interfaces__rosidl_generator_c_OBJECTS = \
 "CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.c.o" \
 "CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.c.o" \
 "CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.c.o" \
-"CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.o"
+"CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.o" \
+"CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o"
 
 # External object files for target my_interfaces__rosidl_generator_c
 my_interfaces__rosidl_generator_c_EXTERNAL_OBJECTS =
@@ -408,6 +439,7 @@ libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_genera
 libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.c.o
 libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.c.o
 libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.o
+libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c.o
 libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/build.make
 libmy_interfaces__rosidl_generator_c.so: /opt/ros/humble/lib/libgeometry_msgs__rosidl_generator_c.so
 libmy_interfaces__rosidl_generator_c.so: /opt/ros/humble/lib/libstd_msgs__rosidl_generator_c.so
@@ -415,7 +447,7 @@ libmy_interfaces__rosidl_generator_c.so: /opt/ros/humble/lib/libbuiltin_interfac
 libmy_interfaces__rosidl_generator_c.so: /opt/ros/humble/lib/librosidl_runtime_c.so
 libmy_interfaces__rosidl_generator_c.so: /opt/ros/humble/lib/librcutils.so
 libmy_interfaces__rosidl_generator_c.so: CMakeFiles/my_interfaces__rosidl_generator_c.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking C shared library libmy_interfaces__rosidl_generator_c.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking C shared library libmy_interfaces__rosidl_generator_c.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/my_interfaces__rosidl_generator_c.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -441,6 +473,10 @@ CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_i
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/ck_table__struct.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/ck_table__type_support.h
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.c
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/joystick_data__functions.h
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/joystick_data__struct.h
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/joystick_data__type_support.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.c
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__struct.h
@@ -461,6 +497,7 @@ CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_i
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__struct.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__type_support.h
+CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/joystick_data.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/multiple_obstacles.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/multiple_target_estimates.h
 CMakeFiles/my_interfaces__rosidl_generator_c.dir/depend: rosidl_generator_c/my_interfaces/msg/obs_avoidance_debug.h

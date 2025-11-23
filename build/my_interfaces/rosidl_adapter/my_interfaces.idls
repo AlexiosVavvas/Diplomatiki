@@ -6,3 +6,4 @@
 /home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/SingleTargetEstimate.idl
 /home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleTargetEstimates.idl
 /home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/ObsAvoidanceDebug.idl
+/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/JoystickData.idl

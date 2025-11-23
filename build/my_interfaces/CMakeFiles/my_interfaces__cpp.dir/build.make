@@ -106,6 +106,11 @@ CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/joystick_data.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__builder.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__struct.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__traits.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__type_support.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
 
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/lib/rosidl_generator_cpp/rosidl_generator_cpp
@@ -131,6 +136,7 @@ rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interface
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl
+rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/JoystickData.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
@@ -196,7 +202,7 @@ rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geome
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geometry_msgs/msg/Wrench.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/geometry_msgs/msg/WrenchStamped.idl
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code for ROS interfaces"
-	/usr/bin/python3 /opt/ros/humble/share/rosidl_generator_cpp/cmake/../../../lib/rosidl_generator_cpp/rosidl_generator_cpp --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp__arguments.json
+	/home/avavvas/venvs/venv/bin/python3 /opt/ros/humble/share/rosidl_generator_cpp/cmake/../../../lib/rosidl_generator_cpp/rosidl_generator_cpp --generator-arguments-file /home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp__arguments.json
 
 rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__builder.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__builder.hpp
@@ -315,6 +321,21 @@ rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp: r
 rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
 
+rosidl_generator_cpp/my_interfaces/msg/joystick_data.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/joystick_data.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__builder.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__builder.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__struct.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__struct.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__traits.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__traits.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__type_support.hpp
+
 my_interfaces__cpp: CMakeFiles/my_interfaces__cpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/agent_data.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/aircraft_data.hpp
@@ -331,6 +352,10 @@ my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__buil
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__traits.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__type_support.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__builder.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__struct.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__traits.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__type_support.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_obstacles__builder.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_obstacles__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_obstacles__traits.hpp
@@ -351,6 +376,7 @@ my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_estimate__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_estimate__traits.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_estimate__type_support.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/joystick_data.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/multiple_obstacles.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/multiple_target_estimates.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/obs_avoidance_debug.hpp

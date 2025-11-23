@@ -181,6 +181,20 @@ CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfa
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c -o CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.s
 
+CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o: CMakeFiles/my_interfaces__rosidl_generator_py.dir/flags.make
+CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o: rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c
+CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o: CMakeFiles/my_interfaces__rosidl_generator_py.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o -MF CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o.d -o CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o -c /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c
+
+CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c > CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.i
+
+CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c -o CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.s
+
 # Object files for target my_interfaces__rosidl_generator_py
 my_interfaces__rosidl_generator_py_OBJECTS = \
 "CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c.o" \
@@ -190,7 +204,8 @@ my_interfaces__rosidl_generator_py_OBJECTS = \
 "CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c.o" \
 "CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c.o" \
 "CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c.o" \
-"CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.o"
+"CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.o" \
+"CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o"
 
 # External object files for target my_interfaces__rosidl_generator_py
 my_interfaces__rosidl_generator_py_EXTERNAL_OBJECTS =
@@ -203,6 +218,7 @@ rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMak
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c.o
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c.o
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.o
+rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_joystick_data_s.c.o
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/build.make
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: /usr/lib/x86_64-linux-gnu/libpython3.10.so
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: libmy_interfaces__rosidl_typesupport_c.so
@@ -220,7 +236,7 @@ rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: /opt
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: /opt/ros/humble/lib/librosidl_runtime_c.so
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: /opt/ros/humble/lib/librcutils.so
 rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so: CMakeFiles/my_interfaces__rosidl_generator_py.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C shared library rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/avavvas/dipl/build/my_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking C shared library rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/my_interfaces__rosidl_generator_py.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
