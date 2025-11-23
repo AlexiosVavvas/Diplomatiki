@@ -35,6 +35,7 @@ setup(
             'agent_node = ergodic_exploration.agent_node:main',
             'environment_node = ergodic_exploration.environment:main',
             'fg_visualizer_node = ergodic_exploration.fg_visualizer_node:main',
+            'aircraft_data_converter = ergodic_exploration.aircraft_data_converter:main',
         ],
     },
 )

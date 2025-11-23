@@ -17,10 +17,12 @@ find_package(geometry_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CkTable.msg"
   "msg/AgentData.msg"
+  "msg/AircraftData.msg"
   "msg/SingleObstacle.msg"
   "msg/MultipleObstacles.msg"
   "msg/SingleTargetEstimate.msg"
   "msg/MultipleTargetEstimates.msg"
+  "msg/ObsAvoidanceDebug.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )
 

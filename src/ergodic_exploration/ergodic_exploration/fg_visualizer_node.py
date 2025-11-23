@@ -25,7 +25,16 @@ class FGVisualizerNode(Node):
         self.declare_parameter('fg_rx_port', 5501)  # Receive from FG
         self.declare_parameter('fg_tx_port', 5502)  # Send to FG
         self.declare_parameter('update_rate_hz', 30.0)  # FlightGear update rate
-        
+
+        # Reference parameters
+        self.declare_parameter('ref_lat', 63.9850)
+        self.declare_parameter('ref_lon', -22.6548)
+        self.declare_parameter('ref_alt', 200.0)
+
+        self.ref_lat = self.get_parameter('ref_lat').value
+        self.ref_lon = self.get_parameter('ref_lon').value
+        self.ref_alt = self.get_parameter('ref_alt').value
+
         self.fg_host = self.get_parameter('fg_host').value
         self.fg_rx_port = self.get_parameter('fg_rx_port').value
         self.fg_tx_port = self.get_parameter('fg_tx_port').value
@@ -122,23 +131,17 @@ class FGVisualizerNode(Node):
                 X, Y, Z, phi, theta, psi, u, v, w, p, q, r = states_copy[:12]
                 
                 # Convert position to lat/lon/alt
-                # Assuming X=North (m), Y=East (m), Z=altitude (m)
-                # Simple flat-earth approximation for visualization
-                # Starting from a reference point (can be made configurable)
-                ref_lat = 37.6213  # degrees (default FG location)
-                ref_lon = -122.3790  # degrees
-                
                 # Convert X (north) and Y (east) in meters to lat/lon degrees
-                lat_rad = np.deg2rad(ref_lat) + (X / 6371000.0)  # Earth radius ~6371 km
-                lon_rad = np.deg2rad(ref_lon) + (Y / (6371000.0 * np.cos(lat_rad)))
-                
+                lat_rad = np.deg2rad(self.ref_lat) + (Y / 6378137.0)  # Earth radius ~6371 km
+                lon_rad = np.deg2rad(self.ref_lon) + (X / (6378137.0 * np.cos(lat_rad)))
+
                 fdm_data.lat_rad = lat_rad
                 fdm_data.lon_rad = lon_rad
-                fdm_data.alt_m = Z  # Z is altitude above ground
-                fdm_data.agl_m = Z  # Above ground level
+                fdm_data.alt_m = self.ref_alt - Z   # Altitude is negative of down
+                fdm_data.agl_m = self.ref_alt - Z   # Above ground level approximation
                 
                 # Attitude (Euler angles)
-                fdm_data.phi_rad = -phi      # Roll (inverted)
+                fdm_data.phi_rad = phi      # Roll 
                 fdm_data.theta_rad = theta  # Pitch
                 fdm_data.psi_rad = psi      # Yaw
                 
@@ -177,13 +180,21 @@ class FGVisualizerNode(Node):
                     delta_e, delta_a, delta_r, throttle = inputs_copy[:4]
                     
                     # Normalize to FlightGear's expected range [-1, 1] or [0, 1]
-                    fdm_data.elevator = float(delta_e)
-                    fdm_data.left_aileron = float(-delta_a)  # Aileron sign convention
-                    fdm_data.right_aileron = float(delta_a)
-                    fdm_data.rudder = float(delta_r)
+                    e_norm = np.clip(delta_e / 25.0, -1.0, 1.0)  # Assuming max deflection is 25 degrees
+                    a_norm = np.clip(delta_a / 25.0, -1.0, 1.0)
+                    r_norm = np.clip(delta_r / 30.0, -1.0, 1.0)  # Rudder may have larger deflection
+                    # throttle_norm = np.clip(throttle, 0.0, 1.0)  # Assuming throttle is [0, 1]
                     
-                    # Engine (throttle is typically [0, 1])
-                    # You may need to adjust based on your throttle range
+                    # Set control surfaces
+                    fdm_data.elevator = float(e_norm) 
+                    fdm_data.left_aileron = float(-a_norm)  # Aileron sign convention
+                    fdm_data.right_aileron = float(a_norm)
+                    fdm_data.rudder = float(r_norm)
+                    
+                    # Engine data - FDM v25 requires exactly 4 elements for all engine arrays
+                    # fdm_data.num_engines = 1
+                    # fdm_data.eng_state = [2, 0, 0, 0]  # Running for engine 1, off for others
+                    # fdm_data.rpm = [throttle_norm * 10000.0, 0.0, 0.0, 0.0]
         
         return fdm_data
     

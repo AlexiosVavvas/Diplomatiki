@@ -1,2 +1,2 @@
 #!/bin/bash
-colcon build && source install/setup.bash
+colcon build --symlink-install && source install/setup.bash
