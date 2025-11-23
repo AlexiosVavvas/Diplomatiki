@@ -1,11 +1,15 @@
 msg/AgentData.idl
 msg/AgentData.msg
+msg/AircraftData.idl
+msg/AircraftData.msg
 msg/CkTable.idl
 msg/CkTable.msg
 msg/MultipleObstacles.idl
 msg/MultipleObstacles.msg
 msg/MultipleTargetEstimates.idl
 msg/MultipleTargetEstimates.msg
+msg/ObsAvoidanceDebug.idl
+msg/ObsAvoidanceDebug.msg
 msg/SingleObstacle.idl
 msg/SingleObstacle.msg
 msg/SingleTargetEstimate.idl

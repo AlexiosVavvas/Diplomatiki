@@ -5,10 +5,12 @@
   "idl_tuples": [
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/CkTable.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/AgentData.idl",
+    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/AircraftData.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/SingleObstacle.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleObstacles.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/SingleTargetEstimate.idl",
-    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleTargetEstimates.idl"
+    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/MultipleTargetEstimates.idl",
+    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces:msg/ObsAvoidanceDebug.idl"
   ],
   "ros_interface_dependencies": [
     "std_msgs:/opt/ros/humble/share/std_msgs/msg/Bool.idl",
@@ -87,10 +89,12 @@
     "/opt/ros/humble/share/rosidl_typesupport_fastrtps_cpp/resource/srv__type_support.cpp.em",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/CkTable.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/AgentData.idl",
+    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/AircraftData.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleObstacle.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleObstacles.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl",
     "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl",
+    "/home/avavvas/dipl/build/my_interfaces/rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl",
     "/opt/ros/humble/share/std_msgs/msg/Bool.idl",
     "/opt/ros/humble/share/std_msgs/msg/Byte.idl",
     "/opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl",

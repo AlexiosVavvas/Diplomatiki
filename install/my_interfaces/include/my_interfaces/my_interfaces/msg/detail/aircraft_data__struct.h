@@ -1,0 +1,1 @@
+/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/aircraft_data__struct.h

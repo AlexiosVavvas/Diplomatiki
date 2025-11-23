@@ -3,9 +3,11 @@
   "non_idl_tuples": [
     "/home/avavvas/dipl/src/my_interfaces:msg/CkTable.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/AgentData.msg",
+    "/home/avavvas/dipl/src/my_interfaces:msg/AircraftData.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/SingleObstacle.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/MultipleObstacles.msg",
     "/home/avavvas/dipl/src/my_interfaces:msg/SingleTargetEstimate.msg",
-    "/home/avavvas/dipl/src/my_interfaces:msg/MultipleTargetEstimates.msg"
+    "/home/avavvas/dipl/src/my_interfaces:msg/MultipleTargetEstimates.msg",
+    "/home/avavvas/dipl/src/my_interfaces:msg/ObsAvoidanceDebug.msg"
   ]
 }

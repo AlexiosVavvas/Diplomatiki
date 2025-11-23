@@ -1,0 +1,535 @@
+[0.000000] (-) TimerEvent: {}
+[0.000094] (my_interfaces) JobQueued: {'identifier': 'my_interfaces', 'dependencies': OrderedDict()}
+[0.000113] (ergodic_exploration) JobQueued: {'identifier': 'ergodic_exploration', 'dependencies': OrderedDict([('my_interfaces', '/home/avavvas/dipl/install/my_interfaces')])}
+[0.000763] (my_interfaces) JobStarted: {'identifier': 'my_interfaces'}
+[0.009610] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'cmake'}
+[0.010210] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '/home/avavvas/dipl/src/my_interfaces', '-DAMENT_CMAKE_SYMLINK_INSTALL=1', '-DCMAKE_INSTALL_PREFIX=/home/avavvas/dipl/install/my_interfaces'], 'cwd': '/home/avavvas/dipl/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'avavvas'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/avavvas/dipl/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/avavvas'), ('OLDPWD', '/home/avavvas'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '4217'), ('SYSTEMD_EXEC_PID', '4579'), ('IM_CONFIG_CHECK_ENV', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '6771'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/avavvas/dipl/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'avavvas'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:22916'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'avavvas'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/avavvas/.local/bin:/home/avavvas/.local/bin:/opt/ros/humble/bin:/home/avavvas/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/vavvas-ubuntu:@/tmp/.ICE-unix/4357,unix/vavvas-ubuntu:/tmp/.ICE-unix/4357'), ('INVOCATION_ID', '0098554dcf624d169a8647051594d4a6'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', '4f6b21ff-a763-401b-a97a-a34e177102ab'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.7MLFG3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/avavvas/dipl/install/ergodic_exploration:/home/avavvas/dipl/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/avavvas/dipl/build/my_interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/avavvas/dipl/install/my_interfaces:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[0.085802] (my_interfaces) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.099856] (-) TimerEvent: {}
+[0.141677] (my_interfaces) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.147379] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.200039] (-) TimerEvent: {}
+[0.217979] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.224116] (my_interfaces) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.224436] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.224673] (my_interfaces) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.226607] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.300156] (-) TimerEvent: {}
+[0.307888] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.315684] (my_interfaces) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.316089] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.316902] (my_interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.320342] (my_interfaces) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.400282] (-) TimerEvent: {}
+[0.459123] (my_interfaces) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[0.500395] (-) TimerEvent: {}
+[0.504112] (my_interfaces) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[0.520774] (my_interfaces) StdoutLine: {'line': b'-- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)\n'}
+[0.524605] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.530840] (my_interfaces) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.556944] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.577204] (my_interfaces) StdoutLine: {'line': b'-- Found std_msgs: 4.9.0 (/opt/ros/humble/share/std_msgs/cmake)\n'}
+[0.593420] (my_interfaces) StdoutLine: {'line': b'-- Found geometry_msgs: 4.9.0 (/opt/ros/humble/share/geometry_msgs/cmake)\n'}
+[0.600524] (-) TimerEvent: {}
+[0.700874] (-) TimerEvent: {}
+[0.801423] (-) TimerEvent: {}
+[0.856924] (my_interfaces) StdoutLine: {'line': b'-- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)\n'}
+[0.901575] (-) TimerEvent: {}
+[1.001902] (-) TimerEvent: {}
+[1.045654] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.102013] (-) TimerEvent: {}
+[1.202338] (-) TimerEvent: {}
+[1.299823] (my_interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.302420] (-) TimerEvent: {}
+[1.321954] (my_interfaces) StdoutLine: {'line': b'-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") \n'}
+[1.322905] (my_interfaces) StdoutLine: {'line': b'-- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)\n'}
+[1.341746] (my_interfaces) StdoutLine: {'line': b'-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") \n'}
+[1.341993] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_EXECUTABLE: /usr/bin/python3\n'}
+[1.342092] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10\n'}
+[1.342177] (my_interfaces) StdoutLine: {'line': b'-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so\n'}
+[1.361191] (my_interfaces) StdoutLine: {'line': b'-- Found PythonExtra: .so  \n'}
+[1.402557] (-) TimerEvent: {}
+[1.406334] (my_interfaces) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[1.416650] (my_interfaces) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[1.417288] (my_interfaces) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[1.419181] (my_interfaces) StdoutLine: {'line': b'-- Configuring done\n'}
+[1.447264] (my_interfaces) StdoutLine: {'line': b'-- Generating done\n'}
+[1.454911] (my_interfaces) StdoutLine: {'line': b'-- Build files have been written to: /home/avavvas/dipl/build/my_interfaces\n'}
+[1.460873] (my_interfaces) CommandEnded: {'returncode': 0}
+[1.463321] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'build'}
+[1.463347] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/avavvas/dipl/build/my_interfaces', '--', '-j12', '-l12'], 'cwd': '/home/avavvas/dipl/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'avavvas'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/avavvas/dipl/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/avavvas'), ('OLDPWD', '/home/avavvas'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '4217'), ('SYSTEMD_EXEC_PID', '4579'), ('IM_CONFIG_CHECK_ENV', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '6771'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/avavvas/dipl/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'avavvas'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:22916'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'avavvas'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/avavvas/.local/bin:/home/avavvas/.local/bin:/opt/ros/humble/bin:/home/avavvas/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/vavvas-ubuntu:@/tmp/.ICE-unix/4357,unix/vavvas-ubuntu:/tmp/.ICE-unix/4357'), ('INVOCATION_ID', '0098554dcf624d169a8647051594d4a6'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', '4f6b21ff-a763-401b-a97a-a34e177102ab'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.7MLFG3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/avavvas/dipl/install/ergodic_exploration:/home/avavvas/dipl/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/avavvas/dipl/build/my_interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/avavvas/dipl/install/my_interfaces:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[1.502724] (-) TimerEvent: {}
+[1.507800] (my_interfaces) StdoutLine: {'line': b'[  1%] \x1b[34m\x1b[1mGenerating C code for ROS interfaces\x1b[0m\n'}
+[1.519225] (my_interfaces) StdoutLine: {'line': b'[  2%] \x1b[34m\x1b[1mGenerating C++ code for ROS interfaces\x1b[0m\n'}
+[1.522211] (my_interfaces) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_symlink_my_interfaces\n'}
+[1.602825] (-) TimerEvent: {}
+[1.679486] (my_interfaces) StdoutLine: {'line': b'running egg_info\n'}
+[1.679868] (my_interfaces) StdoutLine: {'line': b'creating my_interfaces.egg-info\n'}
+[1.680017] (my_interfaces) StdoutLine: {'line': b'writing my_interfaces.egg-info/PKG-INFO\n'}
+[1.680139] (my_interfaces) StdoutLine: {'line': b'writing dependency_links to my_interfaces.egg-info/dependency_links.txt\n'}
+[1.680273] (my_interfaces) StdoutLine: {'line': b'writing top-level names to my_interfaces.egg-info/top_level.txt\n'}
+[1.680391] (my_interfaces) StdoutLine: {'line': b"writing manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[1.681638] (my_interfaces) StdoutLine: {'line': b"reading manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[1.681960] (my_interfaces) StdoutLine: {'line': b"writing manifest file 'my_interfaces.egg-info/SOURCES.txt'\n"}
+[1.702928] (-) TimerEvent: {}
+[1.707827] (my_interfaces) StdoutLine: {'line': b'[  2%] Built target ament_cmake_python_build_my_interfaces_egg\n'}
+[1.803040] (-) TimerEvent: {}
+[1.903382] (-) TimerEvent: {}
+[2.003724] (-) TimerEvent: {}
+[2.104008] (-) TimerEvent: {}
+[2.204309] (-) TimerEvent: {}
+[2.304604] (-) TimerEvent: {}
+[2.315117] (my_interfaces) StdoutLine: {'line': b'[  2%] Built target my_interfaces__cpp\n'}
+[2.323334] (my_interfaces) StdoutLine: {'line': b'[  3%] \x1b[34m\x1b[1mGenerating C++ introspection for ROS interfaces\x1b[0m\n'}
+[2.328065] (my_interfaces) StdoutLine: {'line': b'[  5%] \x1b[34m\x1b[1mGenerating C++ type support for eProsima Fast-RTPS\x1b[0m\n'}
+[2.328322] (my_interfaces) StdoutLine: {'line': b'[  5%] \x1b[34m\x1b[1mGenerating C++ type support dispatch for ROS interfaces\x1b[0m\n'}
+[2.406111] (-) TimerEvent: {}
+[2.453097] (my_interfaces) StdoutLine: {'line': b'[  8%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__functions.c.o\x1b[0m\n'}
+[2.453274] (my_interfaces) StdoutLine: {'line': b'[  8%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.c.o\x1b[0m\n'}
+[2.454905] (my_interfaces) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.c.o\x1b[0m\n'}
+[2.455182] (my_interfaces) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/aircraft_data__functions.c.o\x1b[0m\n'}
+[2.455308] (my_interfaces) StdoutLine: {'line': b'[ 13%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.c.o\x1b[0m\n'}
+[2.455480] (my_interfaces) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/agent_data__functions.c.o\x1b[0m\n'}
+[2.455594] (my_interfaces) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.c.o\x1b[0m\n'}
+[2.455905] (my_interfaces) StdoutLine: {'line': b'[ 14%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_c.dir/rosidl_generator_c/my_interfaces/msg/detail/ck_table__functions.c.o\x1b[0m\n'}
+[2.506189] (-) TimerEvent: {}
+[2.517500] (my_interfaces) StdoutLine: {'line': b'[ 16%] \x1b[32m\x1b[1mLinking C shared library libmy_interfaces__rosidl_generator_c.so\x1b[0m\n'}
+[2.555355] (my_interfaces) StdoutLine: {'line': b'[ 16%] Built target my_interfaces__rosidl_generator_c\n'}
+[2.567883] (my_interfaces) StdoutLine: {'line': b'[ 19%] \x1b[34m\x1b[1mGenerating C introspection for ROS interfaces\x1b[0m\n'}
+[2.568101] (my_interfaces) StdoutLine: {'line': b'[ 19%] \x1b[34m\x1b[1mGenerating C type support for eProsima Fast-RTPS\x1b[0m\n'}
+[2.568197] (my_interfaces) StdoutLine: {'line': b'[ 19%] \x1b[34m\x1b[1mGenerating C type support dispatch for ROS interfaces\x1b[0m\n'}
+[2.606296] (-) TimerEvent: {}
+[2.706613] (-) TimerEvent: {}
+[2.806932] (-) TimerEvent: {}
+[2.912039] (-) TimerEvent: {}
+[3.012366] (-) TimerEvent: {}
+[3.054013] (my_interfaces) StdoutLine: {'line': b'[ 20%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/agent_data__type_support.cpp.o\x1b[0m\n'}
+[3.054921] (my_interfaces) StdoutLine: {'line': b'[ 21%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[3.055097] (my_interfaces) StdoutLine: {'line': b'[ 22%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[3.055152] (my_interfaces) StdoutLine: {'line': b'[ 24%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/aircraft_data__type_support.cpp.o\x1b[0m\n'}
+[3.055205] (my_interfaces) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/ck_table__type_support.cpp.o\x1b[0m\n'}
+[3.055842] (my_interfaces) StdoutLine: {'line': b'[ 26%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[3.060059] (my_interfaces) StdoutLine: {'line': b'[ 27%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[3.114116] (-) TimerEvent: {}
+[3.214453] (-) TimerEvent: {}
+[3.314825] (-) TimerEvent: {}
+[3.332727] (my_interfaces) StdoutLine: {'line': b'[ 28%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/my_interfaces/msg/obs_avoidance_debug__type_support.cpp.o\x1b[0m\n'}
+[3.414921] (-) TimerEvent: {}
+[3.464340] (my_interfaces) StdoutLine: {'line': b'[ 31%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/ck_table__type_support.c.o\x1b[0m\n'}
+[3.464654] (my_interfaces) StdoutLine: {'line': b'[ 31%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/aircraft_data__type_support.c.o\x1b[0m\n'}
+[3.464792] (my_interfaces) StdoutLine: {'line': b'[ 32%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_obstacle__type_support.c.o\x1b[0m\n'}
+[3.464903] (my_interfaces) StdoutLine: {'line': b'[ 33%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/single_target_estimate__type_support.c.o\x1b[0m\n'}
+[3.466564] (my_interfaces) StdoutLine: {'line': b'[ 34%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/agent_data__type_support.c.o\x1b[0m\n'}
+[3.468230] (my_interfaces) StdoutLine: {'line': b'[ 35%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_obstacles__type_support.c.o\x1b[0m\n'}
+[3.492086] (my_interfaces) StdoutLine: {'line': b'[ 36%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/multiple_target_estimates__type_support.c.o\x1b[0m\n'}
+[3.498169] (my_interfaces) StdoutLine: {'line': b'[ 37%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support.c.o\x1b[0m\n'}
+[3.515024] (-) TimerEvent: {}
+[3.546726] (my_interfaces) StdoutLine: {'line': b'[ 39%] \x1b[32m\x1b[1mLinking C shared library libmy_interfaces__rosidl_typesupport_introspection_c.so\x1b[0m\n'}
+[3.587776] (my_interfaces) StdoutLine: {'line': b'[ 39%] Built target my_interfaces__rosidl_typesupport_introspection_c\n'}
+[3.615142] (-) TimerEvent: {}
+[3.661299] (my_interfaces) StdoutLine: {'line': b'[ 40%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/agent_data__type_support.cpp.o\x1b[0m\n'}
+[3.661614] (my_interfaces) StdoutLine: {'line': b'[ 41%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[3.661732] (my_interfaces) StdoutLine: {'line': b'[ 42%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[3.661835] (my_interfaces) StdoutLine: {'line': b'[ 43%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/aircraft_data__type_support.cpp.o\x1b[0m\n'}
+[3.662943] (my_interfaces) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[3.663153] (my_interfaces) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[3.663255] (my_interfaces) StdoutLine: {'line': b'[ 47%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/ck_table__type_support.cpp.o\x1b[0m\n'}
+[3.664342] (my_interfaces) StdoutLine: {'line': b'[ 48%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/dds_fastrtps/obs_avoidance_debug__type_support.cpp.o\x1b[0m\n'}
+[3.695062] (my_interfaces) StdoutLine: {'line': b'[ 49%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_cpp.so\x1b[0m\n'}
+[3.715845] (-) TimerEvent: {}
+[3.735735] (my_interfaces) StdoutLine: {'line': b'[ 49%] Built target my_interfaces__rosidl_typesupport_cpp\n'}
+[3.764088] (my_interfaces) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/ck_table__type_support.cpp.o\x1b[0m\n'}
+[3.776742] (my_interfaces) StdoutLine: {'line': b'[ 51%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/agent_data__type_support.cpp.o\x1b[0m\n'}
+[3.799926] (my_interfaces) StdoutLine: {'line': b'[ 52%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/aircraft_data__type_support.cpp.o\x1b[0m\n'}
+[3.815971] (-) TimerEvent: {}
+[3.820121] (my_interfaces) StdoutLine: {'line': b'[ 54%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[3.840140] (my_interfaces) StdoutLine: {'line': b'[ 55%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[3.858780] (my_interfaces) StdoutLine: {'line': b'[ 56%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[3.888357] (my_interfaces) StdoutLine: {'line': b'[ 57%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[3.892685] (my_interfaces) StdoutLine: {'line': b'[ 58%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/my_interfaces/msg/obs_avoidance_debug__type_support.cpp.o\x1b[0m\n'}
+[3.909474] (my_interfaces) StdoutLine: {'line': b'[ 59%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/ck_table__type_support.cpp.o\x1b[0m\n'}
+[3.916053] (-) TimerEvent: {}
+[3.923338] (my_interfaces) StdoutLine: {'line': b'[ 60%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/agent_data__type_support.cpp.o\x1b[0m\n'}
+[3.924871] (my_interfaces) StdoutLine: {'line': b'[ 62%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_c.so\x1b[0m\n'}
+[3.987055] (my_interfaces) StdoutLine: {'line': b'[ 62%] Built target my_interfaces__rosidl_typesupport_c\n'}
+[3.992524] (my_interfaces) StdoutLine: {'line': b'[ 63%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/aircraft_data__type_support.cpp.o\x1b[0m\n'}
+[4.016178] (-) TimerEvent: {}
+[4.116550] (-) TimerEvent: {}
+[4.216938] (-) TimerEvent: {}
+[4.229642] (my_interfaces) StdoutLine: {'line': b'[ 64%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_obstacle__type_support.cpp.o\x1b[0m\n'}
+[4.246169] (my_interfaces) StdoutLine: {'line': b'[ 65%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_obstacles__type_support.cpp.o\x1b[0m\n'}
+[4.260672] (my_interfaces) StdoutLine: {'line': b'[ 66%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/single_target_estimate__type_support.cpp.o\x1b[0m\n'}
+[4.281936] (my_interfaces) StdoutLine: {'line': b'[ 67%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.cpp.o\x1b[0m\n'}
+[4.301988] (my_interfaces) StdoutLine: {'line': b'[ 68%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.cpp.o\x1b[0m\n'}
+[4.309246] (my_interfaces) StdoutLine: {'line': b'[ 70%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/ck_table__type_support_c.cpp.o\x1b[0m\n'}
+[4.309505] (my_interfaces) StdoutLine: {'line': b'[ 71%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/aircraft_data__type_support_c.cpp.o\x1b[0m\n'}
+[4.315314] (my_interfaces) StdoutLine: {'line': b'[ 72%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/agent_data__type_support_c.cpp.o\x1b[0m\n'}
+[4.319825] (-) TimerEvent: {}
+[4.365560] (my_interfaces) StdoutLine: {'line': b'[ 73%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so\x1b[0m\n'}
+[4.419951] (-) TimerEvent: {}
+[4.432781] (my_interfaces) StdoutLine: {'line': b'[ 74%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_obstacle__type_support_c.cpp.o\x1b[0m\n'}
+[4.485037] (my_interfaces) StdoutLine: {'line': b'[ 74%] Built target my_interfaces__rosidl_typesupport_fastrtps_cpp\n'}
+[4.494841] (my_interfaces) StdoutLine: {'line': b'[ 75%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_obstacles__type_support_c.cpp.o\x1b[0m\n'}
+[4.503682] (my_interfaces) StdoutLine: {'line': b'[ 77%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/single_target_estimate__type_support_c.cpp.o\x1b[0m\n'}
+[4.505693] (my_interfaces) StdoutLine: {'line': b'[ 78%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/multiple_target_estimates__type_support_c.cpp.o\x1b[0m\n'}
+[4.521677] (-) TimerEvent: {}
+[4.622038] (-) TimerEvent: {}
+[4.670421] (my_interfaces) StdoutLine: {'line': b'[ 79%] \x1b[32mBuilding CXX object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support_c.cpp.o\x1b[0m\n'}
+[4.722166] (-) TimerEvent: {}
+[4.822550] (-) TimerEvent: {}
+[4.922929] (-) TimerEvent: {}
+[4.951419] (my_interfaces) StdoutLine: {'line': b'[ 80%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_fastrtps_c.so\x1b[0m\n'}
+[4.974319] (my_interfaces) StdoutLine: {'line': b'[ 81%] \x1b[32m\x1b[1mLinking CXX shared library libmy_interfaces__rosidl_typesupport_introspection_cpp.so\x1b[0m\n'}
+[5.023086] (-) TimerEvent: {}
+[5.024823] (my_interfaces) StdoutLine: {'line': b'[ 81%] Built target my_interfaces__rosidl_typesupport_fastrtps_c\n'}
+[5.041530] (my_interfaces) StdoutLine: {'line': b'[ 81%] Built target my_interfaces__rosidl_typesupport_introspection_cpp\n'}
+[5.061298] (my_interfaces) StdoutLine: {'line': b'[ 81%] Built target my_interfaces\n'}
+[5.087851] (my_interfaces) StdoutLine: {'line': b'[ 82%] \x1b[34m\x1b[1mGenerating Python code for ROS interfaces\x1b[0m\n'}
+[5.123218] (-) TimerEvent: {}
+[5.223548] (-) TimerEvent: {}
+[5.323871] (-) TimerEvent: {}
+[5.424230] (-) TimerEvent: {}
+[5.524574] (-) TimerEvent: {}
+[5.624949] (-) TimerEvent: {}
+[5.725293] (-) TimerEvent: {}
+[5.825662] (-) TimerEvent: {}
+[5.926034] (-) TimerEvent: {}
+[6.026388] (-) TimerEvent: {}
+[6.126810] (-) TimerEvent: {}
+[6.227135] (-) TimerEvent: {}
+[6.327425] (-) TimerEvent: {}
+[6.427683] (-) TimerEvent: {}
+[6.512150] (my_interfaces) StdoutLine: {'line': b'[ 82%] Built target my_interfaces__py\n'}
+[6.527837] (-) TimerEvent: {}
+[6.539676] (my_interfaces) StdoutLine: {'line': b'[ 83%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c.o\x1b[0m\n'}
+[6.542107] (my_interfaces) StdoutLine: {'line': b'[ 86%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_ck_table_s.c.o\x1b[0m\n'}
+[6.542863] (my_interfaces) StdoutLine: {'line': b'[ 86%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c.o\x1b[0m\n'}
+[6.544318] (my_interfaces) StdoutLine: {'line': b'[ 88%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c.o\x1b[0m\n'}
+[6.545192] (my_interfaces) StdoutLine: {'line': b'[ 89%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c.o\x1b[0m\n'}
+[6.545624] (my_interfaces) StdoutLine: {'line': b'[ 89%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_agent_data_s.c.o\x1b[0m\n'}
+[6.546275] (my_interfaces) StdoutLine: {'line': b'[ 90%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c.o\x1b[0m\n'}
+[6.547349] (my_interfaces) StdoutLine: {'line': b'[ 91%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_generator_py.dir/rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c.o\x1b[0m\n'}
+[6.627969] (-) TimerEvent: {}
+[6.728357] (-) TimerEvent: {}
+[6.737528] (my_interfaces) StdoutLine: {'line': b'[ 93%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/libmy_interfaces__rosidl_generator_py.so\x1b[0m\n'}
+[6.791641] (my_interfaces) StdoutLine: {'line': b'[ 93%] Built target my_interfaces__rosidl_generator_py\n'}
+[6.815784] (my_interfaces) StdoutLine: {'line': b'[ 94%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o\x1b[0m\n'}
+[6.817125] (my_interfaces) StdoutLine: {'line': b'[ 95%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c.o\x1b[0m\n'}
+[6.818818] (my_interfaces) StdoutLine: {'line': b'[ 96%] \x1b[32mBuilding C object CMakeFiles/my_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o\x1b[0m\n'}
+[6.828487] (-) TimerEvent: {}
+[6.898997] (my_interfaces) StdoutLine: {'line': b'[ 97%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[6.901229] (my_interfaces) StdoutLine: {'line': b'[ 98%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[6.928606] (-) TimerEvent: {}
+[6.936160] (my_interfaces) StdoutLine: {'line': b'[ 98%] Built target my_interfaces__rosidl_typesupport_fastrtps_c__pyext\n'}
+[6.945058] (my_interfaces) StdoutLine: {'line': b'[ 98%] Built target my_interfaces__rosidl_typesupport_c__pyext\n'}
+[6.972166] (my_interfaces) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[7.018686] (my_interfaces) StdoutLine: {'line': b'[100%] Built target my_interfaces__rosidl_typesupport_introspection_c__pyext\n'}
+[7.028792] (-) TimerEvent: {}
+[7.030610] (my_interfaces) CommandEnded: {'returncode': 0}
+[7.031479] (my_interfaces) JobProgress: {'identifier': 'my_interfaces', 'progress': 'install'}
+[7.038946] (my_interfaces) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/avavvas/dipl/build/my_interfaces'], 'cwd': '/home/avavvas/dipl/build/my_interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'avavvas'), ('LC_TIME', 'el_GR.UTF-8'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/avavvas/dipl/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/avavvas'), ('OLDPWD', '/home/avavvas'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'el_GR.UTF-8'), ('MANAGERPID', '4217'), ('SYSTEMD_EXEC_PID', '4579'), ('IM_CONFIG_CHECK_ENV', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '6771'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/avavvas/dipl/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'avavvas'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:22916'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'avavvas'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/avavvas/.local/bin:/home/avavvas/.local/bin:/opt/ros/humble/bin:/home/avavvas/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/vavvas-ubuntu:@/tmp/.ICE-unix/4357,unix/vavvas-ubuntu:/tmp/.ICE-unix/4357'), ('INVOCATION_ID', '0098554dcf624d169a8647051594d4a6'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'el_GR.UTF-8'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'el_GR.UTF-8'), ('TILIX_ID', '4f6b21ff-a763-401b-a97a-a34e177102ab'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.7MLFG3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/avavvas/dipl/install/ergodic_exploration:/home/avavvas/dipl/install/my_interfaces:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'el_GR.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'el_GR.UTF-8'), ('LC_IDENTIFICATION', 'el_GR.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/avavvas/dipl/build/my_interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'el_GR.UTF-8'), ('LC_PAPER', 'el_GR.UTF-8'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/avavvas/dipl/install/my_interfaces:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble')]), 'shell': False}
+[7.048454] (my_interfaces) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[7.048976] (my_interfaces) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[7.049232] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/rosidl_interfaces/my_interfaces\n'}
+[7.063744] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.h\n'}
+[7.077081] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/aircraft_data.h\n'}
+[7.090659] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.h\n'}
+[7.100040] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.h\n'}
+[7.109336] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.h\n'}
+[7.120241] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.h\n'}
+[7.128808] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__functions.h\n'}
+[7.129049] (-) TimerEvent: {}
+[7.137299] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__struct.h\n'}
+[7.151070] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__type_support.h\n'}
+[7.165193] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.h\n'}
+[7.175106] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.h\n'}
+[7.182653] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.h\n'}
+[7.188292] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.h\n'}
+[7.196337] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.h\n'}
+[7.212588] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.h\n'}
+[7.225688] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.h\n'}
+[7.229211] (-) TimerEvent: {}
+[7.233040] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.h\n'}
+[7.242955] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.h\n'}
+[7.250929] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__functions.h\n'}
+[7.263737] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__struct.h\n'}
+[7.272851] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h\n'}
+[7.288213] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.h\n'}
+[7.300818] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.h\n'}
+[7.310035] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.h\n'}
+[7.323001] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.h\n'}
+[7.329335] (-) TimerEvent: {}
+[7.336475] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.h\n'}
+[7.346304] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.h\n'}
+[7.356026] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.h\n'}
+[7.368306] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.h\n'}
+[7.377291] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/obs_avoidance_debug.h\n'}
+[7.385823] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_c__visibility_control.h\n'}
+[7.402404] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.h\n'}
+[7.416402] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.h\n'}
+[7.429493] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/library_path.sh\n'}
+[7.429783] (-) TimerEvent: {}
+[7.445434] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/library_path.dsv\n'}
+[7.464571] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h\n'}
+[7.483317] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_fastrtps_c.h\n'}
+[7.497160] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h\n'}
+[7.507966] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h\n'}
+[7.519455] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h\n'}
+[7.529880] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_fastrtps_c.h\n'}
+[7.530153] (-) TimerEvent: {}
+[7.540603] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h\n'}
+[7.552117] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h\n'}
+[7.564361] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h\n'}
+[7.578544] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_c.h\n'}
+[7.589178] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_introspection_c.h\n'}
+[7.599693] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_c.h\n'}
+[7.610377] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_c.h\n'}
+[7.618791] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_c.h\n'}
+[7.627882] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_introspection_c.h\n'}
+[7.630237] (-) TimerEvent: {}
+[7.637012] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_c.h\n'}
+[7.647902] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_c.h\n'}
+[7.659963] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h\n'}
+[7.673163] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.hpp\n'}
+[7.686708] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/aircraft_data.hpp\n'}
+[7.697119] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.hpp\n'}
+[7.707559] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__builder.hpp\n'}
+[7.720263] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.hpp\n'}
+[7.730448] (-) TimerEvent: {}
+[7.732315] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__traits.hpp\n'}
+[7.742432] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.hpp\n'}
+[7.755262] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__builder.hpp\n'}
+[7.767549] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__struct.hpp\n'}
+[7.774359] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__traits.hpp\n'}
+[7.784131] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__type_support.hpp\n'}
+[7.793503] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__builder.hpp\n'}
+[7.806142] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.hpp\n'}
+[7.818581] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__traits.hpp\n'}
+[7.829581] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.hpp\n'}
+[7.830542] (-) TimerEvent: {}
+[7.839219] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__builder.hpp\n'}
+[7.849155] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.hpp\n'}
+[7.859150] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__traits.hpp\n'}
+[7.870911] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.hpp\n'}
+[7.882056] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__builder.hpp\n'}
+[7.891557] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp\n'}
+[7.898733] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp\n'}
+[7.907734] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp\n'}
+[7.919372] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp\n'}
+[7.929024] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp\n'}
+[7.930658] (-) TimerEvent: {}
+[7.939035] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp\n'}
+[7.949261] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp\n'}
+[7.961410] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__builder.hpp\n'}
+[7.979227] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.hpp\n'}
+[7.988885] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__traits.hpp\n'}
+[7.995919] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.hpp\n'}
+[8.005338] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__builder.hpp\n'}
+[8.017906] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.hpp\n'}
+[8.029245] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__traits.hpp\n'}
+[8.030867] (-) TimerEvent: {}
+[8.039594] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.hpp\n'}
+[8.051131] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.hpp\n'}
+[8.060830] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.hpp\n'}
+[8.070596] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/obs_avoidance_debug.hpp\n'}
+[8.082558] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp\n'}
+[8.095332] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.hpp\n'}
+[8.104837] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.hpp\n'}
+[8.115996] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.124963] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.131096] (-) TimerEvent: {}
+[8.136855] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.146365] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.155378] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.165502] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.174924] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.185928] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[8.196787] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h\n'}
+[8.208550] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.221421] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.230904] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.231135] (-) TimerEvent: {}
+[8.238730] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.249119] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.260917] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.274186] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.282238] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_cpp.hpp\n'}
+[8.292290] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/pythonpath.sh\n'}
+[8.302871] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/pythonpath.dsv\n'}
+[8.314321] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/PKG-INFO\n'}
+[8.325184] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt\n'}
+[8.331265] (-) TimerEvent: {}
+[8.336365] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt\n'}
+[8.347534] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces-0.0.0-py3.10.egg-info/top_level.txt\n'}
+[8.358823] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py\n'}
+[8.372043] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c\n'}
+[8.382968] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c\n'}
+[8.392673] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c\n'}
+[8.402345] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/libmy_interfaces__rosidl_generator_py.so\n'}
+[8.412142] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py\n'}
+[8.420439] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py\n'}
+[8.427978] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data_s.c\n'}
+[8.431387] (-) TimerEvent: {}
+[8.439077] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_aircraft_data.py\n'}
+[8.449818] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_aircraft_data_s.c\n'}
+[8.461854] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py\n'}
+[8.473203] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table_s.c\n'}
+[8.484595] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py\n'}
+[8.496535] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles_s.c\n'}
+[8.505856] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py\n'}
+[8.516007] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates_s.c\n'}
+[8.524290] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_obs_avoidance_debug.py\n'}
+[8.531519] (-) TimerEvent: {}
+[8.534795] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_obs_avoidance_debug_s.c\n'}
+[8.543807] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py\n'}
+[8.553822] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle_s.c\n'}
+[8.561617] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py\n'}
+[8.569340] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate_s.c\n'}
+[8.579780] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.590321] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.599612] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.609687] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.609988] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.610611] (my_interfaces) StdoutLine: {'line': b'-- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[8.610814] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/CkTable.idl\n'}
+[8.621611] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AgentData.idl\n'}
+[8.630857] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AircraftData.idl\n'}
+[8.631616] (-) TimerEvent: {}
+[8.640812] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.idl\n'}
+[8.649873] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.idl\n'}
+[8.660884] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.idl\n'}
+[8.671697] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.idl\n'}
+[8.684685] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/ObsAvoidanceDebug.idl\n'}
+[8.695336] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/CkTable.msg\n'}
+[8.706351] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AgentData.msg\n'}
+[8.717976] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AircraftData.msg\n'}
+[8.727090] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.msg\n'}
+[8.731716] (-) TimerEvent: {}
+[8.737519] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.msg\n'}
+[8.749439] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.msg\n'}
+[8.761683] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.msg\n'}
+[8.775246] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/ObsAvoidanceDebug.msg\n'}
+[8.786742] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/package_run_dependencies/my_interfaces\n'}
+[8.797849] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/parent_prefix_path/my_interfaces\n'}
+[8.808859] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.sh\n'}
+[8.820875] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.dsv\n'}
+[8.831851] (-) TimerEvent: {}
+[8.832105] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/path.sh\n'}
+[8.841724] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/path.dsv\n'}
+[8.852332] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.bash\n'}
+[8.861755] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.sh\n'}
+[8.875116] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.zsh\n'}
+[8.885760] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.dsv\n'}
+[8.897773] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/package.dsv\n'}
+[8.905504] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/packages/my_interfaces\n'}
+[8.911954] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake-extras.cmake\n'}
+[8.919907] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[8.930827] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[8.931996] (-) TimerEvent: {}
+[8.942152] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[8.951936] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[8.963552] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake\n'}
+[8.974059] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake\n'}
+[8.986717] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig.cmake\n'}
+[8.995881] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig-version.cmake\n'}
+[9.006840] (my_interfaces) StdoutLine: {'line': b'-- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/package.xml\n'}
+[9.018318] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so\n'}
+[9.018667] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so" to ""\n'}
+[9.018741] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so\n'}
+[9.019192] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so" to ""\n'}
+[9.019339] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so\n'}
+[9.019556] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so" to ""\n'}
+[9.019751] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so\n'}
+[9.020001] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so" to ""\n'}
+[9.020165] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so\n'}
+[9.020383] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""\n'}
+[9.020532] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so\n'}
+[9.020825] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so" to ""\n'}
+[9.020938] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so\n'}
+[9.021216] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so" to ""\n'}
+[9.032209] (-) TimerEvent: {}
+[9.055745] (my_interfaces) StdoutLine: {'line': b"Listing '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces'...\n"}
+[9.055942] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/__init__.py'...\n"}
+[9.056058] (my_interfaces) StdoutLine: {'line': b"Listing '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg'...\n"}
+[9.056148] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/__init__.py'...\n"}
+[9.056243] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_agent_data.py'...\n"}
+[9.056327] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_aircraft_data.py'...\n"}
+[9.056409] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_ck_table.py'...\n"}
+[9.056489] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_obstacles.py'...\n"}
+[9.056575] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_multiple_target_estimates.py'...\n"}
+[9.056657] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_obs_avoidance_debug.py'...\n"}
+[9.056738] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_obstacle.py'...\n"}
+[9.056818] (my_interfaces) StdoutLine: {'line': b"Compiling '/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages/my_interfaces/msg/_single_target_estimate.py'...\n"}
+[9.058842] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so\n'}
+[9.059222] (my_interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so" to ""\n'}
+[9.059331] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport.cmake\n'}
+[9.059574] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport-noconfig.cmake\n'}
+[9.059829] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport.cmake\n'}
+[9.059961] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake\n'}
+[9.060204] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport.cmake\n'}
+[9.060333] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake\n'}
+[9.060542] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport.cmake\n'}
+[9.060674] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport-noconfig.cmake\n'}
+[9.060808] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cppExport.cmake\n'}
+[9.060935] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake\n'}
+[9.061185] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake\n'}
+[9.061297] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport.cmake\n'}
+[9.061415] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake\n'}
+[9.061540] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport.cmake\n'}
+[9.061648] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport-noconfig.cmake\n'}
+[9.061799] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport.cmake\n'}
+[9.061946] (my_interfaces) StdoutLine: {'line': b'-- Installing: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport-noconfig.cmake\n'}
+[9.064799] (my_interfaces) CommandEnded: {'returncode': 0}
+[9.080723] (my_interfaces) JobEnded: {'identifier': 'my_interfaces', 'rc': 0}
+[9.081647] (ergodic_exploration) JobStarted: {'identifier': 'ergodic_exploration'}
+[9.132322] (-) TimerEvent: {}
+[9.232646] (-) TimerEvent: {}
+[9.332933] (-) TimerEvent: {}
+[9.433316] (-) TimerEvent: {}
+[9.528022] (ergodic_exploration) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/home/avavvas/dipl/build/ergodic_exploration/build', '--no-deps', 'symlink_data'], 'cwd': '/home/avavvas/dipl/build/ergodic_exploration', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'avavvas', 'LC_TIME': 'el_GR.UTF-8', 'XDG_SESSION_TYPE': 'wayland', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/home/avavvas/dipl/install/my_interfaces/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/avavvas', 'OLDPWD': '/home/avavvas', 'DESKTOP_SESSION': 'ubuntu', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'LC_MONETARY': 'el_GR.UTF-8', 'MANAGERPID': '4217', 'SYSTEMD_EXEC_PID': '4579', 'IM_CONFIG_CHECK_ENV': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '6771', 'IM_CONFIG_PHASE': '1', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/avavvas/dipl/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'avavvas', '_': '/usr/bin/colcon', 'JOURNAL_STREAM': '8:22916', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'USERNAME': 'avavvas', 'TERM': 'xterm-256color', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/home/avavvas/.local/bin:/home/avavvas/.local/bin:/opt/ros/humble/bin:/home/avavvas/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin', 'SESSION_MANAGER': 'local/vavvas-ubuntu:@/tmp/.ICE-unix/4357,unix/vavvas-ubuntu:/tmp/.ICE-unix/4357', 'INVOCATION_ID': '0098554dcf624d169a8647051594d4a6', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'el_GR.UTF-8', 'GNOME_SETUP_DISPLAY': ':1', 'XDG_RUNTIME_DIR': '/run/user/1000', 'DISPLAY': ':0', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'LC_TELEPHONE': 'el_GR.UTF-8', 'TILIX_ID': '4f6b21ff-a763-401b-a97a-a34e177102ab', 'XMODIFIERS': '@im=ibus', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/.mutter-Xwaylandauth.7MLFG3', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/home/avavvas/dipl/install/ergodic_exploration:/home/avavvas/dipl/install/my_interfaces:/opt/ros/humble', 'SHELL': '/bin/bash', 'LC_NAME': 'el_GR.UTF-8', 'QT_ACCESSIBILITY': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'LC_MEASUREMENT': 'el_GR.UTF-8', 'LC_IDENTIFICATION': 'el_GR.UTF-8', 'QT_IM_MODULE': 'ibus', 'PWD': '/home/avavvas/dipl/build/ergodic_exploration', 'LC_ALL': 'en_US.UTF-8', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/avavvas/dipl/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'el_GR.UTF-8', 'LC_PAPER': 'el_GR.UTF-8', 'COLCON': '1', 'VTE_VERSION': '6800', 'CMAKE_PREFIX_PATH': '/home/avavvas/dipl/install/my_interfaces'}, 'shell': False}
+[9.533418] (-) TimerEvent: {}
+[9.633694] (-) TimerEvent: {}
+[9.705262] (ergodic_exploration) StdoutLine: {'line': b'running develop\n'}
+[9.733829] (-) TimerEvent: {}
+[9.799163] (ergodic_exploration) StdoutLine: {'line': b'running egg_info\n'}
+[9.799374] (ergodic_exploration) StdoutLine: {'line': b'creating ergodic_exploration.egg-info\n'}
+[9.799469] (ergodic_exploration) StdoutLine: {'line': b'writing ergodic_exploration.egg-info/PKG-INFO\n'}
+[9.799658] (ergodic_exploration) StdoutLine: {'line': b'writing dependency_links to ergodic_exploration.egg-info/dependency_links.txt\n'}
+[9.799776] (ergodic_exploration) StdoutLine: {'line': b'writing entry points to ergodic_exploration.egg-info/entry_points.txt\n'}
+[9.799864] (ergodic_exploration) StdoutLine: {'line': b'writing requirements to ergodic_exploration.egg-info/requires.txt\n'}
+[9.799944] (ergodic_exploration) StdoutLine: {'line': b'writing top-level names to ergodic_exploration.egg-info/top_level.txt\n'}
+[9.800034] (ergodic_exploration) StdoutLine: {'line': b"writing manifest file 'ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[9.800886] (ergodic_exploration) StdoutLine: {'line': b"reading manifest file 'ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[9.801306] (ergodic_exploration) StdoutLine: {'line': b"writing manifest file 'ergodic_exploration.egg-info/SOURCES.txt'\n"}
+[9.802156] (ergodic_exploration) StdoutLine: {'line': b'running build_ext\n'}
+[9.802317] (ergodic_exploration) StdoutLine: {'line': b'Creating /home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages/ergodic-exploration.egg-link (link to .)\n'}
+[9.802806] (ergodic_exploration) StdoutLine: {'line': b'Installing agent_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[9.803046] (ergodic_exploration) StdoutLine: {'line': b'Installing aircraft_data_converter script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[9.803181] (ergodic_exploration) StdoutLine: {'line': b'Installing environment_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[9.803382] (ergodic_exploration) StdoutLine: {'line': b'Installing fg_visualizer_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration\n'}
+[9.803482] (ergodic_exploration) StdoutLine: {'line': b'\n'}
+[9.803573] (ergodic_exploration) StdoutLine: {'line': b'Installed /home/avavvas/dipl/build/ergodic_exploration\n'}
+[9.803659] (ergodic_exploration) StdoutLine: {'line': b'running symlink_data\n'}
+[9.803745] (ergodic_exploration) StdoutLine: {'line': b'creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index\n'}
+[9.803832] (ergodic_exploration) StdoutLine: {'line': b'creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index\n'}
+[9.803916] (ergodic_exploration) StdoutLine: {'line': b'creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index/packages\n'}
+[9.804135] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/resource/ergodic_exploration -> /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index/packages\n'}
+[9.804261] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/package.xml -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration\n'}
+[9.804353] (ergodic_exploration) StdoutLine: {'line': b'creating /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804438] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/multi_agent.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804520] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/fixed_wing_free_fly.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804602] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/drones_in_small_space.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804686] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/three_drones_big.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804770] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/fixed_wing_teleop.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804854] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/big_environment_1.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.804938] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/boats_simple.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch\n'}
+[9.805035] (ergodic_exploration) StdoutLine: {'line': b'creating /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805132] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/drone_big.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805220] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/car.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805301] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/drone_small.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805387] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/hermes_original.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805471] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/boat.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.805564] (ergodic_exploration) StdoutLine: {'line': b'symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/hermes.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes\n'}
+[9.821956] (ergodic_exploration) CommandEnded: {'returncode': 0}
+[9.832648] (ergodic_exploration) JobEnded: {'identifier': 'ergodic_exploration', 'rc': 0}
+[9.833347] (-) EventReactorShutdown: {}

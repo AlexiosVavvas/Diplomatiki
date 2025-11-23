@@ -76,6 +76,11 @@ CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/age
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__struct.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__traits.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__type_support.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/aircraft_data.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__builder.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__struct.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__traits.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__type_support.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/single_obstacle.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_obstacle__builder.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_obstacle__struct.hpp
@@ -96,6 +101,11 @@ CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/mul
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/obs_avoidance_debug.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp
+CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
 CMakeFiles/my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
 
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/lib/rosidl_generator_cpp/rosidl_generator_cpp
@@ -115,10 +125,12 @@ rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/rosid
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/rosidl_generator_cpp/resource/srv__traits.hpp.em
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/CkTable.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/AgentData.idl
+rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/AircraftData.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/SingleObstacle.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/MultipleObstacles.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl
+rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
@@ -213,6 +225,21 @@ rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__traits.hpp: rosidl_gen
 rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__type_support.hpp
 
+rosidl_generator_cpp/my_interfaces/msg/aircraft_data.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/aircraft_data.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__builder.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__builder.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__struct.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__struct.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__traits.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__traits.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__type_support.hpp
+
 rosidl_generator_cpp/my_interfaces/msg/single_obstacle.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/single_obstacle.hpp
 
@@ -273,13 +300,33 @@ rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__traits.
 rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp
 
+rosidl_generator_cpp/my_interfaces/msg/obs_avoidance_debug.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/obs_avoidance_debug.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp
+
+rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
+
 my_interfaces__cpp: CMakeFiles/my_interfaces__cpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/agent_data.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/aircraft_data.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/ck_table.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__builder.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__traits.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/agent_data__type_support.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__builder.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__struct.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__traits.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/aircraft_data__type_support.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__builder.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/ck_table__traits.hpp
@@ -292,6 +339,10 @@ my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_targe
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_obstacle__builder.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_obstacle__struct.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_obstacle__traits.hpp
@@ -302,6 +353,7 @@ my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/detail/single_target_estimate__type_support.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/multiple_obstacles.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/multiple_target_estimates.hpp
+my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/obs_avoidance_debug.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/single_obstacle.hpp
 my_interfaces__cpp: rosidl_generator_cpp/my_interfaces/msg/single_target_estimate.hpp
 my_interfaces__cpp: CMakeFiles/my_interfaces__cpp.dir/build.make

@@ -22,14 +22,21 @@ import numpy as np
 import time
 import matplotlib
 # Set matplotlib backend before importing pyplot
-try:
-    matplotlib.use('Qt5Agg', force=True)  # Use Qt5Agg backend for better event handling
-except ImportError:
+# Try multiple backends in order of preference
+backend_set = False
+for backend in ['Qt5Agg', 'TkAgg', 'GTK3Agg', 'WXAgg']:
     try:
-        matplotlib.use('TkAgg', force=True)  # Fallback to TkAgg
-    except ImportError:
-        # Use default backend if both fail
-        pass
+        matplotlib.use(backend, force=True)
+        backend_set = True
+        print(f"Using matplotlib backend: {backend}")
+        break
+    except (ImportError, ValueError):
+        continue
+
+if not backend_set:
+    # Use default backend
+    print("Using default matplotlib backend")
+    
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import threading

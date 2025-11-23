@@ -1,0 +1,42 @@
+[0.447s] Invoking command in '/home/avavvas/dipl/build/ergodic_exploration': PYTHONPATH=/home/avavvas/dipl/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/avavvas/dipl/build/ergodic_exploration/build --no-deps symlink_data
+[0.624s] running develop
+[0.718s] running egg_info
+[0.718s] creating ergodic_exploration.egg-info
+[0.718s] writing ergodic_exploration.egg-info/PKG-INFO
+[0.718s] writing dependency_links to ergodic_exploration.egg-info/dependency_links.txt
+[0.718s] writing entry points to ergodic_exploration.egg-info/entry_points.txt
+[0.718s] writing requirements to ergodic_exploration.egg-info/requires.txt
+[0.718s] writing top-level names to ergodic_exploration.egg-info/top_level.txt
+[0.718s] writing manifest file 'ergodic_exploration.egg-info/SOURCES.txt'
+[0.719s] reading manifest file 'ergodic_exploration.egg-info/SOURCES.txt'
+[0.720s] writing manifest file 'ergodic_exploration.egg-info/SOURCES.txt'
+[0.721s] running build_ext
+[0.721s] Creating /home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages/ergodic-exploration.egg-link (link to .)
+[0.721s] Installing agent_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[0.721s] Installing aircraft_data_converter script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[0.722s] Installing environment_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[0.722s] Installing fg_visualizer_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[0.722s] 
+[0.722s] Installed /home/avavvas/dipl/build/ergodic_exploration
+[0.722s] running symlink_data
+[0.722s] creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index
+[0.722s] creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index
+[0.722s] creating /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index/packages
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/resource/ergodic_exploration -> /home/avavvas/dipl/install/ergodic_exploration/share/ament_index/resource_index/packages
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/package.xml -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration
+[0.723s] creating /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/multi_agent.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/fixed_wing_free_fly.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/drones_in_small_space.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/three_drones_big.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/fixed_wing_teleop.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/big_environment_1.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/launch/boats_simple.launch.py -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/launch
+[0.723s] creating /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/drone_big.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/car.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/drone_small.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/hermes_original.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/boat.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.724s] symbolically linking /home/avavvas/dipl/build/ergodic_exploration/meshes/hermes.stl -> /home/avavvas/dipl/install/ergodic_exploration/share/ergodic_exploration/meshes
+[0.741s] Invoked command in '/home/avavvas/dipl/build/ergodic_exploration' returned '0': PYTHONPATH=/home/avavvas/dipl/build/ergodic_exploration/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/avavvas/dipl/build/ergodic_exploration/build --no-deps symlink_data

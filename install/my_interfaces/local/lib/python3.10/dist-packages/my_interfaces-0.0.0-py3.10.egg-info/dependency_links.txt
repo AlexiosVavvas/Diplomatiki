@@ -1,1 +1,1 @@
-
+/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/dependency_links.txt

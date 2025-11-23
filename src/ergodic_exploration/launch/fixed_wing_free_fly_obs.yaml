@@ -1,0 +1,12 @@
+# obstacles:
+#   # Small circle obstacles scattered across the domain
+#   - pos: [80.0, 80.0]
+#     dimensions: 40.0
+#     obs_type: 'circle'
+#     obs_name: "Circle 1"
+
+# walls:
+#   - obs_type: 'wall'              # Type: 'wall'
+#     pos: [85.0, 85.0]               # Explicit position [x, y]
+#     dimensions: [-354.0, -354.0]          # Normal vector [nx, ny] - magnitude = visual length
+#     obs_name: "Custom Wall"       # Descriptive name

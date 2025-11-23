@@ -96,7 +96,7 @@ def updateGlobalBounds(l_bounds_list):
                     print(f"Updated global bounds: L1=[{L1_BOUNDS[0]:.3f}, {L1_BOUNDS[1]:.3f}], L2=[{L2_BOUNDS[0]:.3f}, {L2_BOUNDS[1]:.3f}]")
 
 class LiveDashboard(Node):
-    def __init__(self, allowed_agents=None, max_plot_points=1000, ekf_agent=None):
+    def __init__(self, allowed_agents=None, max_plot_points=1000, ekf_agent=None, top_view_only=False, pos_inverted_agents=None):
         super().__init__('dashboard_node')
         
         # Store allowed agents filter
@@ -107,6 +107,12 @@ class LiveDashboard(Node):
         
         # Store max plot points for visualization
         self.max_plot_points = max_plot_points
+        
+        # Store top view only flag
+        self.top_view_only = top_view_only
+        
+        # Store position inverted agents (NED convention agents like airplanes)
+        self.pos_inverted_agents = set(pos_inverted_agents) if pos_inverted_agents else set()
         
         # Create QoS profile for best effort communication
         # This allows for faster data transmission with potential message loss
@@ -121,20 +127,32 @@ class LiveDashboard(Node):
         self.traj_fig, self.traj_ax = plt.subplots(1, 1, figsize=(9, 7))
         self.traj_fig.suptitle('Agent Trajectories', fontsize=14)
         
-        self.ergodic_fig, self.ergodic_ax = plt.subplots(1, 1, figsize=(10, 6))
-        self.ergodic_fig.suptitle('Ergodic Cost', fontsize=14)
-        
-        self.control_fig, self.control_ax = plt.subplots(1, 1, figsize=(10, 6))
-        self.control_fig.suptitle('Control Inputs', fontsize=14)
-        
-        self.delta_t_fig, self.delta_t_ax = plt.subplots(1, 1, figsize=(10, 6))
-        self.delta_t_fig.suptitle('Delta T Timestamps', fontsize=14)
-        
-        # Create EKF plot if EKF agent is specified
-        if self.ekf_agent is not None:
-            self.ekf_fig, self.ekf_axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
-            self.ekf_fig.suptitle(f'Agent {self.ekf_agent} - Target Position Estimates with 3σ Confidence Bands', fontsize=14)
+        # Only create additional plots if not in top_view_only mode
+        if not self.top_view_only:
+            self.ergodic_fig, self.ergodic_ax = plt.subplots(1, 1, figsize=(10, 6))
+            self.ergodic_fig.suptitle('Ergodic Cost', fontsize=14)
+            
+            self.control_fig, self.control_ax = plt.subplots(1, 1, figsize=(10, 6))
+            self.control_fig.suptitle('Control Inputs', fontsize=14)
+            
+            self.delta_t_fig, self.delta_t_ax = plt.subplots(1, 1, figsize=(10, 6))
+            self.delta_t_fig.suptitle('Delta T Timestamps', fontsize=14)
+            
+            # Create EKF plot if EKF agent is specified
+            if self.ekf_agent is not None:
+                self.ekf_fig, self.ekf_axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
+                self.ekf_fig.suptitle(f'Agent {self.ekf_agent} - Target Position Estimates with 3σ Confidence Bands', fontsize=14)
+            else:
+                self.ekf_fig = None
+                self.ekf_axes = None
         else:
+            # Set all other plots to None in top_view_only mode
+            self.ergodic_fig = None
+            self.ergodic_ax = None
+            self.control_fig = None
+            self.control_ax = None
+            self.delta_t_fig = None
+            self.delta_t_ax = None
             self.ekf_fig = None
             self.ekf_axes = None
         
@@ -175,9 +193,11 @@ class LiveDashboard(Node):
         # Set up key press event on agent trajectory figure
         self.traj_fig.canvas.mpl_connect('key_press_event', self.onKeyPress)
         
-        # Initialize animation with faster update rate (using delta_t_fig as the animation target)
+        # Initialize animation with faster update rate
+        # Use traj_fig for animation in top_view_only mode, otherwise use delta_t_fig
+        animation_fig = self.traj_fig if self.top_view_only else self.delta_t_fig
         self.anim = animation.FuncAnimation(
-            self.delta_t_fig, self.updatePlots, interval=50, blit=False, cache_frame_data=False
+            animation_fig, self.updatePlots, interval=50, blit=False, cache_frame_data=False
         )
         
         # Perform initial discovery
@@ -188,6 +208,9 @@ class LiveDashboard(Node):
             self.get_logger().info(f'Dashboard initialized with agent filter: {sorted(self.allowed_agents)} - discovering all agents but only processing filtered ones')
         else:
             self.get_logger().info('Dashboard initialized - discovering all agents dynamically')
+            
+        if self.pos_inverted_agents:
+            self.get_logger().info(f'Position inversion enabled for agents (NED convention): {sorted(self.pos_inverted_agents)}')
             
         if self.ekf_agent is not None:
             self.get_logger().info(f'EKF target position plot enabled for agent {self.ekf_agent}')
@@ -641,27 +664,21 @@ class LiveDashboard(Node):
     
     def clearPlots(self):
         """Clear all plot lines while maintaining axes structure"""
-        # Clear all axes
-        self.control_ax.clear()
-        self.ergodic_ax.clear()
+        # Clear trajectory axis (always exists)
         self.traj_ax.clear()
-        self.delta_t_ax.clear()
         
-        # Clear EKF plot if it exists
-        if self.ekf_axes is not None:
-            for ax in self.ekf_axes:
-                ax.clear()
+        # Only clear other axes if they exist (not in top_view_only mode)
+        if not self.top_view_only:
+            self.control_ax.clear()
+            self.ergodic_ax.clear()
+            self.delta_t_ax.clear()
+            
+            # Clear EKF plot if it exists
+            if self.ekf_axes is not None:
+                for ax in self.ekf_axes:
+                    ax.clear()
         
-        # Reset titles and grids
-        self.control_ax.set_title('Control Inputs')
-        self.control_ax.grid(True)
-        
-        self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
-        self.ergodic_ax.grid(True)
-        
-        self.delta_t_ax.set_title('Delta T Timestamps')
-        self.delta_t_ax.grid(True)
-        
+        # Reset trajectory plot
         # Use current dynamic bounds
         with BOUNDS_LOCK:
             current_l1_bounds = L1_BOUNDS.copy()
@@ -672,20 +689,33 @@ class LiveDashboard(Node):
         self.traj_ax.set_ylim(current_l2_bounds[0], current_l2_bounds[1])
         self.traj_ax.grid(True)
         
-        # Reset EKF plot if it exists
-        if self.ekf_axes is not None:
-            self.ekf_axes[0].set_ylabel('X Position')
-            self.ekf_axes[0].grid(True)
-            self.ekf_axes[1].set_ylabel('Y Position')
-            self.ekf_axes[1].grid(True)
-            self.ekf_axes[2].set_xlabel('Time [s]')
-            self.ekf_axes[2].set_ylabel('Z Position')
-            self.ekf_axes[2].grid(True)
+        # Only reset other plots if they exist
+        if not self.top_view_only:
+            self.control_ax.set_title('Control Inputs')
+            self.control_ax.grid(True)
+            
+            self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
+            self.ergodic_ax.grid(True)
+            
+            self.delta_t_ax.set_title('Delta T Timestamps')
+            self.delta_t_ax.grid(True)
+            
+            # Reset EKF plot if it exists
+            if self.ekf_axes is not None:
+                self.ekf_axes[0].set_ylabel('X Position')
+                self.ekf_axes[0].grid(True)
+                self.ekf_axes[1].set_ylabel('Y Position')
+                self.ekf_axes[1].grid(True)
+                self.ekf_axes[2].set_xlabel('Time [s]')
+                self.ekf_axes[2].set_ylabel('Z Position')
+                self.ekf_axes[2].grid(True)
         
         # Draw all figures
-        figures_to_draw = [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]
-        if self.ekf_fig is not None:
-            figures_to_draw.append(self.ekf_fig)
+        figures_to_draw = [self.traj_fig]
+        if not self.top_view_only:
+            figures_to_draw.extend([self.control_fig, self.ergodic_fig, self.delta_t_fig])
+            if self.ekf_fig is not None:
+                figures_to_draw.append(self.ekf_fig)
         
         for fig in figures_to_draw:
             fig.canvas.draw()
@@ -694,16 +724,19 @@ class LiveDashboard(Node):
         if not self.auto_refresh and frame is not None:
             return
             
-        # Clear all axes
-        self.control_ax.clear()
-        self.ergodic_ax.clear()
+        # Clear trajectory axis (always exists)
         self.traj_ax.clear()
-        self.delta_t_ax.clear()
         
-        # Clear EKF plot if it exists
-        if self.ekf_axes is not None:
-            for ax in self.ekf_axes:
-                ax.clear()
+        # Only clear other axes if they exist (not in top_view_only mode)
+        if not self.top_view_only:
+            self.control_ax.clear()
+            self.ergodic_ax.clear()
+            self.delta_t_ax.clear()
+            
+            # Clear EKF plot if it exists
+            if self.ekf_axes is not None:
+                for ax in self.ekf_axes:
+                    ax.clear()
         
         # Create a thread-safe shallow copy of the data structure, but reference arrays directly
         with self.data_lock:
@@ -726,178 +759,179 @@ class LiveDashboard(Node):
                     'delta_t_ts': data['delta_t_ts'][-max_plot_points:]
                 }
             
-        # Plot 1: Control Inputs (multi-agent)
-        for agent_id in sorted(agent_data_refs.keys()):
-            data = agent_data_refs[agent_id]
-            if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
-                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
-                
-                try:
-                    # Use the unified simulation times (already calculated in callback)
-                    # Convert to numpy array only once
-                    if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
-                        time_array = np.array(data['simulation_times'])
-                        # Extract control inputs (assuming 2 inputs per agent)
-                        inputs_array = np.vstack(data['inputs']) if data['inputs'] else np.array([])
-                        
-                        # Ensure arrays have consistent lengths
-                        min_len = min(len(time_array), len(inputs_array)) if len(inputs_array) > 0 else 0
-                        if min_len > 0:
-                            time_array = time_array[:min_len]
-                            inputs_array = inputs_array[:min_len]
-                            
-                            if inputs_array.size > 0 and inputs_array.ndim > 1 and inputs_array.shape[1] >= 2:
-                                self.control_ax.plot(time_array, inputs_array[:, 0], 
-                                                   label=f'U1 - Agent {agent_id}', linewidth=2, 
-                                                   color=color, linestyle='-')
-                                self.control_ax.plot(time_array, inputs_array[:, 1], 
-                                                   label=f'U2 - Agent {agent_id}', linewidth=2, 
-                                                   color=color, linestyle='--')
-                except (ValueError, IndexError) as e:
-                    # Skip this agent if data is inconsistent
-                    continue
-
-        self.control_ax.set_title('Control Inputs (All Agents)')
-        if self.control_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
-            self.control_ax.legend()
-        self.control_ax.grid(True)
-        self.control_ax.set_xlabel('Unified Simulation Time [s]')
-        self.control_ax.set_ylabel('Control Values')
-            
-        # Plot 2: Ergodic Cost (multi-agent) + Total Ergodic Cost from Averaged CK
-        max_time = 0.0  # Track the maximum time across all data sources
-        
-        # Plot individual agent ergodic costs
-        for agent_id in sorted(agent_data_refs.keys()):
-            data = agent_data_refs[agent_id]
-            if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
-                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
-                
-                try:
-                    # Use the unified simulation times (already calculated in callback)
-                    if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
-                        time_array = np.array(data['simulation_times'])
-                        ergodic_costs = np.array(data['ergodic_costs'])
-                        cbf_flags = np.array(data['cbf_flags'])
-                        
-                        # Ensure arrays have consistent lengths
-                        min_len = min(len(time_array), len(ergodic_costs), len(cbf_flags))
-                        if min_len > 0:
-                            time_array = time_array[:min_len]
-                            ergodic_costs = ergodic_costs[:min_len]
-                            cbf_flags = cbf_flags[:min_len]
-                            
-                            # Update max time
-                            if len(time_array) > 0:
-                                max_time = max(max_time, np.max(time_array))
-                            
-                            self.ergodic_ax.plot(time_array, ergodic_costs, 
-                                               label=f'Ergodic Cost - Agent {agent_id}', 
-                                               linewidth=2, color=color)
-                            
-                            # Scale CBF flags to be visible
-                            if len(ergodic_costs) > 0 and np.max(ergodic_costs) > 0:
-                                scale_factor = np.max(ergodic_costs)
-                                self.ergodic_ax.plot(time_array, cbf_flags * scale_factor, 
-                                                   label=f'Active CBF - Agent {agent_id}', 
-                                                   linewidth=1, color=color, linestyle='--', alpha=0.85)
-                except (ValueError, IndexError) as e:
-                    # Skip this agent if data is inconsistent
-                    continue
-        
-        # Plot total_erg_cost from CK messages for each agent (dashed lines)
-        with self.ck_lock:
-            ck_data_refs = {}
-            for agent_id, data in self.ck_data.items():
-                # Skip agents not in the allowed list
-                if self.allowed_agents and agent_id not in self.allowed_agents:
-                    continue
-                    
-                # Only reference the arrays we need, and limit points for performance
-                max_plot_points = self.max_plot_points  # Use configurable limit
-                ck_data_refs[agent_id] = {
-                    'timestamps': data['timestamps'][-max_plot_points:],
-                    'total_erg_costs': data['total_erg_costs'][-max_plot_points:]
-                }
-        
-        for agent_id in sorted(ck_data_refs.keys()):
-            if agent_id in agent_data_refs:  # Only plot if agent is active
-                ck_data = ck_data_refs[agent_id]
-                if len(ck_data['timestamps']) > 0 and len(ck_data['total_erg_costs']) > 0:
+        # Plot 1: Control Inputs (multi-agent) - only if not in top_view_only mode
+        if not self.top_view_only:
+            for agent_id in sorted(agent_data_refs.keys()):
+                data = agent_data_refs[agent_id]
+                if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
                     color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                     
                     try:
-                        time_array = np.array(ck_data['timestamps'])
-                        total_erg_costs = np.array(ck_data['total_erg_costs'])
-                        
-                        # Ensure arrays have consistent lengths
-                        min_len = min(len(time_array), len(total_erg_costs))
-                        if min_len > 0:
-                            time_array = time_array[:min_len]
-                            total_erg_costs = total_erg_costs[:min_len]
+                        # Use the unified simulation times (already calculated in callback)
+                        # Convert to numpy array only once
+                        if len(data['simulation_times']) > 0 and len(data['inputs']) > 0:
+                            time_array = np.array(data['simulation_times'])
+                            # Extract control inputs (assuming 2 inputs per agent)
+                            inputs_array = np.vstack(data['inputs']) if data['inputs'] else np.array([])
                             
-                            # Update max time
-                            if len(time_array) > 0:
-                                max_time = max(max_time, np.max(time_array))
-                            
-                            self.ergodic_ax.plot(time_array, total_erg_costs, 
-                                               label=f'Total Erg Cost - Agent {agent_id}', 
-                                               linewidth=2, color=color, linestyle='--')
+                            # Ensure arrays have consistent lengths
+                            min_len = min(len(time_array), len(inputs_array)) if len(inputs_array) > 0 else 0
+                            if min_len > 0:
+                                time_array = time_array[:min_len]
+                                inputs_array = inputs_array[:min_len]
+                                
+                                if inputs_array.size > 0 and inputs_array.ndim > 1 and inputs_array.shape[1] >= 2:
+                                    self.control_ax.plot(time_array, inputs_array[:, 0], 
+                                                       label=f'U1 - Agent {agent_id}', linewidth=2, 
+                                                       color=color, linestyle='-')
+                                    self.control_ax.plot(time_array, inputs_array[:, 1], 
+                                                       label=f'U2 - Agent {agent_id}', linewidth=2, 
+                                                       color=color, linestyle='--')
                     except (ValueError, IndexError) as e:
                         # Skip this agent if data is inconsistent
                         continue
-        
-        self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
-        if self.ergodic_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
-            self.ergodic_ax.legend()
-        self.ergodic_ax.grid(True)
-        self.ergodic_ax.set_xlabel('Time [s]')
-        self.ergodic_ax.set_ylabel('Cost')
-        
-        # Set x-axis limits based on maximum time found
-        # if max_time > 0:
-        #     self.ergodic_ax.set_xlim(0, max_time * 1.05)  # Add 5% padding
-        
-        # Plot 4: Delta T Timestamps (multi-agent) from AgentData messages
-        # First, find the maximum sample count across all agents
-        max_samples = 0
-        valid_agents = []
-        for agent_id in sorted(agent_data_refs.keys()):
-            data = agent_data_refs[agent_id]
-            if len(data['delta_t_ts']) > 0:
-                max_samples = max(max_samples, len(data['delta_t_ts']))
-                valid_agents.append(agent_id)
-        
-        # Plot each agent's delta_t_ts using the common x-axis range
-        for agent_id in valid_agents:
-            data = agent_data_refs[agent_id]
-            color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
+
+            self.control_ax.set_title('Control Inputs (All Agents)')
+            if self.control_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
+                self.control_ax.legend()
+            self.control_ax.grid(True)
+            self.control_ax.set_xlabel('Unified Simulation Time [s]')
+            self.control_ax.set_ylabel('Control Values')
             
-            try:
-                delta_t_ts_array = np.array(data['delta_t_ts'])
-                
-                if len(delta_t_ts_array) > 0:
-                    # Use sequential index starting from the end of the max range
-                    # This aligns all agents to the "current time" (right side of plot)
-                    start_idx = max_samples - len(delta_t_ts_array)
-                    x_axis = np.arange(start_idx, max_samples)
+        # Plot 2: Ergodic Cost (multi-agent) + Total Ergodic Cost from Averaged CK - only if not in top_view_only mode
+        if not self.top_view_only:
+            max_time = 0.0  # Track the maximum time across all data sources
+            
+            # Plot individual agent ergodic costs
+            for agent_id in sorted(agent_data_refs.keys()):
+                data = agent_data_refs[agent_id]
+                if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
+                    color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
                     
-                    self.delta_t_ax.plot(x_axis, delta_t_ts_array, 
-                                       label=f'Delta T - Agent {agent_id}', 
-                                       linewidth=2, color=color)
-            except (ValueError, IndexError) as e:
-                    # Skip this agent if data is inconsistent
-                    continue
-        # Add horizontal black dashed line at y = 1
-        self.delta_t_ax.axhline(y=1.0, color='black', linestyle='--', linewidth=1, label='Ideal Delta T = 1s')
-        self.delta_t_ax.set_title('Delta T Timestamps from AgentData Messages')
-        if self.delta_t_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
-            self.delta_t_ax.legend()
-        self.delta_t_ax.grid(True)
-        self.delta_t_ax.set_xlabel('Sample Index')
-        self.delta_t_ax.set_ylabel('Delta T [s]')
+                    try:
+                        # Use the unified simulation times (already calculated in callback)
+                        if len(data['simulation_times']) > 0 and len(data['ergodic_costs']) > 0:
+                            time_array = np.array(data['simulation_times'])
+                            ergodic_costs = np.array(data['ergodic_costs'])
+                            cbf_flags = np.array(data['cbf_flags'])
+                            
+                            # Ensure arrays have consistent lengths
+                            min_len = min(len(time_array), len(ergodic_costs), len(cbf_flags))
+                            if min_len > 0:
+                                time_array = time_array[:min_len]
+                                ergodic_costs = ergodic_costs[:min_len]
+                                cbf_flags = cbf_flags[:min_len]
+                                
+                                # Update max time
+                                if len(time_array) > 0:
+                                    max_time = max(max_time, np.max(time_array))
+                                
+                                self.ergodic_ax.plot(time_array, ergodic_costs, 
+                                                   label=f'Ergodic Cost - Agent {agent_id}', 
+                                                   linewidth=2, color=color)
+                                
+                                # Scale CBF flags to be visible
+                                if len(ergodic_costs) > 0 and np.max(ergodic_costs) > 0:
+                                    scale_factor = np.max(ergodic_costs)
+                                    self.ergodic_ax.plot(time_array, cbf_flags * scale_factor, 
+                                                       label=f'Active CBF - Agent {agent_id}', 
+                                                       linewidth=1, color=color, linestyle='--', alpha=0.85)
+                    except (ValueError, IndexError) as e:
+                        # Skip this agent if data is inconsistent
+                        continue
             
-        # Plot 3: Agent Trajectories (multi-agent)
+            # Plot total_erg_cost from CK messages for each agent (dashed lines)
+            with self.ck_lock:
+                ck_data_refs = {}
+                for agent_id, data in self.ck_data.items():
+                    # Skip agents not in the allowed list
+                    if self.allowed_agents and agent_id not in self.allowed_agents:
+                        continue
+                        
+                    # Only reference the arrays we need, and limit points for performance
+                    max_plot_points = self.max_plot_points  # Use configurable limit
+                    ck_data_refs[agent_id] = {
+                        'timestamps': data['timestamps'][-max_plot_points:],
+                        'total_erg_costs': data['total_erg_costs'][-max_plot_points:]
+                    }
+            
+            for agent_id in sorted(ck_data_refs.keys()):
+                if agent_id in agent_data_refs:  # Only plot if agent is active
+                    ck_data = ck_data_refs[agent_id]
+                    if len(ck_data['timestamps']) > 0 and len(ck_data['total_erg_costs']) > 0:
+                        color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
+                        
+                        try:
+                            time_array = np.array(ck_data['timestamps'])
+                            total_erg_costs = np.array(ck_data['total_erg_costs'])
+                            
+                            # Ensure arrays have consistent lengths
+                            min_len = min(len(time_array), len(total_erg_costs))
+                            if min_len > 0:
+                                time_array = time_array[:min_len]
+                                total_erg_costs = total_erg_costs[:min_len]
+                                
+                                # Update max time
+                                if len(time_array) > 0:
+                                    max_time = max(max_time, np.max(time_array))
+                                
+                                self.ergodic_ax.plot(time_array, total_erg_costs, 
+                                                   label=f'Total Erg Cost - Agent {agent_id}', 
+                                                   linewidth=2, color=color, linestyle='--')
+                        except (ValueError, IndexError) as e:
+                            # Skip this agent if data is inconsistent
+                            continue
+            
+            self.ergodic_ax.set_title('Ergodic Cost & Total Ergodic Cost from CK Messages')
+            if self.ergodic_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
+                self.ergodic_ax.legend()
+            self.ergodic_ax.grid(True)
+            self.ergodic_ax.set_xlabel('Time [s]')
+            self.ergodic_ax.set_ylabel('Cost')
+            
+            # Set x-axis limits based on maximum time found
+            # if max_time > 0:
+            #     self.ergodic_ax.set_xlim(0, max_time * 1.05)  # Add 5% padding
+            
+        # Plot 4: Delta T Timestamps (multi-agent) from AgentData messages - only if not in top_view_only mode
+        if not self.top_view_only:
+            # First, find the maximum sample count across all agents
+            max_samples = 0
+            valid_agents = []
+            for agent_id in sorted(agent_data_refs.keys()):
+                data = agent_data_refs[agent_id]
+                if len(data['delta_t_ts']) > 0:
+                    max_samples = max(max_samples, len(data['delta_t_ts']))
+                    valid_agents.append(agent_id)
+            
+            # Plot each agent's delta_t_ts using the common x-axis range
+            for agent_id in valid_agents:
+                data = agent_data_refs[agent_id]
+                color = generateAgentColor(agent_id, force_blue_first=FORCE_BLUE_FIRST)
+                
+                try:
+                    delta_t_ts_array = np.array(data['delta_t_ts'])
+                    
+                    if len(delta_t_ts_array) > 0:
+                        # Use sequential index starting from the end of the max range
+                        # This aligns all agents to the "current time" (right side of plot)
+                        start_idx = max_samples - len(delta_t_ts_array)
+                        x_axis = np.arange(start_idx, max_samples)
+                        
+                        self.delta_t_ax.plot(x_axis, delta_t_ts_array, 
+                                           label=f'Delta T - Agent {agent_id}', 
+                                           linewidth=2, color=color)
+                except (ValueError, IndexError) as e:
+                        # Skip this agent if data is inconsistent
+                        continue
+            # Add horizontal black dashed line at y = 1
+            self.delta_t_ax.axhline(y=1.0, color='black', linestyle='--', linewidth=1, label='Ideal Delta T = 1s')
+            self.delta_t_ax.set_title('Delta T Timestamps from AgentData Messages')
+            if self.delta_t_ax.get_legend_handles_labels()[0]:  # Only add legend if there are plots
+                self.delta_t_ax.legend()
+            self.delta_t_ax.grid(True)
+            self.delta_t_ax.set_xlabel('Sample Index')
+            self.delta_t_ax.set_ylabel('Delta T [s]')        # Plot 3: Agent Trajectories (multi-agent)
         with BOUNDS_LOCK:
             current_l1_bounds = L1_BOUNDS.copy()
             current_l2_bounds = L2_BOUNDS.copy()
@@ -912,8 +946,15 @@ class LiveDashboard(Node):
                     if len(data['states']) > 0:
                         states_array = np.vstack(data['states']) if data['states'] else np.array([])
                         if states_array.size > 0 and states_array.ndim > 1 and states_array.shape[1] >= 2:
-                            x_positions = states_array[:, 0]
-                            y_positions = states_array[:, 1]
+                            # Check if this agent uses inverted position convention (NED like airplanes)
+                            if agent_id in self.pos_inverted_agents:
+                                # For NED convention agents (airplanes), swap X and Y
+                                x_positions = states_array[:, 1]
+                                y_positions = states_array[:, 0]
+                            else:
+                                # For standard agents (drones), dont swap X and Y
+                                x_positions = states_array[:, 0]
+                                y_positions = states_array[:, 1]
                             
                             # Current position
                             if len(x_positions) > 0:
@@ -955,12 +996,15 @@ class LiveDashboard(Node):
         self.traj_ax.set_ylabel('Y Position')
 
         # Plot EKF target position estimates with confidence bands for specified agent
-        self.drawEKFPlot(agent_data_refs)
+        if not self.top_view_only:
+            self.drawEKFPlot(agent_data_refs)
 
         # Draw all figures
-        figures_to_draw = [self.control_fig, self.ergodic_fig, self.traj_fig, self.delta_t_fig]
-        if self.ekf_fig is not None:
-            figures_to_draw.append(self.ekf_fig)
+        figures_to_draw = [self.traj_fig]
+        if not self.top_view_only:
+            figures_to_draw.extend([self.control_fig, self.ergodic_fig, self.delta_t_fig])
+            if self.ekf_fig is not None:
+                figures_to_draw.append(self.ekf_fig)
             
         for fig in figures_to_draw:
             fig.canvas.draw()
@@ -1052,7 +1096,7 @@ class LiveDashboard(Node):
                             
                             # Create a line perpendicular to the normal through the given point
                             # For visualization, we'll draw a thick line segment
-                            
+
                             # Perpendicular direction to the normal
                             perp_x = -normal_y
                             perp_y = normal_x
@@ -1403,6 +1447,10 @@ def parseArguments():
                         help='Specify agent ID to show EKF target position estimates with confidence bands. If not specified, EKF plot will not be shown.')
     parser.add_argument('--blue', action='store_true',
                         help='Force the first agent (agent 1) to be colored blue regardless of color methodology.')
+    parser.add_argument('--top_view_only', action='store_true',
+                        help='Display only the top-view trajectory plot, hiding all other plots (control inputs, ergodic cost, delta T, and EKF).')
+    parser.add_argument('--pos_inverted', nargs='+', type=int, metavar='ID',
+                        help='Specify agent IDs that use inverted position convention (NED for airplanes). For these agents, X and Y positions will NOT be swapped. Example: --pos_inverted 1 2')
     return parser.parse_args()
 
 def main():
@@ -1420,7 +1468,9 @@ def main():
     dashboard = None
     
     try:
-        dashboard = LiveDashboard(allowed_agents=args.agents, max_plot_points=args.max_path_points, ekf_agent=args.ekf_agent)
+        dashboard = LiveDashboard(allowed_agents=args.agents, max_plot_points=args.max_path_points, 
+                                 ekf_agent=args.ekf_agent, top_view_only=args.top_view_only,
+                                 pos_inverted_agents=args.pos_inverted)
 
         # Shutdown event for clean exit
         shutdown_event = threading.Event()
@@ -1446,7 +1496,9 @@ def main():
         print("- Target estimates shown as colored ellipses (2-sigma confidence), ground truth as black X marks")
         print("- Agent colors are consistent between dashboard and RViz (use same color generation)")
         
-        if args.ekf_agent is not None:
+        if args.top_view_only:
+            print("- TOP VIEW ONLY MODE: Only displaying agent trajectories plot")
+        elif args.ekf_agent is not None:
             print(f"- EKF plot window: Shows target position estimates with 3σ confidence bands for Agent {args.ekf_agent}")
             print("- Five plot windows: Control Inputs, Ergodic Cost, Agent Trajectories, Delta T Timestamps, and EKF Target Positions")
         else:

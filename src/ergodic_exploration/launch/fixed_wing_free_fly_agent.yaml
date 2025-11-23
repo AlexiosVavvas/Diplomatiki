@@ -5,8 +5,8 @@ agent:
   
   # Dynamics model parameters
   dynamics:
-    dt: 0.005
-    v_trim: 7.5             # [m/s] Desired trim speed
+    dt: 0.001
+    v_trim: 10             # [m/s] Desired trim speed
     use_linear_f: false     # Whether to use linearised model for f(x,u)
     use_linear_fx_fu: false # Whether to use linearised model for f_x, f_u
     
@@ -23,14 +23,14 @@ agent:
     # Ergodic controller parameters
     Q: 2000  # 2 * 10^3
     # R matrix - less penalty on throttle changes
-    R: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.1]]
-    prediction_dt_multiplier: 2  # PREDICTION_DT = dt * multiplier
-    relax_factor: 0.95
+    R: [[1.4, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.01]]
+    prediction_dt_multiplier: 40  # PREDICTION_DT = dt * multiplier
+    relax_factor: 0.7
     
     # Timing parameters
-    ts: 0.02                # Sampling time
-    t_h: 2.0                # Horizon time
-    delta_t_erg: 2.0        # Ergodic time window
+    ts: 0.4                # Sampling time
+    t_h: 4                # Horizon time
+    delta_t_erg: 0.5        # Ergodic time window
     
     # Optimization parameters
     inf_buf_flag: true      # Whether to use infinite states buffer
@@ -38,21 +38,24 @@ agent:
     update_eid_freq: 2640   # How often to update EID phi function (110*2*3*4)
     
     # Safety parameters (CBF)
-    cbf_skip_iter: 8        # How often to apply CBF safety filter
+    cbf_skip_iter: 5        # How often to apply CBF safety filter
     delta_safe: 0.1
-    alpha_hdot: 100
-    alpha_h: 20
-    kappa_wall: 0.5
-    rho_wall: 1.5
-    kappa_obs: 1
+    alpha_hdot: 1
+    alpha_h: 0.008
+    
+    kappa_wall: 10
+    rho_wall: 35.0
+    
+    kappa_obs: 20
     rho_obs: 30
+    
     kappa_obs_virtual: 1    # Parameters for avoiding other agents
     rho_obs_virtual: 1.0
     
   # System parameters
   system:
     imax: ".inf"
-    publish_data_freq: 5    # How often to publish data to ROS topic
+    publish_data_freq: 17    # How often to publish data to ROS topic
   
   # Agent communication and range parameters (optional - can be overridden by command line)
   antenna_radius: ".inf"        # Infinite range by default
@@ -86,6 +89,6 @@ targets:
 
 # System flags
 flags:
-  localise_targets: true
+  localise_targets: false
   update_eid: false
   save_images: false

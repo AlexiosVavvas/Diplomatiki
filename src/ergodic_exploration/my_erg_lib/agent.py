@@ -9,7 +9,7 @@ from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory, removeObstacle
 
 # ROS Library
 from rclpy.node import Node
-from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates
+from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates, ObsAvoidanceDebug
 import re
 
 class Agent(Node):
@@ -97,6 +97,7 @@ class Agent(Node):
         self.data_publisher = self.create_publisher(AgentData, f'agent_{self.agent_id}/data', 10)
         self.target_est_publisher = self.create_publisher(MultipleTargetEstimates, f'agent_{self.agent_id}/target_estimates', 10)
         self.known_obst_publisher = self.create_publisher(MultipleObstacles, f'agent_{self.agent_id}/known_obstacles', 10)
+        self.obs_avoidance_debug_publisher = self.create_publisher(ObsAvoidanceDebug, f'agent_{self.agent_id}/obs_avoidance_debug', 10)
         # Timer to periodically publish data
         self.publish_timer = self.create_timer(0.5, self.publishTargetAndObstacleData)
 
@@ -588,40 +589,57 @@ class Agent(Node):
             U += obs.U(x[:2])
         return U
 
-    def calcPotentialUGradient(self, x):
+    # def calcPotentialUGradient(self, x):
+    #     """
+    #     Calculate the gradient of the potential function U at a given state x.
+    #     """
+    #     grad_U = np.zeros(2)
+    #     for obs in self.obstacle_list:
+    #         grad_U += obs.gradU(x[:2])
+
+    #     return grad_U
+    
+    def calcPotentialUAndGradient(self, x):
         """
-        Calculate the gradient of the potential function U at a given state x.
+        Calculate both the potential function U and its gradient at a given state x.
+        This is more efficient than calling calcPotentialU and calcPotentialUGradient separately,
+        as it computes rho only once per obstacle.
         """
+        U = 0
         grad_U = np.zeros(2)
         for obs in self.obstacle_list:
-            grad_U += obs.gradU(x[:2])
+            U_obs, grad_U_obs = obs.UandGradU(x[:2])
+            U += U_obs
+            grad_U += grad_U_obs
+        return U, grad_U
 
-        return grad_U
-
-    def calcH(self, x, delta=0.0):
+    def calcH(self, x, delta=0.0, u_value_precomputed=None):
         """
         Calculate h(x), the CBF (Control Barrier Function) value at a given state x.
         This function is used to ensure safety constraints are satisfied.
         """
-        U = self.calcPotentialU(x)
+        U = self.calcPotentialU(x) if u_value_precomputed is None else u_value_precomputed
         h = 1 / (1 + U) - delta
         return h
 
-    def calcHGradient(self, x):
+    def calcHGradient(self, x, also_return_h_flag=False):
         """
         Calculate the gradient of h(x) at a given state x.
         This function is used to ensure safety constraints are satisfied.
         ATTENTION: Returns 2x1 vector, only for positional dimensions. Need to append accordingly in order to multiply by f(x) later on.
         """
-        U = self.calcPotentialU(x)
-        grad_U = self.calcPotentialUGradient(x)
+        U, grad_U = self.calcPotentialUAndGradient(x)
         h_grad = -grad_U / (1 + U)**2
 
         # Append zeros for the other dimensions if needed (e.g., for quadcopter)
         if self.model.num_of_states > 2:
             h_grad = np.append(h_grad, np.zeros(self.model.num_of_states - 2))
 
-        return h_grad
+        if also_return_h_flag:
+            h = self.calcH(x, u_value_precomputed=U)
+            return h, h_grad
+        else:
+            return h_grad
 
     def calcHessianH(self, x, epsilon=1e-3):
         # Lets use finite differences to calculate the Hessian of h(x)
@@ -669,12 +687,11 @@ class Agent(Node):
 
     def calcUsafe(self, x, udef_now, alpha_1=1.0, alpha_2=1.0, delta=0.0):
 
-        # Calculate CBF function h(x)
-        h = self.calcH(x, delta)
-        # Calculate CBF gradient
-        grad_h = self.calcHGradient(x[:2])
+        # Calculate CBF function h(x) and ∇(x)
+        h, grad_h = self.calcHGradient(x[:2], also_return_h_flag=True)
+
         # Calculate CBF Hessian
-        hess_h = self.calcHessianH(x, epsilon=1e-4)
+        hess_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
 
         # System Dynamics
         f = self.model.f(x, udef_now)
@@ -685,7 +702,10 @@ class Agent(Node):
         h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
 
         PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
-        beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
+
+        # Beta Calculation
+        # beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
+        beta = (self.model.g(x).T @ hess_h + grad_h.T @ self.model.f_x(x, np.zeros_like(udef_now))) @ g
 
         if PSI >= 0:
             # No need to change the control input if PSI > 0, we are not in a danger zone
@@ -772,75 +792,75 @@ class Agent(Node):
                                 u_safe[1] += additional_steer
 
                 # TODO: Quad relative degree is more than 2 for roll, pitch, yaw. So cbf returns actions for only throttle (due to our linearization)
-                # elif isinstance(self.model, Quadcopter):
+                elif isinstance(self.model, Quadcopter):
 
-                #     # input order assumed: [thrust, yaw, pitch, roll]
-                #     m = self.model.m
-                #     hover_thrust = m * 9.81
+                    # input order assumed: [thrust, yaw, pitch, roll]
+                    m = self.model.m
+                    hover_thrust = m * 9.81
 
-                #     # weights: make thrust very expensive to change; attitude and yaw cheap(er)
-                #     w_thrust = 100.0       # very large -> penalize thrust changes
-                #     w_yaw   = 0.1
-                #     w_pitch = 0.1
-                #     w_roll  = 0.1
-                #     W = np.diag([w_thrust, w_yaw, w_pitch, w_roll])
-                #     Winv = np.linalg.inv(W)
+                    # weights: make thrust very expensive to change; attitude and yaw cheap(er)
+                    w_thrust = 100.0       # very large -> penalize thrust changes
+                    w_yaw   = 0.1
+                    w_pitch = 0.1
+                    w_roll  = 0.1
+                    W = np.diag([w_thrust, w_yaw, w_pitch, w_roll])
+                    Winv = np.linalg.inv(W)
 
-                #     beta_vec = np.asarray(beta).reshape(-1)   # shape (4,)
-                #     if np.linalg.norm(beta_vec) < 1e-9:
-                #         print(f"[Quadcopter CBF] beta_vec norm too small ({np.linalg.norm(beta_vec):.2e}), setting u_safe = 0")
-                #         u_safe = np.zeros_like(udef_now)
-                #     else:
-                #         denom = beta_vec @ (Winv @ beta_vec)
-                #         print(f"[Quadcopter CBF] denom: {denom:.4e}, PSI: {PSI:.4e}")
-                #         if np.abs(denom) < 1e-12:
-                #             print(f"[Quadcopter CBF] denom too small ({denom:.2e}), setting u_safe = 0")
-                #             u_safe = np.zeros_like(udef_now)
-                #         else:
-                #             # weighted-LS closed form
-                #             u_delta = - (Winv @ beta_vec) * (PSI / denom) * 10 ** -4 * 3  # proposed delta to nominal
-                #             print(f"[Quadcopter CBF] u_delta (proposed): {u_delta}")
+                    beta_vec = np.asarray(beta).reshape(-1)   # shape (4,)
+                    if np.linalg.norm(beta_vec) < 1e-9:
+                        print(f"[Quadcopter CBF] beta_vec norm too small ({np.linalg.norm(beta_vec):.2e}), setting u_safe = 0")
+                        u_safe = np.zeros_like(udef_now)
+                    else:
+                        denom = beta_vec @ (Winv @ beta_vec)
+                        print(f"[Quadcopter CBF] denom: {denom:.4e}, PSI: {PSI:.4e}")
+                        if np.abs(denom) < 1e-12:
+                            print(f"[Quadcopter CBF] denom too small ({denom:.2e}), setting u_safe = 0")
+                            u_safe = np.zeros_like(udef_now)
+                        else:
+                            # weighted-LS closed form
+                            u_delta = - (Winv @ beta_vec) * (PSI / denom) * 10 ** -4 * 3  # proposed delta to nominal
+                            print(f"[Quadcopter CBF] u_delta (proposed): {u_delta}")
 
-                #             # enforce a minimum allowed total thrust (so we don't "dive through")
-                #             min_thrust_fraction = 0.95   # tune: 0.6..0.95 depending on safety desired
-                #             min_allowed_total_thrust = min_thrust_fraction * hover_thrust
-                #             proposed_total_thrust = udef_now[0] + u_delta[0]
-                #             print(f"[Quadcopter CBF] proposed_total_thrust: {proposed_total_thrust:.4f}, min_allowed_total_thrust: {min_allowed_total_thrust:.4f}")
+                            # enforce a minimum allowed total thrust (so we don't "dive through")
+                            min_thrust_fraction = 0.95   # tune: 0.6..0.95 depending on safety desired
+                            min_allowed_total_thrust = min_thrust_fraction * hover_thrust
+                            proposed_total_thrust = udef_now[0] + u_delta[0]
+                            print(f"[Quadcopter CBF] proposed_total_thrust: {proposed_total_thrust:.4f}, min_allowed_total_thrust: {min_allowed_total_thrust:.4f}")
 
-                #             if proposed_total_thrust < min_allowed_total_thrust:
-                #                 print(f"[Quadcopter CBF] proposed_total_thrust below minimum, fixing thrust to {min_allowed_total_thrust:.4f}")
-                #                 # fix thrust delta to reach the minimum allowed total thrust
-                #                 u_delta_thrust_fixed = min_allowed_total_thrust - udef_now[0]
-                #                 # compute remaining RHS after accounting for the fixed thrust contribution
-                #                 b0 = beta_vec[0] * u_delta_thrust_fixed * 10
-                #                 residual_rhs = -PSI - b0
+                            if proposed_total_thrust < min_allowed_total_thrust:
+                                print(f"[Quadcopter CBF] proposed_total_thrust below minimum, fixing thrust to {min_allowed_total_thrust:.4f}")
+                                # fix thrust delta to reach the minimum allowed total thrust
+                                u_delta_thrust_fixed = min_allowed_total_thrust - udef_now[0]
+                                # compute remaining RHS after accounting for the fixed thrust contribution
+                                b0 = beta_vec[0] * u_delta_thrust_fixed * 10
+                                residual_rhs = -PSI - b0
 
-                #                 # redistribute residual among attitude channels (indices 1..3)
-                #                 beta_others = beta_vec[1:]
-                #                 W_others = W[1:, 1:]
-                #                 try:
-                #                     Winv_others = np.linalg.inv(W_others)
-                #                 except np.linalg.LinAlgError:
-                #                     print("[Quadcopter CBF] Winv_others not invertible, using thrust only")
-                #                     # fallback: cannot invert, return with clipped thrust only
-                #                     u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
-                #                 else:
-                #                     denom2 = beta_others @ (Winv_others @ beta_others)
-                #                     print(f"[Quadcopter CBF] denom2: {denom2:.4e}, residual_rhs: {residual_rhs:.4e}")
-                #                     if np.abs(denom2) < 1e-12:
-                #                         print("[Quadcopter CBF] denom2 too small, using thrust only")
-                #                         # can't redistribute, use thrust only (clipped)
-                #                         u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
-                #                     else:
-                #                         u_others_delta = - (Winv_others @ beta_others) * (residual_rhs / denom2)
-                #                         print(f"[Quadcopter CBF] u_others_delta: {u_others_delta}")
-                #                         u_safe = np.concatenate(([u_delta_thrust_fixed], u_others_delta))
-                #             else:
-                #                 print(f"[Quadcopter CBF] using u_delta as u_safe: {u_delta}")
-                #                 u_safe = u_delta
+                                # redistribute residual among attitude channels (indices 1..3)
+                                beta_others = beta_vec[1:]
+                                W_others = W[1:, 1:]
+                                try:
+                                    Winv_others = np.linalg.inv(W_others)
+                                except np.linalg.LinAlgError:
+                                    print("[Quadcopter CBF] Winv_others not invertible, using thrust only")
+                                    # fallback: cannot invert, return with clipped thrust only
+                                    u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
+                                else:
+                                    denom2 = beta_others @ (Winv_others @ beta_others)
+                                    print(f"[Quadcopter CBF] denom2: {denom2:.4e}, residual_rhs: {residual_rhs:.4e}")
+                                    if np.abs(denom2) < 1e-12:
+                                        print("[Quadcopter CBF] denom2 too small, using thrust only")
+                                        # can't redistribute, use thrust only (clipped)
+                                        u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
+                                    else:
+                                        u_others_delta = - (Winv_others @ beta_others) * (residual_rhs / denom2)
+                                        print(f"[Quadcopter CBF] u_others_delta: {u_others_delta}")
+                                        u_safe = np.concatenate(([u_delta_thrust_fixed], u_others_delta))
+                            else:
+                                print(f"[Quadcopter CBF] using u_delta as u_safe: {u_delta}")
+                                u_safe = u_delta
 
-                #     # Clip to allowed uLimits
-                #     u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
+                    # Clip to allowed uLimits
+                    u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
 
                 else:
                     # Standard least squares solution for safety control
@@ -850,6 +870,19 @@ class Agent(Node):
         # Apply control limits
         u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
 
+        # TODO: Currently we need to Reverse rudder for this to work, or change sign in Cn_dr (-1 => +1). Inspect more on why.
+        if self.model.type == 'FixedWing12DOFTrainer' or self.model.type == 'FixedWing12DOFTrainerJAX':
+            u_safe[2] *= -1
+
+        # Publish debug information
+        debug_msg = ObsAvoidanceDebug()
+        debug_msg.psi = float(PSI)
+        debug_msg.hddot = float(h_ddot)
+        debug_msg.two_alpha_h_hdot = float(2 * alpha_1 * h_dot)
+        debug_msg.alpha2_h = float(alpha_2 * h)
+        debug_msg.beta = beta.flatten().tolist()
+        debug_msg.u_safe = u_safe.flatten().tolist()
+        self.obs_avoidance_debug_publisher.publish(debug_msg)
 
         return u_safe
     

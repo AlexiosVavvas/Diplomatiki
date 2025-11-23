@@ -213,6 +213,9 @@ CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my
  /opt/ros/humble/include/std_msgs/std_msgs/msg/detail/header__struct.h \
  /opt/ros/humble/include/builtin_interfaces/builtin_interfaces/msg/detail/time__struct.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/agent_data__functions.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/aircraft_data__type_support.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/aircraft_data__struct.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/aircraft_data__functions.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__type_support.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__struct.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__functions.h \
@@ -224,4 +227,7 @@ CMakeFiles/my_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/my
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_target_estimate__functions.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__type_support.h \
  /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__struct.h \
- /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.h
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_target_estimates__functions.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__struct.h \
+ /home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/obs_avoidance_debug__functions.h

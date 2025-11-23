@@ -71,17 +71,21 @@ my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interface
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_ck_table.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_agent_data.py
+my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_aircraft_data.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_obstacle.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_obstacles.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_target_estimate.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates.py
+my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/__init__.py
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_ck_table_s.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_agent_data_s.c
+my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c
 my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c
+my_interfaces__py/CMakeFiles/my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c
 
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/lib/rosidl_generator_py/rosidl_generator_py
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_generator_py/__init__.py
@@ -98,10 +102,12 @@ rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtp
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/rosidl_generator_py/resource/_srv.py.em
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/CkTable.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/AgentData.idl
+rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/AircraftData.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/SingleObstacle.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/MultipleObstacles.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/SingleTargetEstimate.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/MultipleTargetEstimates.idl
+rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/my_interfaces/msg/ObsAvoidanceDebug.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
@@ -181,6 +187,9 @@ rosidl_generator_py/my_interfaces/msg/_ck_table.py: rosidl_generator_py/my_inter
 rosidl_generator_py/my_interfaces/msg/_agent_data.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_agent_data.py
 
+rosidl_generator_py/my_interfaces/msg/_aircraft_data.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_aircraft_data.py
+
 rosidl_generator_py/my_interfaces/msg/_single_obstacle.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_single_obstacle.py
 
@@ -193,6 +202,9 @@ rosidl_generator_py/my_interfaces/msg/_single_target_estimate.py: rosidl_generat
 rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates.py
 
+rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug.py
+
 rosidl_generator_py/my_interfaces/msg/__init__.py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/__init__.py
 
@@ -201,6 +213,9 @@ rosidl_generator_py/my_interfaces/msg/_ck_table_s.c: rosidl_generator_py/my_inte
 
 rosidl_generator_py/my_interfaces/msg/_agent_data_s.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_agent_data_s.c
+
+rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c
 
 rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c
@@ -214,6 +229,9 @@ rosidl_generator_py/my_interfaces/msg/_single_target_estimate_s.c: rosidl_genera
 rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c
 
+rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c
+
 my_interfaces__py: my_interfaces__py/CMakeFiles/my_interfaces__py
 my_interfaces__py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
@@ -221,12 +239,16 @@ my_interfaces__py: rosidl_generator_py/my_interfaces/_my_interfaces_s.ep.rosidl_
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/__init__.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_agent_data.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_agent_data_s.c
+my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_aircraft_data.py
+my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_aircraft_data_s.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_ck_table.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_ck_table_s.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_obstacles.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_obstacles_s.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_multiple_target_estimates_s.c
+my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug.py
+my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_obs_avoidance_debug_s.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_obstacle.py
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_obstacle_s.c
 my_interfaces__py: rosidl_generator_py/my_interfaces/msg/_single_target_estimate.py

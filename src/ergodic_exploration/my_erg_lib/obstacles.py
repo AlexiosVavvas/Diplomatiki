@@ -236,29 +236,58 @@ class Obstacle():
         Potential function for the obstacle avoidance.
         """
         rho = self.rhoFunc(x[:2])
-        if rho == 0:
+
+        # Quick distance check before calculation
+        if rho >= self.rho0:
+            # U = 0 for rho >= rho0
+            return 0.0
+        elif rho == 0:
             rho = 1e-6  # Avoid division by zero
         elif rho < 0:
             return np.inf  # If the agent is inside the obstacle, return infinity
-        elif rho >= self.rho0:
-            # U = 0 for rho >= rho0
-            rho = self.rho0
 
         return 0.5 * self.kappa * (1 / rho - 1 / self.rho0) ** 2
 
-    def gradU(self, x):
+    # def gradU(self, x):
+    #     """
+    #     Gradient of the potential function for the obstacle avoidance.
+    #     """
+    #     rho = self.rhoFunc(x[:2])
+    #     rho = rho if rho != 0 else 1e-6  # Avoid division by zero
+    #     # Calculate ∇ρ
+    #     if rho >= self.rho0:
+    #         return np.zeros(2) # ∇ρ = 0 -> ∇U = 0
+    #     else: 
+    #         grad_rho = self.gradRhoFunc(x[:2])
+
+    #     return -self.kappa / (rho**2) * (1 / rho - 1 / self.rho0) * grad_rho
+    
+    def UandGradU(self, x):
         """
-        Gradient of the potential function for the obstacle avoidance.
+        Returns both the potential function and its gradient for the obstacle avoidance.
+        More efficient than calling U() and gradU() separately as it computes rho only once.
         """
         rho = self.rhoFunc(x[:2])
-        rho = rho if rho != 0 else 1e-6  # Avoid division by zero
-        # Calculate ∇ρ
-        if rho >= self.rho0:
-            grad_rho = np.zeros_like(x[:2])
-        else: 
-            grad_rho = self.gradRhoFunc(x[:2])
 
-        return -self.kappa / (rho**2) * (1 / rho - 1 / self.rho0) * grad_rho
+        # Quick distance check before calculation
+        if rho >= self.rho0:
+            # U = 0 for rho >= rho0
+            return 0.0, np.zeros(2) # ∇ρ = 0 -> ∇U = 0
+        
+        if rho <= 0:
+            # Agent is inside the obstacle
+            rho = 1e-6  # Avoid division by zero in gradient calculation
+            grad_rho = self.gradRhoFunc(x[:2])
+            return np.inf, grad_rho
+        
+        # Normal case: 0 < rho < rho0
+        ratio = 1 / rho - 1 / self.rho0
+        U = 0.5 * self.kappa * ratio * ratio # ratio ** 2 but avoids python overhead for exponentiation
+        
+        grad_rho = self.gradRhoFunc(x[:2])
+        grad_U = -self.kappa / (rho * rho) * ratio * grad_rho
+
+        return U, grad_U
 
 def saveObstaclesToMemory(agent: "Agent", obs_list):
     # Make sure the list is not empty

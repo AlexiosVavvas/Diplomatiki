@@ -214,7 +214,7 @@ def setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS):
 def main(args=None):
     from my_erg_lib.agent import Agent
     from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder, FixedWing12DOFTrainer
+    from my_erg_lib.model_dynamics import SingleIntegrator, DoubleIntegrator, Quadcopter, SimpleBoatSecondOrder, SimpleCarSecondOrder, FixedWing12DOFTrainer, FixedWing12DOFTrainerJAX
     from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
     from my_erg_lib.basis import ReconstructedPhi, ReconstructedPhiFromCk
     import matplotlib.pyplot as plt
@@ -379,7 +379,7 @@ def main(args=None):
                                            max_allowed_rev_thr=max_allowed_rev_thr, steer_priority=steer_priority)
 
     # Fixed Wing model
-    elif MODEL_TYPE == "FixedWing12DOFTrainer":
+    elif MODEL_TYPE == "FixedWing12DOFTrainer" or MODEL_TYPE == "FixedWing12DOFTrainerJAX":
         try:
             v_trim = dynamics_config['v_trim']
             use_linear_f = dynamics_config['use_linear_f']
@@ -390,9 +390,14 @@ def main(args=None):
             print("Required parameters: v_trim, use_linear_f, use_linear_fx_fu")
             sys.exit(3)
         
-        #                                            x0=[x,              y,              z,    φ, θ,    ψ,     u,      v, w, p, q, r]
-        dynamic_model = FixedWing12DOFTrainer(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 80.0, 0, 0.07, 0.053, v_trim, 0, 0, 0, 0, 0],
-                                            v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
+        # Only X, Y, Z and Yaw (psi) can be changed from here. The others are overwritten by trim state.
+        #                                                   x0=[x,              y,              z,      φ, θ,    ψ,     u,      v, w, p, q, r]
+        if MODEL_TYPE == "FixedWing12DOFTrainer":
+            dynamic_model = FixedWing12DOFTrainer(dt=dt,    x0=[INIT_POS_2D[0], INIT_POS_2D[1], -100.0, 0, 0.12, 0.053, v_trim, 0, 0, 0, 0, 0],
+                                                v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
+        else:
+            dynamic_model = FixedWing12DOFTrainerJAX(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -100.0, 0, 0.12, 0.053, v_trim, 0, 0, 0, 0, 0],
+                                                v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
         
         # Add trim inputs to every input from now on using a nominal function
         try:
@@ -650,8 +655,8 @@ def main(args=None):
                     rem_time_max = expected_time_max - elapsed_time_max     # rem_time_simple = delta_time * (IMAX-i)/Ts_iter
                     # print(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {rem_time_max:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)")
                     # print(f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/T = {(tau - ti)/agent.erg_c.T:.1%} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
-                    agent.get_logger().info(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {rem_time_max:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)\n"
-                                             f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/T = {(tau - ti)/agent.erg_c.T:.1%} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
+                    # agent.get_logger().info(f"ti = {ti:.2f} s\t Erg cost: {erg_cost:.2f} \t i: {i}/{IMAX:.0f} \t perc: {i/IMAX:.2%} \t Δt/Ts: {delta_time/agent.erg_c.Ts:.2f}\t remaining: {rem_time_max:.0f} s\t elapsed: {time.time()-initial_time:.1f} s ({time.time()-initial_time + delta_time * (IMAX-i)/Ts_iter:.0f} s) ({IMAX/(i+1)*(time.time()-initial_time):.0f} s)\n"
+                    #                          f"{agent.model.state_string} \n u = {u_str(us)} \t (tau - ti)/T = {(tau - ti)/agent.erg_c.T:.1%} \t lamda_dur = {lamda_dur:.4f} \t lamda/Ts = {lamda_dur/agent.erg_c.Ts:.2%}\n")
 
                 # Debug print if agent inside boundaries
                 agent.withinBounds(agent.model.state[:2])

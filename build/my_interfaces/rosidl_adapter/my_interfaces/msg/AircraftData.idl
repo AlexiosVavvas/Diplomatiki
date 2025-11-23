@@ -1,0 +1,140 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from my_interfaces/msg/AircraftData.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module my_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "AircraftData Message" "\n"
+      "Complete flight state information for fixed-wing aircraft in NED frame")
+    struct AircraftData {
+      @verbatim (language="comment", text=
+        "Standard ROS header with timestamp and frame_id")
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        "Position (NED frame, meters)" "\n"
+        "Position north (m)")
+      double north;
+
+      @verbatim (language="comment", text=
+        "Position east (m)")
+      double east;
+
+      @verbatim (language="comment", text=
+        "Position down (m)")
+      double down;
+
+      @verbatim (language="comment", text=
+        "Altitude above reference (m)")
+      double altitude;
+
+      @verbatim (language="comment", text=
+        "Attitude (radians and degrees)" "\n"
+        "Roll angle (rad)")
+      double roll;
+
+      @verbatim (language="comment", text=
+        "Pitch angle (rad)")
+      double pitch;
+
+      @verbatim (language="comment", text=
+        "Yaw angle (rad)")
+      double yaw;
+
+      @verbatim (language="comment", text=
+        "Roll angle (deg)")
+      double roll_deg;
+
+      @verbatim (language="comment", text=
+        "Pitch angle (deg)")
+      double pitch_deg;
+
+      @verbatim (language="comment", text=
+        "Yaw angle (deg)")
+      double yaw_deg;
+
+      @verbatim (language="comment", text=
+        "Body frame velocities (m/s)" "\n"
+        "Velocity along aircraft nose (m/s)")
+      double u_forward;
+
+      @verbatim (language="comment", text=
+        "Velocity to the right (m/s)")
+      double v_sideways;
+
+      @verbatim (language="comment", text=
+        "Velocity through aircraft belly (m/s)")
+      double w_downward;
+
+      @verbatim (language="comment", text=
+        "Total airspeed (m/s)")
+      double airspeed;
+
+      @verbatim (language="comment", text=
+        "NED frame velocities (m/s)" "\n"
+        "Velocity north (m/s)")
+      double v_north;
+
+      @verbatim (language="comment", text=
+        "Velocity east (m/s)")
+      double v_east;
+
+      @verbatim (language="comment", text=
+        "Velocity down (m/s)")
+      double v_down;
+
+      @verbatim (language="comment", text=
+        "Climb rate, positive up (m/s)")
+      double climb_rate;
+
+      @verbatim (language="comment", text=
+        "Horizontal ground speed (m/s)")
+      double ground_speed;
+
+      @verbatim (language="comment", text=
+        "Angular rates (rad/s and deg/s)" "\n"
+        "Roll rate (rad/s)")
+      double p_roll_rate;
+
+      @verbatim (language="comment", text=
+        "Pitch rate (rad/s)")
+      double q_pitch_rate;
+
+      @verbatim (language="comment", text=
+        "Yaw rate (rad/s)")
+      double r_yaw_rate;
+
+      @verbatim (language="comment", text=
+        "Roll rate (deg/s)")
+      double p_deg_s;
+
+      @verbatim (language="comment", text=
+        "Pitch rate (deg/s)")
+      double q_deg_s;
+
+      @verbatim (language="comment", text=
+        "Yaw rate (deg/s)")
+      double r_deg_s;
+
+      @verbatim (language="comment", text=
+        "Aerodynamic angles" "\n"
+        "Angle of attack (rad)")
+      double alpha;
+
+      @verbatim (language="comment", text=
+        "Sideslip angle (rad)")
+      double beta;
+
+      @verbatim (language="comment", text=
+        "Angle of attack (deg)")
+      double alpha_deg;
+
+      @verbatim (language="comment", text=
+        "Sideslip angle (deg)")
+      double beta_deg;
+    };
+  };
+};

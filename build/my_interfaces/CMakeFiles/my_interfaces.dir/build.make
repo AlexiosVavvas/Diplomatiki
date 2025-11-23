@@ -68,10 +68,12 @@ include CMakeFiles/my_interfaces.dir/progress.make
 
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/CkTable.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/AgentData.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/AircraftData.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/SingleObstacle.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleObstacles.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/SingleTargetEstimate.msg
 CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/MultipleTargetEstimates.msg
+CMakeFiles/my_interfaces: /home/avavvas/dipl/src/my_interfaces/msg/ObsAvoidanceDebug.msg
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Bool.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/Byte.idl
 CMakeFiles/my_interfaces: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl

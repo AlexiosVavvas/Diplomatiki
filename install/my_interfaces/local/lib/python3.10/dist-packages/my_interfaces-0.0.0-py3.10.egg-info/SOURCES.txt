@@ -1,6 +1,1 @@
-setup.py
-my_interfaces/__init__.py
-my_interfaces.egg-info/PKG-INFO
-my_interfaces.egg-info/SOURCES.txt
-my_interfaces.egg-info/dependency_links.txt
-my_interfaces.egg-info/top_level.txt
+/home/avavvas/dipl/build/my_interfaces/ament_cmake_python/my_interfaces/my_interfaces.egg-info/SOURCES.txt

@@ -238,7 +238,114 @@ class DecentralisedErgodicController():
 
         return us, tau, lamda_duration, erg_cost
 
+    # Same function but prints a table with times, regarding the different stages of the calculation
+    # Just comment out the above, and rename this one to calcNextActionTriplet
+    def calcNextActionTripletTIMING(self, ti, prediction_dt=None):
+        """
+        Calculate the next action based on the current state and the target distribution.
+        Returns the ergodic control triplet: 
+            (u, τ, λ) = (us, tau, lamda_duration)
+        where:
+            - us: the ergodic control action to be applied
+            - tau: the time at which the control action should start (τ ε [ti, ti + Ts])
+            - lamda_duration: the duration for which the control action should be applied (λ ε [0, Ts])
+        """
+        import time
+        timings = {}
+        t_total_start = time.perf_counter()
+        
+        # Set default prediction_dt to model_dt if not provided
+        prediction_dt = self.agent.model.dt if prediction_dt is None else prediction_dt
 
+        # Simulate Trajectory Forward using prediction dt
+        t_start = time.perf_counter()
+        x_traj, u_traj, t_traj = self.agent.model.simulateForward(x0=self.agent.model.state, ti=ti, udef=self.uDef, T=self.T, dt=prediction_dt)
+        erg_traj = x_traj[:, :2] # Save seperately the ergodic dimensions
+        timings['Forward Simulation'] = (time.perf_counter() - t_start) * 1000
+        
+        # Calc Ck Coefficients
+        t_start = time.perf_counter()
+        if self.use_inf_buffer:
+            ck = self.agent.basis.calcCkCoeffRecursive(erg_traj, ti, self.T, self.Ts, self.t0_erg, x_buffer=self.past_states_buffer.get())
+        else:
+            ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
+        timings['Ck Calculation'] = (time.perf_counter() - t_start) * 1000
+
+        # Publish ck values to ROS topic
+        t_start = time.perf_counter()
+        self.agent.publishCk(ck.flatten())
+        timings['Publish Ck'] = (time.perf_counter() - t_start) * 1000
+        
+        t_start = time.perf_counter()
+        erg_cost = self.calcErgodicCost(ck)
+        timings['Ergodic Cost'] = (time.perf_counter() - t_start) * 1000
+        
+        # Now we can communicate with others, since we have already calculated our part (+ personal erg cost etc)
+        ck += self.ck_aver_others             # Add the average Ck of the other agents
+
+        # Simulate Adjoint Backward to get rho(t)
+        t_start = time.perf_counter()
+        rho, _ = self.simulateAdjointBackward(x_traj, u_traj, t_traj, ck, T=self.T, Q=self.Q, num_of_agents=self.num_of_agents)
+        timings['Adjoint Simulation'] = (time.perf_counter() - t_start) * 1000
+        # vis.simplePlot(x=t_traj - ti, y=rho, 
+        #            title="Time [s]", y_label="Rho Values", y_type="np.array",
+        #            x_lim=None, y_lim=None,
+        #            T_SHOW=0.1, fig_num=0)
+
+        # Evaluate Ustar
+        t_start = time.perf_counter()
+        ustar = np.zeros((len(x_traj), self.agent.model.num_of_inputs))
+        for i in range(len(x_traj)):
+            # Ergodic part of the solution
+            ustar[i] = -self.Rinv @ self.agent.model.h(x_traj[i]).T @ rho[i]
+
+            # Add Nominal control instead of default
+            ustar[i] += self.uNominal(x_traj[i], ti + i * prediction_dt)
+        timings['Ustar Evaluation'] = (time.perf_counter() - t_start) * 1000
+        
+        # Calculate Application Time
+        t_start = time.perf_counter()
+        tau, Jtau = self.calcApplicationTime(ustar, rho, x_traj, t_traj, ti, self.T)
+        timings['Application Time'] = (time.perf_counter() - t_start) * 1000
+        # assert Jtau < 0, "Jtau is Non Negative, which is not expected."
+        if Jtau >= 0:
+            print(f"Warning: Jtau is Non Negative ({Jtau}), which is not expected.")
+
+        # Determine Control Duration
+        t_start = time.perf_counter()
+        lamda_duration = self.calcLambdaDuration() # Default: 0.1 * Ts
+        timings['Lambda Duration'] = (time.perf_counter() - t_start) * 1000
+
+        # Keep the approprate control from t=tau
+        t_start = time.perf_counter()
+        us = ustar[int((tau - ti) / prediction_dt)]
+
+        # So we have the triplet:
+        # (u, τ, λ) = (us, tau, lamda_duration)
+
+        # Saturate Control to given limits
+        us = np.clip(us, self.uLimits[:, 0], self.uLimits[:, 1])
+        timings['Control Selection'] = (time.perf_counter() - t_start) * 1000
+        
+        # Calculate total time
+        timings['TOTAL'] = (time.perf_counter() - t_total_start) * 1000
+        
+        # Print timing table
+        Ts_ms = self.Ts * 1000
+        print("\n" + "="*70)
+        print(f"{'Stage':<25} {'Time (ms)':<15} {'% of Ts':<15}")
+        print("="*70)
+        for stage, elapsed_ms in timings.items():
+            percentage = (elapsed_ms / Ts_ms) * 100
+            if stage == 'TOTAL':
+                print("-"*70)
+            print(f"{stage:<25} {elapsed_ms:>10.3f} ms   {percentage:>10.2f} %")
+        print("="*70)
+        print(f"Ts = {Ts_ms:.1f} ms\n")
+        
+        print(f"ERG:  us = {us[0]*180/3.1415:.2f}, {us[1]*180/3.1415:.2f}, {us[2]*180/3.1415:.2f}, {us[3]:.2%} | Jtau = {Jtau:.2e} | ErgCost = {erg_cost:.4f}")
+
+        return us, tau, lamda_duration, erg_cost
 
     def calcApplicationTime(self, ustar, rho, x_traj, t_traj, ti, T):
 

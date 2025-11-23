@@ -1,7 +1,8 @@
-matplotlib
+setuptools
 numpy
 scipy
-setuptools
+matplotlib
+flightgear-python
 
 [test]
 pytest

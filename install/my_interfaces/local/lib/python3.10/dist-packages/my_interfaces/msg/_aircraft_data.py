@@ -1,0 +1,1 @@
+/home/avavvas/dipl/build/my_interfaces/rosidl_generator_py/my_interfaces/msg/_aircraft_data.py

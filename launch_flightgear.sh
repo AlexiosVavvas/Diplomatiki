@@ -57,8 +57,8 @@ fi
 echo "========================================="
 echo "Starting FlightGear Visualizer"
 echo "========================================="
-echo "Aircraft:    $AIRCRAFT"
-echo "Airport:     $AIRPORT"
+# echo "Aircraft:    $AIRCRAFT"
+# echo "Airport:     $AIRPORT"
 echo "FDM In:      localhost:$FDM_IN_PORT"
 echo "FDM Out:     localhost:$FDM_OUT_PORT"
 echo "Update Rate: ${UPDATE_RATE} Hz"
@@ -73,17 +73,17 @@ fgfs \
     --fdm=null \
     --native-fdm=socket,in,${UPDATE_RATE},localhost,${FDM_IN_PORT},udp \
     --native-fdm=socket,out,${UPDATE_RATE},localhost,${FDM_OUT_PORT},udp \
-    --aircraft=${AIRCRAFT} \
-    --airport=${AIRPORT} \
-    --disable-real-weather-fetch \
-    --disable-horizon-effect \
-    --disable-clouds \
-    --disable-clouds3d \
     --timeofday=noon \
-    --fog-disable \
-    --disable-random-objects \
-    --disable-ai-models \
-    --disable-ai-traffic
+    # --airport=${AIRPORT} \
+    # --aircraft=${AIRCRAFT} \
+    # --disable-real-weather-fetch \
+    # --disable-clouds \
+    # --disable-clouds3d \
+    # --fog-disable \
+    # --disable-random-objects \
+    # --disable-ai-models \
+    # --disable-ai-traffic
+    # --disable-horizon-effect \
 
 # Note: Additional performance options above
 # Remove them if you want better visuals but slower performance

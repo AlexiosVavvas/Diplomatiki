@@ -35,25 +35,61 @@ class DynamicsBase(ABC):
         pass
     
     @abstractmethod
-    def f_u(self, x):
-        """Jacobian of dynamics with respect to input - must be implemented by subclasses."""
+    def f_u(self, x, u=None):
+        """
+        Jacobian of dynamics with respect to input - must be implemented by subclasses.
+        
+        Args:
+            x: State vector
+            u: Input vector at which to evaluate Jacobian (optional, defaults vary by implementation)
+        """
         pass
     
-    def g(self, x):
+    def g(self, x, u_ref=None):
         """
-        Affine Dynamics, States Part
-        x' = f(x) = g(x) + h(x) u
-        Default implementation assumes f(x, 0) = g(x)
+        Affine Dynamics, Drift Term
+        x' = f(x,u) ≈ g(x) + h(x) u
+        
+        For better approximation around a reference input u_ref:
+        g(x) = f(x, u_ref) - h(x) @ u_ref
+        
+        Args:
+            x: State vector
+            u_ref: Reference input (default: zeros, or trim if available)
+        
+        Returns:
+            Drift vector g(x)
         """
-        return self.f(x, np.zeros((self.num_of_inputs,)))
+        if u_ref is None:
+            # Try to use trim input if available, otherwise zeros
+            u_ref = getattr(self, 'u_trim', np.zeros((self.num_of_inputs,)))
+        
+        # g(x) = f(x, u_ref) - f_u(x, u_ref) @ u_ref
+        # This ensures: f(x, u) ≈ g(x) + h(x) @ u
+        f_at_ref = self.f(x, u_ref)
+        h_x = self.h(x, u_ref)
+        
+        return f_at_ref - h_x @ u_ref
     
-    def h(self, x):
+    def h(self, x, u_ref=None):
         """
-        Affine Dynamics Control Part
-        x' = f(x) = g(x) + h(x) u
-        Default implementation returns f_u(x)
+        Affine Dynamics, Control Effectiveness Matrix
+        x' = f(x,u) ≈ g(x) + h(x) u
+        
+        Returns the input Jacobian h(x) = df/du evaluated at reference input u_ref.
+        
+        Args:
+            x: State vector
+            u_ref: Reference input for Jacobian evaluation (default: zeros, or trim if available)
+        
+        Returns:
+            Control effectiveness matrix h(x)
         """
-        return self.f_u(x)
+        if u_ref is None:
+            # Try to use trim input if available, otherwise zeros
+            u_ref = getattr(self, 'u_trim', np.zeros((self.num_of_inputs,)))
+        
+        return self.f_u(x, u_ref)
     
     def step(self, x, u, dt=None):
         """Euler integration step."""
@@ -146,7 +182,7 @@ class SingleIntegrator(DynamicsBase):
         '''
         return self.A.copy()
 
-    def f_u(self, x):
+    def f_u(self, x, u=None):
         '''
         Jacobian of the dynamics with respect to u
         '''
@@ -219,7 +255,7 @@ class DoubleIntegrator(DynamicsBase):
         '''
         return self.A.copy()
 
-    def f_u(self, x):
+    def f_u(self, x, u=None):
         '''
         Jacobian of the dynamics with respect to u
         '''
@@ -445,7 +481,7 @@ class Quadcopter(DynamicsBase):
 
         return A
 
-    def f_u(self, x):
+    def f_u(self, x, u=None):
         """
         Return fresh B(x) matrix (mapping u -> state derivatives).
         """
@@ -578,7 +614,7 @@ class SimpleBoatSecondOrder(DynamicsBase):
     
         return fx.copy()
 
-    def f_u(self, x):
+    def f_u(self, x, u=None):
         '''
         Jacobian of the dynamics with respect to u
         '''
@@ -693,7 +729,7 @@ class SimpleCarSecondOrder(DynamicsBase):
 
         return fx.copy()
 
-    def f_u(self, x):
+    def f_u(self, x, u=None):
         """
         Jacobian of f w.r.t. inputs u (6x2 matrix)
         Inputs are [drive_force, steer_cmd]
@@ -738,7 +774,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
 
         # default parameter set (good starting point for 1.5 m trainer)
         default_params = {
-            'm': 1.6,        # kg
+            'm': 2,          # kg (def: 1.6)
             'S': 0.36,       # m^2
             'b': 1.50,       # m (span)
             'c': 0.2407,     # m (mean aerodynamic chord ~ S/b)
@@ -767,9 +803,9 @@ class FixedWing12DOFTrainer(DynamicsBase):
             'CY_beta': -0.02,
             # control-surface derivatives (starter guesses)
             'C_ell_da': 0.10,   # roll per aileron rad
-            'C_ell_dr': 0.01,   # roll per rudder rad
+            'C_ell_dr': 0.03,   # roll per rudder rad (def: 0.01)
             'Cn_da': -0.03,     # yaw per aileron rad (adverse yaw)
-            'Cn_dr': -0.10,     # yaw per rudder rad
+            'Cn_dr': -0.10,     # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
             'CY_da': 0.0,       # side force per aileron rad
             'CY_dr': 0.12,      # side force per rudder rad
             'CY_p': 0.0,
@@ -799,11 +835,62 @@ class FixedWing12DOFTrainer(DynamicsBase):
         self.u_trim = u_trim
         self.trim_sol_flags = sol
 
+        # Reset part of state to trim point
+        x_new = self.x_trim.copy()
+        x_new[0] = self.state[0]  # X
+        x_new[1] = self.state[1]  # Y
+        x_new[2] = self.state[2]  # Z
+        x_new[5] = self.state[5]  # psi
+        self.reset(x_new)
+
+        # Print initial position
+        print(f"State \n{self.state_string}")
+
         # Linearise flight dynamics
         # x_dot = A x + B u
         self.A, self.B = self.linearizeAtTrimPoint(self.x_trim, self.u_trim)
         self.use_linear_model_for_f = use_linear_f
         self.use_linear_model_for_fx_fu = use_linear_fx_fu
+
+    def _extract_params(self, params):
+        """Extract parameters from dictionary for Jacobian computation."""
+        m = params['m']
+        S = params['S']
+        b = params['b']
+        c = params['c']
+        rho = params['rho']
+        Ix = params['Ix']
+        Iy = params['Iy']
+        Iz = params['Iz']
+        Ixz = params['Ixz']
+        CL0 = params['CL0']
+        CL_alpha = params['CL_alpha']
+        CL_q = params['CL_q']
+        CL_de = params['CL_de']
+        CD0 = params['CD0']
+        k_drag = params.get('k_drag', params.get('k', 0.0639))
+        Cm_alpha = params['Cm_alpha']
+        Cm_q = params['Cm_q']
+        Cm_de = params['Cm_de']
+        CY_beta = params['CY_beta']
+        CY_p = params['CY_p']
+        CY_r = params['CY_r']
+        CY_da = params['CY_da']
+        CY_dr = params['CY_dr']
+        C_ell_beta = params['C_ell_beta']
+        C_ell_p = params['C_ell_p']
+        C_ell_r = params['C_ell_r']
+        C_ell_da = params['C_ell_da']
+        C_ell_dr = params['C_ell_dr']
+        Cn_beta = params['Cn_beta']
+        Cn_p = params['Cn_p']
+        Cn_r = params['Cn_r']
+        Cn_da = params['Cn_da']
+        Cn_dr = params['Cn_dr']
+        T_max = params['T_max']
+        g = 9.81
+
+        return m, S, b, c, rho, Ix, Iy, Iz, Ixz, CL0, CL_alpha, CL_q, CL_de, CD0, k_drag, Cm_alpha, Cm_q, Cm_de, CY_beta, CY_p, CY_r, CY_da, CY_dr, C_ell_beta, C_ell_p, C_ell_r, C_ell_da, C_ell_dr, Cn_beta, Cn_p, Cn_r, Cn_da, Cn_dr, T_max, g
 
     def f(self, x, u):
         # u is an array [de, da, dr, throttle]
@@ -935,7 +1022,8 @@ class FixedWing12DOFTrainer(DynamicsBase):
 
         return xdot
 
-    def f_x(self, x, u, eps=1e-6):
+    # Finite Differences Jacobians (We use sympy analytical ones for now)
+    def f_x_fd(self, x, u, eps=1e-6):
         # Use analytical Jacobian at trim point if we play with linear model
         if self.use_linear_model_for_fx_fu:
             return self.A.copy()
@@ -950,7 +1038,8 @@ class FixedWing12DOFTrainer(DynamicsBase):
             fx[:, i] = (fp - f0) / eps
         return fx
 
-    def f_u(self, x, eps=1e-6):
+    # Finite Differences Jacobians (We use sympy analytical ones for now)
+    def f_u_fd(self, x, eps=1e-6):
         # Use analytical Jacobian at trim point if we play with linear model
         if self.use_linear_model_for_fx_fu:
             return self.B.copy()
@@ -967,7 +1056,205 @@ class FixedWing12DOFTrainer(DynamicsBase):
             f0 = self.f(x, u0)
             fu[:, j] = (fp - f0) / eps
         return fu
+   
+    def f_x_analytical(self, x, u, params):
+        """
+        Analytical Jacobians for FixedWing12DOFTrainer
+        Generated by symbolic differentiation using SymPy
 
+        This file contains hardcoded analytical expressions for:
+        - f_x(x, u, params): State Jacobian (12x12)
+        - f_u(x, u, params): Input Jacobian (12x4)
+
+        These functions provide EXACT derivatives without numerical errors
+        and are faster than finite differences or JAX for single evaluations.
+
+        Date: 2025-11-01
+        """
+
+        """
+        Analytical state Jacobian (df/dx) for fixed-wing aircraft.
+        
+        Args:
+            x: State vector [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+            u: Input vector [delta_e, delta_a, delta_r, throttle]
+            params: Dictionary of aircraft parameters
+        
+        Returns:
+            A: State Jacobian matrix (12x12)
+        """
+        # Extract state variables
+        X = x[0]
+        Y = x[1]
+        Z = x[2]
+        phi = x[3]
+        theta = x[4]
+        psi = x[5]
+        u_b = x[6]  # body velocity u (renamed to avoid conflict with input u)
+        v_b = x[7]  # body velocity v
+        w_b = x[8]  # body velocity w
+        p = x[9]
+        q = x[10]
+        r = x[11]
+
+        # Extract input variables
+        delta_e = u[0]
+        delta_a = u[1]
+        delta_r = u[2]
+        throttle = u[3]
+
+        # Extract parameters
+        m, S, b, c, rho, Ix, Iy, Iz, Ixz, CL0, CL_alpha, CL_q, CL_de, CD0, k_drag, Cm_alpha, Cm_q, Cm_de, CY_beta, CY_p, CY_r, CY_da, CY_dr, C_ell_beta, C_ell_p, C_ell_r, C_ell_da, C_ell_dr, Cn_beta, Cn_p, Cn_r, Cn_da, Cn_dr, T_max, g = self._extract_params(params)
+
+        # Initialize Jacobian matrix
+        A = np.zeros((12, 12))
+
+        # Compute Jacobian elements (generated by SymPy)
+        # Note: Only non-zero elements are computed for efficiency
+
+        A[0, 3] = v_b*(np.sin(phi)*np.sin(psi) + np.sin(theta)*np.cos(phi)*np.cos(psi)) - w_b*(np.sin(phi)*np.sin(theta)*np.cos(psi) - np.sin(psi)*np.cos(phi))
+        A[0, 4] = (-u_b*np.sin(theta) + v_b*np.sin(phi)*np.cos(theta) + w_b*np.cos(phi)*np.cos(theta))*np.cos(psi)
+        A[0, 5] = -u_b*np.sin(psi)*np.cos(theta) - v_b*(np.sin(phi)*np.sin(psi)*np.sin(theta) + np.cos(phi)*np.cos(psi)) + w_b*(np.sin(phi)*np.cos(psi) - np.sin(psi)*np.sin(theta)*np.cos(phi))
+        A[0, 6] = np.cos(psi)*np.cos(theta)
+        A[0, 7] = np.sin(phi)*np.sin(theta)*np.cos(psi) - np.sin(psi)*np.cos(phi)
+        A[0, 8] = np.sin(phi)*np.sin(psi) + np.sin(theta)*np.cos(phi)*np.cos(psi)
+        A[1, 3] = -v_b*(np.sin(phi)*np.cos(psi) - np.sin(psi)*np.sin(theta)*np.cos(phi)) - w_b*(np.sin(phi)*np.sin(psi)*np.sin(theta) + np.cos(phi)*np.cos(psi))
+        A[1, 4] = (-u_b*np.sin(theta) + v_b*np.sin(phi)*np.cos(theta) + w_b*np.cos(phi)*np.cos(theta))*np.sin(psi)
+        A[1, 5] = u_b*np.cos(psi)*np.cos(theta) + v_b*(np.sin(phi)*np.sin(theta)*np.cos(psi) - np.sin(psi)*np.cos(phi)) + w_b*(np.sin(phi)*np.sin(psi) + np.sin(theta)*np.cos(phi)*np.cos(psi))
+        A[1, 6] = np.sin(psi)*np.cos(theta)
+        A[1, 7] = np.sin(phi)*np.sin(psi)*np.sin(theta) + np.cos(phi)*np.cos(psi)
+        A[1, 8] = -np.sin(phi)*np.cos(psi) + np.sin(psi)*np.sin(theta)*np.cos(phi)
+        A[2, 3] = (v_b*np.cos(phi) - w_b*np.sin(phi))*np.cos(theta)
+        A[2, 4] = -u_b*np.cos(theta) - v_b*np.sin(phi)*np.sin(theta) - w_b*np.sin(theta)*np.cos(phi)
+        A[2, 6] = -np.sin(theta)
+        A[2, 7] = np.sin(phi)*np.cos(theta)
+        A[2, 8] = np.cos(phi)*np.cos(theta)
+        A[3, 3] = (q*np.cos(phi) - r*np.sin(phi))*np.tan(theta)
+        A[3, 4] = (q*np.sin(phi) + r*np.cos(phi))/np.cos(theta)**2
+        A[3, 9] = 1
+        A[3, 10] = np.sin(phi)*np.tan(theta)
+        A[3, 11] = np.cos(phi)*np.tan(theta)
+        A[4, 3] = -q*np.sin(phi) - r*np.cos(phi)
+        A[4, 10] = np.cos(phi)
+        A[4, 11] = -np.sin(phi)
+        A[5, 3] = (q*np.cos(phi) - r*np.sin(phi))/np.cos(theta)
+        A[5, 4] = (q*np.sin(phi) + r*np.cos(phi))*np.sin(theta)/np.cos(theta)**2
+        A[5, 10] = np.sin(phi)/np.cos(theta)
+        A[5, 11] = np.cos(phi)/np.cos(theta)
+        A[6, 4] = -g*np.cos(theta)
+        A[6, 6] = S*rho*(2*k_drag*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(u_b**2 + v_b**2 + w_b**2)**(3/2) + CL_q*c*q*u_b**3)*(u_b**2 + v_b**2 + w_b**2)**2*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - 4*u_b**2*w_b*(u_b**2 + w_b**2)**(7/2)*(u_b**2 + v_b**2 + w_b**2)**(5/2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - 2*u_b**2*(u_b**2 + w_b**2)**(7/2)*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**2 - w_b**2*(u_b**2 + w_b**2)**(5/2)*(u_b**2 + v_b**2 + w_b**2)**3*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2 + 2*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))) + 2*w_b*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(u_b**2 + v_b**2 + w_b**2)**(3/2) + CL_q*c*q*u_b**3)*(u_b**2 + v_b**2 + w_b**2)**(5/2) + 2*w_b*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(7/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**4*(u_b**2 + v_b**2 + w_b**2)**3)
+        A[6, 7] = (CL_q*S*c*k_drag*q*rho*u_b*v_b*(u_b**2 + w_b**2)**(3/2)*(u_b**2 + v_b**2 + w_b**2)**2*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) + CL_q*S*c*q*rho*u_b*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(u_b**2 + v_b**2 + w_b**2)**(5/2)*np.abs(u_b) - 2*S*rho*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(u_b**2 + v_b**2 + w_b**2)**(5/2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - S*rho*v_b*(u_b**2 + w_b**2)**(3/2)*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**2*np.abs(u_b) + 4*m*r*u_b**2*(u_b**2 + w_b**2)**2*(u_b**2 + v_b**2 + w_b**2)**3)/(4*m*u_b**2*(u_b**2 + w_b**2)**2*(u_b**2 + v_b**2 + w_b**2)**3)
+        A[6, 8] = (-S*rho*w_b*(u_b**2 + w_b**2)**(5/2)*(u_b**2 + v_b**2 + w_b**2)*(2*CL_alpha*(u_b**2 + v_b**2 + w_b**2)**(3/2) - CL_q*c*q*u_b*w_b + 2*w_b*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))*np.abs(u_b)/4 + S*rho*w_b*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2 + 2*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(3/2)*np.abs(u_b)/8 - S*rho*(u_b**2 + w_b**2)**(5/2)*(k_drag*(2*CL_alpha*(u_b**2 + v_b**2 + w_b**2)**(3/2) - CL_q*c*q*u_b*w_b)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + w_b*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2))*np.sqrt(u_b**2 + v_b**2 + w_b**2)*np.abs(u_b)/4 - S*rho*(u_b**2 + w_b**2)**(5/2)*(u_b**2 + v_b**2 + w_b**2)**2*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b)/4 - m*q*u_b**2*(u_b**2 + w_b**2)**3*(u_b**2 + v_b**2 + w_b**2)**(3/2))/(m*u_b**2*(u_b**2 + w_b**2)**3*(u_b**2 + v_b**2 + w_b**2)**(3/2))
+        A[6, 10] = (-CL_q*S*c*k_drag*rho*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - CL_q*S*c*rho*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2)*np.abs(u_b) - 4*m*u_b*w_b*np.sqrt(u_b**2 + w_b**2))/(4*m*u_b*np.sqrt(u_b**2 + w_b**2))
+        A[6, 11] = v_b
+        A[7, 3] = g*np.cos(phi)*np.cos(theta)
+        A[7, 4] = -g*np.sin(phi)*np.sin(theta)
+        A[7, 6] = (-S*rho*u_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r) + 2*S*rho*u_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r + 2*(CY_da*delta_a + CY_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - 4*m*r*np.sqrt(u_b**2 + v_b**2 + w_b**2))/(4*m*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[7, 7] = S*rho*(2*CY_beta*(u_b**2 + v_b**2 + w_b**2) - v_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r) + 2*v_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r + 2*(CY_da*delta_a + CY_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(4*m*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[7, 8] = (-S*rho*w_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r) + 2*S*rho*w_b*(2*CY_beta*v_b + CY_p*b*p + CY_r*b*r + 2*(CY_da*delta_a + CY_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + 4*m*p*np.sqrt(u_b**2 + v_b**2 + w_b**2))/(4*m*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[7, 9] = CY_p*S*b*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2)/(4*m) + w_b
+        A[7, 11] = CY_r*S*b*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2)/(4*m) - u_b
+        A[8, 3] = -g*np.sin(phi)*np.cos(theta)
+        A[8, 4] = -g*np.sin(theta)*np.cos(phi)
+        A[8, 6] = (2*S*k_drag*rho*w_b*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(u_b**2 + v_b**2 + w_b**2)**(3/2) + CL_q*c*q*u_b**3)*(u_b**2 + v_b**2 + w_b**2)**2*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - 4*S*rho*u_b**4*(u_b**2 + w_b**2)**5*(u_b**2 + v_b**2 + w_b**2)**(5/2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - 2*S*rho*u_b**2*w_b**2*(u_b**2 + w_b**2)**4*(u_b**2 + v_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - 2*S*rho*u_b**2*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**2*np.abs(u_b) + 2*S*rho*u_b**2*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(u_b**2 + v_b**2 + w_b**2)**(3/2) + CL_q*c*q*u_b**3)*(u_b**2 + v_b**2 + w_b**2)**(5/2)*np.abs(u_b) - S*rho*w_b**3*(u_b**2 + w_b**2)**4*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**3*np.abs(u_b) + S*rho*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**3*np.abs(u_b) + 8*m*q*u_b**4*(u_b**2 + w_b**2)**(11/2)*(u_b**2 + v_b**2 + w_b**2)**3)/(8*m*u_b**4*(u_b**2 + w_b**2)**(11/2)*(u_b**2 + v_b**2 + w_b**2)**3)
+        A[8, 7] = -p + (CL_q*S*c*k_drag*q*rho*v_b*w_b*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(2*u_b*np.sqrt(1 + w_b**2/u_b**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + CL_q*S*c*q*rho*v_b/(4*np.sqrt(1 + w_b**2/u_b**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - S*rho*v_b*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/np.sqrt(1 + w_b**2/u_b**2) - S*rho*v_b*w_b*(CD0 + k_drag*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*np.sqrt(u_b**2 + v_b**2 + w_b**2)))**2)/(u_b*np.sqrt(1 + w_b**2/u_b**2)))/m
+        A[8, 8] = S*rho*(2*u_b**2*w_b*(u_b**2 + v_b**2 + w_b**2)**2*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - 2*u_b**2*(u_b**2 + w_b**2)*(u_b**2 + v_b**2 + w_b**2)*(2*CL_alpha*(u_b**2 + v_b**2 + w_b**2)**(3/2) - CL_q*c*q*u_b*w_b + 2*w_b*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))) + w_b**2*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**(3/2) - 2*w_b*(u_b**2 + w_b**2)*(k_drag*(2*CL_alpha*(u_b**2 + v_b**2 + w_b**2)**(3/2) - CL_q*c*q*u_b*w_b)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + w_b*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2))*np.sqrt(u_b**2 + v_b**2 + w_b**2) - (u_b**2 + w_b**2)*(4*CD0*u_b**2*(u_b**2 + v_b**2 + w_b**2) + k_drag*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))**2)*(u_b**2 + v_b**2 + w_b**2)**(3/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**(3/2)*(u_b**2 + v_b**2 + w_b**2)**(3/2))
+        A[8, 9] = -v_b
+        A[8, 10] = (-CL_q*S*c*k_drag*rho*w_b*np.sqrt(u_b**2 + w_b**2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b) - CL_q*S*c*rho*u_b**2*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)*np.abs(u_b) + 4*m*u_b**3*(u_b**2 + w_b**2))/(4*m*u_b**2*(u_b**2 + w_b**2))
+        A[9, 6] = S*b*rho*u_b*(Ixz*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + Iz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[9, 7] = S*b*rho*(Ixz*(2*Cn_beta*(u_b**2 + v_b**2 + w_b**2) - v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r) + 2*v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 2*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2))) + Iz*(2*C_ell_beta*(u_b**2 + v_b**2 + w_b**2) - v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r) + 2*v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 2*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2))))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[9, 8] = S*b*rho*w_b*(Ixz*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + Iz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[9, 9] = (Ixz*(Cn_p*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Ix*q - 4*Iy*q) + Iz*(C_ell_p*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Ixz*q))/(4*(Ix*Iz - Ixz**2))
+        A[9, 10] = (-Ixz*(-Ix*p + Ixz*r + Iy*p) + Iz*(Ixz*p + Iy*r - Iz*r))/(Ix*Iz - Ixz**2)
+        A[9, 11] = (Ixz*(Cn_r*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) - 4*Ixz*q) + Iz*(C_ell_r*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Iy*q - 4*Iz*q))/(4*(Ix*Iz - Ixz**2))
+        A[10, 6] = Cm_alpha*S*c*rho*w_b/(2*Iy) - Cm_alpha*S*c*rho*v_b**2*w_b/(2*Iy*u_b**2) - Cm_alpha*S*c*rho*w_b**3/(2*Iy*u_b**2) + Cm_de*S*c*delta_e*rho*u_b/Iy + Cm_q*S*c**2*q*rho*u_b/(4*Iy*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[10, 7] = Cm_alpha*S*c*rho*v_b*w_b/(Iy*u_b) + Cm_de*S*c*delta_e*rho*v_b/Iy + Cm_q*S*c**2*q*rho*v_b/(4*Iy*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[10, 8] = Cm_alpha*S*c*rho*u_b/(2*Iy) + Cm_alpha*S*c*rho*v_b**2/(2*Iy*u_b) + 3*Cm_alpha*S*c*rho*w_b**2/(2*Iy*u_b) + Cm_de*S*c*delta_e*rho*w_b/Iy + Cm_q*S*c**2*q*rho*w_b/(4*Iy*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[10, 9] = (-Ix*r - 2*Ixz*p + Iz*r)/Iy
+        A[10, 10] = Cm_q*S*c**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2)/(4*Iy)
+        A[10, 11] = (-Ix*p + 2*Ixz*r + Iz*p)/Iy
+        A[11, 6] = S*b*rho*u_b*(Ix*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + Ixz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[11, 7] = S*b*rho*(Ix*(2*Cn_beta*(u_b**2 + v_b**2 + w_b**2) - v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r) + 2*v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 2*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2))) + Ixz*(2*C_ell_beta*(u_b**2 + v_b**2 + w_b**2) - v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r) + 2*v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 2*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2))))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[11, 8] = S*b*rho*w_b*(Ix*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) + Ixz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*np.sqrt(u_b**2 + v_b**2 + w_b**2)))/(4*(Ix*Iz - Ixz**2)*np.sqrt(u_b**2 + v_b**2 + w_b**2))
+        A[11, 9] = (Ix*(Cn_p*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Ix*q - 4*Iy*q) + Ixz*(C_ell_p*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Ixz*q))/(4*(Ix*Iz - Ixz**2))
+        A[11, 10] = (-Ix*(-Ix*p + Ixz*r + Iy*p) + Ixz*(Ixz*p + Iy*r - Iz*r))/(Ix*Iz - Ixz**2)
+        A[11, 11] = (Ix*(Cn_r*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) - 4*Ixz*q) + Ixz*(C_ell_r*S*b**2*rho*np.sqrt(u_b**2 + v_b**2 + w_b**2) + 4*Iy*q - 4*Iz*q))/(4*(Ix*Iz - Ixz**2))
+
+        return A
+
+    def f_u_analytical(self, x, u, params):
+        """
+        Analytical input Jacobian (df/du) for fixed-wing aircraft.
+        
+        Args:
+            x: State vector [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+            u: Input vector [delta_e, delta_a, delta_r, throttle]
+            params: Dictionary of aircraft parameters
+        
+        Returns:
+            B: Input Jacobian matrix (12x4)
+        """
+        # Extract state variables
+        X = x[0]
+        Y = x[1]
+        Z = x[2]
+        phi = x[3]
+        theta = x[4]
+        psi = x[5]
+        u_b = x[6]  # body velocity u (renamed to avoid conflict with input u)
+        v_b = x[7]  # body velocity v
+        w_b = x[8]  # body velocity w
+        p = x[9]
+        q = x[10]
+        r = x[11]
+
+        # Extract input variables
+        u = np.zeros(4) if u is None else u
+        delta_e = u[0]
+        delta_a = u[1]
+        delta_r = u[2]
+        throttle = u[3]
+
+        # Extract parameters
+        m, S, b, c, rho, Ix, Iy, Iz, Ixz, CL0, CL_alpha, CL_q, CL_de, CD0, k_drag, Cm_alpha, Cm_q, Cm_de, CY_beta, CY_p, CY_r, CY_da, CY_dr, C_ell_beta, C_ell_p, C_ell_r, C_ell_da, C_ell_dr, Cn_beta, Cn_p, Cn_r, Cn_da, Cn_dr, T_max, g = self._extract_params(params)
+
+        # Initialize Jacobian matrix
+        B = np.zeros((12, 4))
+
+        # Compute Jacobian elements (generated by SymPy)
+        # Note: Only non-zero elements are computed for efficiency
+
+        B[6, 0] = CL_de*S*rho*(-k_drag*np.sqrt(u_b**2 + v_b**2 + w_b**2)*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2)) - w_b*(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b)/(2*m*u_b*np.sqrt(u_b**2 + w_b**2))
+        B[6, 3] = T_max/m
+        B[7, 1] = CY_da*S*rho*(u_b**2 + v_b**2 + w_b**2)/(2*m)
+        B[7, 2] = CY_dr*S*rho*(u_b**2 + v_b**2 + w_b**2)/(2*m)
+        B[8, 0] = CL_de*S*rho*(-k_drag*w_b*(2*CL_alpha*w_b*np.sqrt(u_b**2 + v_b**2 + w_b**2) + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*np.sqrt(u_b**2 + v_b**2 + w_b**2))*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4) - u_b**2*np.sqrt(u_b**2 + w_b**2)*(u_b**2 + v_b**2 + w_b**2))*np.abs(u_b)/(2*m*u_b**2*(u_b**2 + w_b**2))
+        B[9, 1] = S*b*rho*(C_ell_da*Iz + Cn_da*Ixz)*(u_b**2 + v_b**2 + w_b**2)/(2*(Ix*Iz - Ixz**2))
+        B[9, 2] = S*b*rho*(C_ell_dr*Iz + Cn_dr*Ixz)*(u_b**2 + v_b**2 + w_b**2)/(2*(Ix*Iz - Ixz**2))
+        B[10, 0] = Cm_de*S*c*rho*(u_b**2 + v_b**2 + w_b**2)/(2*Iy)
+        B[11, 1] = S*b*rho*(C_ell_da*Ixz + Cn_da*Ix)*(u_b**2 + v_b**2 + w_b**2)/(2*(Ix*Iz - Ixz**2))
+        B[11, 2] = S*b*rho*(C_ell_dr*Ixz + Cn_dr*Ix)*(u_b**2 + v_b**2 + w_b**2)/(2*(Ix*Iz - Ixz**2))
+
+        return B
+
+    def f_x(self, x, u):
+        return self.f_x_analytical(x, u, self.params)
+    
+    def f_u(self, x, u=None):
+        """
+        Compute the input Jacobian df/du.
+        
+        Args:
+            x: State vector
+            u: Input vector. If None, uses trim input for better approximation
+        
+        Returns:
+            Input Jacobian matrix (12x4)
+        """
+        if u is None:
+            u = self.u_trim  # Use trim input for better linearization
+        return self.f_u_analytical(x, u, self.params)
+    
     def rk4Step(self, f, x, dt, *args):
         """
         Fourth-order Runge-Kutta integration method
@@ -1005,12 +1292,11 @@ class FixedWing12DOFTrainer(DynamicsBase):
             Note: class state ordering is:
             x = [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
             """
-            w, theta, delta_e, throttle = vars
+            u, w, theta, delta_e, throttle = vars
             # build state with symmetric (no lateral motion), no angular rates
             X = 0.0; Y = 0.0; Z = -0.0  # choose Z reference (your convention)
             phi = 0.0
             psi = 0.0
-            u = V_trim
             v = 0.0
             p = 0.0; q = 0.0; r = 0.0
 
@@ -1020,7 +1306,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
             # evaluate dynamics
             xdot = plane.f(x, u_ctrl)
 
-            # residuals: udot = 0, wdot = 0, qdot = 0 (pitch accel), and u - V_trim = 0
+            # residuals: udot = 0, wdot = 0, qdot = 0 (pitch accel), Zdot=0, and u - V_trim = 0
             # xdot ordering in this implementation:
             # xdot[0:3] = pos_dot (Xdot,Ydot,Zdot)
             # xdot[3:6] = [phi_dot, theta_dot, psi_dot]
@@ -1029,21 +1315,24 @@ class FixedWing12DOFTrainer(DynamicsBase):
             udot = xdot[6]
             wdot = xdot[8]
             qdot = xdot[10]
+            Zdot = xdot[2]  # vertical speed should be zero for level flight
+            airspeed = np.sqrt(u**2 + v**2 + w**2)
             # last residual enforces body-x speed equals V_trim (u - V_trim = 0)
-            res = np.array([udot, wdot, qdot, u - V_trim])
+            res = np.array([udot, wdot, qdot, Zdot, airspeed - V_trim])
+            # res = np.array([udot, wdot, qdot, Zdot])
+            # res = np.array([udot, wdot, qdot, u - V_trim])
             return res
         
         # initial guess: small w, small pitch, small elevator, half throttle
-        guess = np.array([0.0, 0.05, 0.0, 0.5])  # [w, theta, delta_e, throttle]
+        guess = np.array([V_trim, 0.0, 0.05, 0.0, 0.5])  # [V_trim, w, theta, delta_e, throttle]
         sol = root(_trimObjective, guess, args=(self, V_trim), method='hybr', tol=1e-8)
 
         if not sol.success:
             print("Trim solver did not converge:", sol.message)
             # still return a best-effort guess
-        w, theta, delta_e, throttle = sol.x
-        u = V_trim
-        x_trim = np.array([0.0, 0.0, 0.0,   # X, Y, Z
-                        0.0, theta, 0.0,  # phi, theta, psi
+        u, w, theta, delta_e, throttle = sol.x
+        x_trim = np.array([0.0, 0.0, 0.0,  # X, Y, Z
+                        0.0, theta, 0.0,   # phi, theta, psi
                         u, 0.0, w,         # u, v, w
                         0.0, 0.0, 0.0])    # p, q, r
         u_trim = np.array([delta_e, 0.0, 0.0, np.clip(throttle, 0.0, 1.0)])
@@ -1052,7 +1341,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
         print("==============================================")
         print("Trim solver success:", sol.success, sol.message)
         print(f"Trim state (partial): u, w, theta = {x_trim[6]:.2f}, {x_trim[8]:.2f}, {180 / np.pi * x_trim[4]:.2f}")
-        print(f"Trim inputs (de, da, dr, throttle) = {180/np.pi*u_trim[0]:.2f}°, {u_trim[1]:.2f}°, {u_trim[2]:.2f}°, {u_trim[3]:.2%}")
+        print(f"Trim inputs (de, throttle) = {180/np.pi*u_trim[0]:.2f}°, {u_trim[3]:.2%}")
         print("==============================================")
 
         return x_trim, u_trim, sol
@@ -1077,3 +1366,475 @@ class FixedWing12DOFTrainer(DynamicsBase):
     def state_string(self):
         X, Y, Z, phi, theta, psi, u, v, w, p, q, r = self.state
         return f"X:{X:.2f} Y:{Y:.2f} Z:{Z:.2f} || phi:{phi*180/np.pi:.1f}° theta:{theta*180/np.pi:.1f}° psi:{psi*180/np.pi:.1f}° || u:{u:.2f} v:{v:.2f} w:{w:.2f} || p:{p*180/np.pi:.1f} [°/s] q:{q*180/np.pi:.1f} [°/s] r:{r*180/np.pi:.1f} [°/s]"
+
+    # Not used for now
+    def getInertialVelocity(self, x=None):
+        """
+        Compute inertial velocity vector [Xdot, Ydot, Zdot] from state.
+        
+        Args:
+            x: State vector [X, Y, Z, phi, theta, psi, u, v, w, p, q, r].
+               If None, uses current state.
+        
+        Returns:
+            vel_inertial: np.array([Xdot, Ydot, Zdot]) - inertial velocities (m/s)
+        """
+        if x is None:
+            x = self.state
+        
+        # Extract orientation angles and body velocities
+        phi, theta, psi = x[3], x[4], x[5]
+        u_b, v_b, w_b = x[6], x[7], x[8]
+        
+        # Build rotation matrix from body to inertial frame
+        cpsi = np.cos(psi); spsi = np.sin(psi)
+        cth = np.cos(theta); sth = np.sin(theta)
+        cphi = np.cos(phi); sphi = np.sin(phi)
+        
+        R = np.array([
+            [cpsi * cth, cpsi * sth * sphi - spsi * cphi, cpsi * sth * cphi + spsi * sphi],
+            [spsi * cth, spsi * sth * sphi + cpsi * cphi, spsi * sth * cphi - cpsi * sphi],
+            [-sth,       cth * sphi,                     cth * cphi]
+        ])
+        
+        # Transform body velocities to inertial frame
+        vel_body = np.array([u_b, v_b, w_b])
+        vel_inertial = R.dot(vel_body)
+        
+        return vel_inertial
+
+    
+
+
+import jax
+import jax.numpy as jnp
+jax.config.update("jax_enable_x64", True)
+
+class FixedWing12DOFTrainerJAX(FixedWing12DOFTrainer):
+    """
+    JAX-enabled version of FixedWing12DOFTrainer using automatic differentiation.
+    Provides exact analytical Jacobians via JAX's autodiff without manual derivation.
+    
+    Maintains the same API as FixedWing12DOFTrainer for interchangeable behavior.
+    
+    PERFORMANCE CHARACTERISTICS (from benchmarks):
+    - f(x,u):    ~1.3x SLOWER than NumPy (array conversion overhead)
+    - f_x(x,u):  ~5x FASTER than finite differences (exact autodiff)
+    - f_u(x):    ~5x FASTER than finite differences (exact autodiff)
+    
+    WHEN TO USE:
+    ✓ Computing Jacobians for optimization, control design, or sensitivity analysis
+    ✓ Need exact analytical derivatives (no numerical errors)
+    ✓ Batch processing multiple states/controls
+    ✓ Extending to higher-order derivatives (Hessians, etc.)
+    
+    WHEN NOT TO USE:
+    ✗ Real-time control loops where every microsecond counts
+    ✗ Only need dynamics f(x,u), not Jacobians
+    
+    State ordering:
+      x = [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+    Inputs:
+      u = [delta_e, delta_a, delta_r, throttle]
+      
+    Example:
+        >>> plane = FixedWing12DOFTrainerJAX(v_trim=15.0, dt=0.01)
+        >>> xdot = plane.f(x, u)                # Dynamics (slower than NumPy)
+        >>> A = plane.f_x(x, u)                 # Jacobian (5x faster!) (Compared to FD)
+        >>> B = plane.f_u(x)                    # Jacobian (5x faster!) (Compared to FD)
+    """
+    
+    def __init__(self, dt=0.001, x0=None, params=None, v_trim=10, use_linear_f=False, use_linear_fx_fu=False):
+        """
+        Initialize JAX-enabled fixed-wing trainer.
+        
+        Args:
+            dt: Integration time step
+            x0: Initial state (12-element array)
+            params: Dictionary of aircraft parameters (overrides defaults)
+            v_trim: Trim airspeed (m/s)
+            use_linear_f: If True, use linearized dynamics for f()
+            use_linear_fx_fu: If True, return trim-point Jacobians A, B
+        """
+        # We need to initialize JAX functions before calling parent __init__
+        # because parent __init__ calls computeTrim() which calls self.f()
+        # So we do a partial initialization first
+        
+        # Set up basic attributes needed for _f_jax_pure
+        self.dt = dt
+        self.num_of_states = 12
+        self.num_of_inputs = 4
+        
+        # default parameter set (good starting point for 1.5 m trainer)
+        default_params = {
+            'm': 2,          # kg
+            'S': 0.36,       # m^2
+            'b': 1.50,       # m (span)
+            'c': 0.2407,     # m (mean aerodynamic chord ~ S/b)
+            'rho': 1.225,
+            'Ix': 0.072,     # kg m^2 (estimate; replace with CAD)
+            'Iy': 0.0255,
+            'Iz': 0.0963,
+            'Ixz': -6.12e-4,
+            # longitudinal coefficients (linearized starter)
+            'CL0': 0.20,
+            'CL_alpha': 4.756,   # per rad
+            'CL_q': 3.0,
+            'CL_de': -1.0,       # elevator effectiveness (neg. if down elevator -> negative Cm_de)
+            'CD0': 0.025,
+            'k': 0.0639,         # induced drag factor
+            'Cm_alpha': -0.8,
+            'Cm_q': -8.0,
+            'Cm_de': -1.2,
+            # lateral-directional
+            'C_ell_beta': -0.12,
+            'C_ell_p': -0.26,
+            'C_ell_r': 0.14,
+            'Cn_beta': 0.25,
+            'Cn_p': -0.022,
+            'Cn_r': -0.35,
+            'CY_beta': -0.02,
+            # control-surface derivatives (starter guesses)
+            'C_ell_da': 0.10,   # roll per aileron rad
+            'C_ell_dr': 0.03,   # roll per rudder rad
+            'Cn_da': -0.03,     # yaw per aileron rad (adverse yaw)
+            'Cn_dr': -0.10,     # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
+            'CY_da': 0.0,       # side force per aileron rad
+            'CY_dr': 0.12,      # side force per rudder rad
+            'CY_p': 0.0,
+            'CY_r': 0.0,
+            # propulsion
+            'T_max': 10.0,   # N (example static thrust)
+            # input limits: [min, max] for [de, da, dr, throttle]
+            'input_limits': np.array([[-0.4363, 0.4363],  # elevator ±25 deg
+                                    [-0.4363, 0.4363],  # aileron ±25 deg
+                                    [-0.4363, 0.4363],  # rudder ±25 deg
+                                    [0.0, 1.0]]),       # throttle 0..1
+            'V_trim': v_trim  # Desired trim speed [m/s]
+        }
+
+        self.params = default_params if params is None else {**default_params, **params}
+        self.input_limits = self.params['input_limits'].copy()
+        
+        # Convert input limits to JAX array
+        self.input_limits_jax = jnp.array(self.input_limits)
+        
+        # Create JIT-compiled versions of dynamics and Jacobians for performance
+        # These MUST be created before calling parent __init__
+        self._f_jax_compiled = jax.jit(self._f_jax_pure)
+        self._f_x_jax_compiled = jax.jit(jax.jacfwd(self._f_jax_pure, argnums=0))
+        self._f_u_jax_compiled = jax.jit(jax.jacfwd(self._f_jax_pure, argnums=1))
+        
+        # Call parent constructor
+        # NOTE: Parent will call computeTrim() which uses self.f()
+        # Our JAX f() will be used, but trim solver may converge to different solution
+        super().__init__(dt=dt, x0=x0, params=params, v_trim=v_trim, 
+                        use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
+        
+        # WORKAROUND for trim solver issue:
+        # The JAX dynamics can cause scipy's root finder to converge to spurious solutions
+        # (e.g., theta ≈ -2π instead of theta ≈ 0.15, with zero throttle)
+        # Use the parent class's trimmer as a reference
+        if abs(self.x_trim[4]) > 1.0:  # theta > 1 radian (57°) is suspicious
+            print(f"[JAX WARNING] Trim theta={180/np.pi*self.x_trim[4]:.1f}° seems wrong, recomputing...")
+            # Use parent's f() for trim
+            parent_f = FixedWing12DOFTrainer.f
+            saved_f = self.f
+            self.f = lambda x, u: parent_f(self, x, u)
+            self.x_trim, self.u_trim, self.trim_sol_flags = self.computeTrim(V_trim=v_trim)
+            self.f = saved_f  # Restore JAX f()
+            # Recompute linearization with corrected trim
+            self.A, self.B = self.linearizeAtTrimPoint(self.x_trim, self.u_trim)
+        
+        self.type = "FixedWing12DOFTrainerJAX"
+        print(f"[JAX] Initialized {self.type} with automatic differentiation")
+        print(f"[JAX] Jacobians computed via autodiff (exact analytical derivatives)")
+    
+    def _f_jax_pure(self, x, u):
+        """
+        Pure JAX implementation of aircraft dynamics (no side effects).
+        Uses jax.numpy for automatic differentiation compatibility.
+        
+        This is the core function that JAX will differentiate.
+        
+        Args:
+            x: State vector (12,) [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+            u: Control vector (4,) [delta_e, delta_a, delta_r, throttle]
+        
+        Returns:
+            xdot: State derivative (12,)
+        """
+        # Clip inputs to limits
+        u = jnp.clip(u, self.input_limits_jax[:, 0], self.input_limits_jax[:, 1])
+        delta_e, delta_a, delta_r, throttle = u
+        
+        # Unpack state
+        X, Y, Z, phi, theta, psi, ub, vb, wb, p, q, r = x
+        
+        # Parameters (use dict access for clarity)
+        P = self.params
+        m = P['m']; S = P['S']; b = P['b']; c = P['c']; rho = P['rho']
+        Ix = P['Ix']; Iy = P['Iy']; Iz = P['Iz']; Ixz = P['Ixz']
+        
+        # Airspeed and aerodynamic angles
+        V_squared = ub*ub + vb*vb + wb*wb
+        V_squared_safe = jnp.maximum(V_squared, 1e-6)
+        V = jnp.sqrt(V_squared_safe)
+        V_safe = jnp.maximum(V, 1e-3)
+        
+        alpha = jnp.arctan2(wb, ub)  # angle of attack
+        beta = jnp.arcsin(jnp.clip(vb / V_safe, -0.99, 0.99))  # sideslip
+        
+        qbar = 0.5 * rho * V_squared
+        
+        # Longitudinal coefficients
+        CL = (P['CL0'] + P['CL_alpha'] * alpha + 
+              P['CL_q'] * (c * q / (2.0 * V_safe)) + 
+              P['CL_de'] * delta_e)
+        CD = P['CD0'] + P['k'] * CL**2
+        
+        # Side force coefficient
+        CY = (P['CY_beta'] * beta +
+              P['CY_p'] * (b * p / (2.0 * V_safe)) +
+              P['CY_r'] * (b * r / (2.0 * V_safe)) +
+              P['CY_da'] * delta_a +
+              P['CY_dr'] * delta_r)
+        
+        # Aerodynamic forces (wind axes)
+        L_aero = qbar * S * CL
+        D_aero = qbar * S * CD
+        Y_force = qbar * S * CY
+        
+        # Transform wind-axis forces to body axes (rotate by alpha)
+        cos_alpha = jnp.cos(alpha)
+        sin_alpha = jnp.sin(alpha)
+        X_aero = -D_aero * cos_alpha - L_aero * sin_alpha
+        Z_aero = -D_aero * sin_alpha - L_aero * cos_alpha
+        Y_aero = Y_force
+        
+        # Moment coefficients
+        Cl = (P['C_ell_beta'] * beta +
+              P['C_ell_p'] * (b * p / (2.0 * V_safe)) +
+              P['C_ell_r'] * (b * r / (2.0 * V_safe)) +
+              P['C_ell_da'] * delta_a +
+              P['C_ell_dr'] * delta_r)
+        
+        Cm = (P['Cm_alpha'] * alpha +
+              P['Cm_q'] * (c * q / (2.0 * V_safe)) +
+              P['Cm_de'] * delta_e)
+        
+        Cn = (P['Cn_beta'] * beta +
+              P['Cn_p'] * (b * p / (2.0 * V_safe)) +
+              P['Cn_r'] * (b * r / (2.0 * V_safe)) +
+              P['Cn_da'] * delta_a +
+              P['Cn_dr'] * delta_r)
+        
+        L_moment = qbar * S * b * Cl
+        M_moment = qbar * S * c * Cm
+        N_moment = qbar * S * b * Cn
+        
+        # Propulsion: thrust along body x-axis
+        T = P['T_max'] * jnp.clip(throttle, 0.0, 1.0)
+        X_prop = T
+        Y_prop = 0.0
+        Z_prop = 0.0
+        
+        # Gravity in body axes
+        g = 9.81
+        sin_theta = jnp.sin(theta)
+        cos_theta = jnp.cos(theta)
+        sin_phi = jnp.sin(phi)
+        cos_phi = jnp.cos(phi)
+        
+        X_grav = -m * g * sin_theta
+        Y_grav = m * g * cos_theta * sin_phi
+        Z_grav = m * g * cos_theta * cos_phi
+        
+        # Total forces
+        X_tot = X_aero + X_prop + X_grav
+        Y_tot = Y_aero + Y_prop + Y_grav
+        Z_tot = Z_aero + Z_prop + Z_grav
+        
+        # Translational accelerations (body axes)
+        udot = (X_tot / m) - q * wb + r * vb
+        vdot = (Y_tot / m) - r * ub + p * wb
+        wdot = (Z_tot / m) - p * vb + q * ub
+        
+        # Rotational equations of motion: I * omega_dot + omega x (I * omega) = M
+        # Using JAX-compatible matrix operations
+        I = jnp.array([[Ix, 0.0, -Ixz],
+                       [0.0, Iy, 0.0],
+                       [-Ixz, 0.0, Iz]])
+        omega = jnp.array([p, q, r])
+        M_vec = jnp.array([L_moment, M_moment, N_moment])
+        
+        # omega_dot = I^-1 * (M - omega x (I * omega))
+        I_omega = I @ omega
+        cross_term = jnp.cross(omega, I_omega)
+        omega_dot = jnp.linalg.solve(I, M_vec - cross_term)
+        pdot, qdot, rdot = omega_dot
+        
+        # Euler kinematics (body rates -> euler angle rates)
+        tan_theta = jnp.tan(theta)
+        sec_theta = 1.0 / jnp.maximum(jnp.abs(cos_theta), 1e-6)
+        sec_theta = jnp.where(cos_theta >= 0, sec_theta, -sec_theta)
+        
+        E = jnp.array([[1.0, sin_phi * tan_theta, cos_phi * tan_theta],
+                       [0.0, cos_phi, -sin_phi],
+                       [0.0, sin_phi * sec_theta, cos_phi * sec_theta]])
+        euler_dot = E @ omega
+        phi_dot, theta_dot, psi_dot = euler_dot
+        
+        # Inertial position derivative (body -> inertial)
+        sin_psi = jnp.sin(psi)
+        cos_psi = jnp.cos(psi)
+        
+        R = jnp.array([
+            [cos_psi * cos_theta, 
+             cos_psi * sin_theta * sin_phi - sin_psi * cos_phi,
+             cos_psi * sin_theta * cos_phi + sin_psi * sin_phi],
+            [sin_psi * cos_theta,
+             sin_psi * sin_theta * sin_phi + cos_psi * cos_phi,
+             sin_psi * sin_theta * cos_phi - cos_psi * sin_phi],
+            [-sin_theta,
+             cos_theta * sin_phi,
+             cos_theta * cos_phi]
+        ])
+        vel_body = jnp.array([ub, vb, wb])
+        pos_dot = R @ vel_body
+        
+        # Assemble state derivative
+        xdot = jnp.concatenate([
+            pos_dot,                           # [Xdot, Ydot, Zdot]
+            euler_dot,                         # [phi_dot, theta_dot, psi_dot]
+            jnp.array([udot, vdot, wdot]),    # [udot, vdot, wdot]
+            omega_dot                          # [pdot, qdot, rdot]
+        ])
+        
+        return xdot
+    
+    def f(self, x, u):
+        """
+        Dynamics function compatible with parent class API.
+        
+        If use_linear_model_for_f is True, uses linearized dynamics.
+        Otherwise, uses JAX implementation for consistency with Jacobians.
+        
+        Args:
+            x: State vector (numpy array)
+            u: Control vector (numpy array)
+        
+        Returns:
+            xdot: State derivative (numpy array)
+        """
+        # Clip inputs using numpy
+        u = np.asarray(u)
+        u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
+        
+        # If using linear model, use the linearized dynamics
+        if self.use_linear_model_for_f:
+            x_dot = self.A @ (x - self.x_trim) + self.B @ (u - self.u_trim)
+            return x_dot
+        
+        # Convert to JAX arrays, compute, and convert back to numpy
+        x_jax = jnp.array(x)
+        u_jax = jnp.array(u)
+        xdot_jax = self._f_jax_compiled(x_jax, u_jax)
+        
+        return np.array(xdot_jax)
+    
+    def f_x(self, x, u, eps=1e-6):
+        """
+        Jacobian of dynamics with respect to state (df/dx).
+        Computed using JAX automatic differentiation.
+        
+        Args:
+            x: State vector (numpy array)
+            u: Control vector (numpy array)
+            eps: Unused (kept for API compatibility)
+        
+        Returns:
+            A: Jacobian matrix (12 x 12) as numpy array
+        """
+        # If using linear model, return the trim-point Jacobian
+        if self.use_linear_model_for_fx_fu:
+            return self.A.copy()
+        
+        # Convert to JAX arrays
+        x_jax = jnp.array(x)
+        u_jax = jnp.array(u)
+        
+        # Compute Jacobian using JAX autodiff
+        A_jax = self._f_x_jax_compiled(x_jax, u_jax)
+        
+        return np.array(A_jax)
+    
+    def f_u(self, x, eps=1e-6):
+        """
+        Jacobian of dynamics with respect to inputs (df/du).
+        Computed using JAX automatic differentiation.
+        
+        Args:
+            x: State vector (numpy array)
+            eps: Unused (kept for API compatibility)
+        
+        Returns:
+            B: Jacobian matrix (12 x 4) as numpy array
+        """
+        # If using linear model, return the trim-point Jacobian
+        if self.use_linear_model_for_fx_fu:
+            return self.B.copy()
+        
+        # Convert to JAX arrays
+        x_jax = jnp.array(x)
+        # For consistency with parent class, evaluate at zero control
+        # (though ideally we'd evaluate at the actual control input)
+        u_jax = jnp.zeros(self.num_of_inputs)
+        
+        # Compute Jacobian using JAX autodiff
+        B_jax = self._f_u_jax_compiled(x_jax, u_jax)
+        
+        return np.array(B_jax)
+    
+    def f_jax(self, x, u):
+        """
+        Pure JAX dynamics function (NO numpy conversions).
+        
+        This method is designed for use within JAX transformations (grad, jit, vmap).
+        It accepts JAX arrays and returns JAX arrays without any numpy conversions.
+        
+        Use this method when:
+        - Computing gradients with jax.grad()
+        - Inside JIT-compiled functions
+        - Within vmap/pmap operations
+        
+        Do NOT use this method for:
+        - Regular dynamics evaluation (use f() instead)
+        - Integration with numpy-based code
+        
+        Args:
+            x: State vector (JAX array, shape (12,))
+            u: Control vector (JAX array, shape (4,))
+        
+        Returns:
+            xdot: State derivative (JAX array, shape (12,))
+        """
+        return self._f_jax_compiled(x, u)
+    
+    def g_jax(self, x):
+        """
+        Pure JAX control matrix function (NO numpy conversions).
+        
+        Returns the control effectiveness matrix g(x) where xdot = f(x,u) = f(x,0) + g(x)*u.
+        For control-affine systems, g(x) is the Jacobian df/du.
+        
+        This method is designed for use within JAX transformations.
+        
+        Args:
+            x: State vector (JAX array, shape (12,))
+        
+        Returns:
+            g: Control matrix (JAX array, shape (12, 4))
+        """
+        u_zero = jnp.zeros(self.num_of_inputs)
+        return self._f_u_jax_compiled(x, u_zero)
