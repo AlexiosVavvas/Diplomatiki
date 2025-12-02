@@ -29,7 +29,7 @@ class FGVisualizerNode(Node):
         # Reference parameters
         self.declare_parameter('ref_lat', 63.9850)
         self.declare_parameter('ref_lon', -22.6548)
-        self.declare_parameter('ref_alt', 200.0)
+        self.declare_parameter('ref_alt', 0.0)
 
         self.ref_lat = self.get_parameter('ref_lat').value
         self.ref_lon = self.get_parameter('ref_lon').value
@@ -128,12 +128,13 @@ class FGVisualizerNode(Node):
             
             if states_copy is not None and len(states_copy) >= 12:
                 # State ordering: [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+                # In NED frame: X=North, Y=East, Z=Down
                 X, Y, Z, phi, theta, psi, u, v, w, p, q, r = states_copy[:12]
                 
                 # Convert position to lat/lon/alt
-                # Convert X (north) and Y (east) in meters to lat/lon degrees
-                lat_rad = np.deg2rad(self.ref_lat) + (Y / 6378137.0)  # Earth radius ~6371 km
-                lon_rad = np.deg2rad(self.ref_lon) + (X / (6378137.0 * np.cos(lat_rad)))
+                # X is North (affects latitude), Y is East (affects longitude)
+                lat_rad = np.deg2rad(self.ref_lat) + (X / 6378137.0)  # X = North -> latitude
+                lon_rad = np.deg2rad(self.ref_lon) + (Y / (6378137.0 * np.cos(lat_rad)))  # Y = East -> longitude
 
                 fdm_data.lat_rad = lat_rad
                 fdm_data.lon_rad = lon_rad
@@ -145,33 +146,47 @@ class FGVisualizerNode(Node):
                 fdm_data.theta_rad = theta  # Pitch
                 fdm_data.psi_rad = psi      # Yaw
                 
-                # Angular rates
+                # Angular rates (body frame)
                 fdm_data.phidot_rad_per_s = p
                 fdm_data.thetadot_rad_per_s = q
                 fdm_data.psidot_rad_per_s = r
                 
-                # Body velocities
-                fdm_data.v_body_u = u  # m/s
-                fdm_data.v_body_v = v
-                fdm_data.v_body_w = w
+                # ===== BODY VELOCITIES (PRIMARY) =====
+                # These are the ACTUAL velocities FlightGear uses for visualization
+                fdm_data.v_body_u = u * 3.28084  # ft/s forward
+                fdm_data.v_body_v = v * 3.28084  # ft/s right
+                fdm_data.v_body_w = w * 3.28084  # ft/s down
                 
-                # Convert body velocities to NED frame for display
+                # ===== NED VELOCITIES (for display/logging only) =====
+                # FlightGear uses these for GPS/navigation displays, NOT for visual position
+                # Calculate TRUE inertial velocities by differentiating position
+                # (Not from body velocities! Those can have sideslip/wind)
+                
+                # Option 1: Use position derivatives (if available from your dynamics)
+                # If you store Xdot, Ydot, Zdot from your integration:
+                # v_north = Xdot  # m/s north (inertial)
+                # v_east = Ydot   # m/s east (inertial)
+                # v_down = Zdot   # m/s down (inertial)
+                
+                # Option 2: Compute from body velocities (less accurate with sideslip)
                 # Rotation matrix from body to NED
                 cp, sp = np.cos(phi), np.sin(phi)
                 ct, st = np.cos(theta), np.sin(theta)
                 cy, sy = np.cos(psi), np.sin(psi)
                 
-                # Body to NED rotation
-                v_north = (ct * cy * u + (sp * st * cy - cp * sy) * v + 
-                          (cp * st * cy + sp * sy) * w)
-                v_east = (ct * sy * u + (sp * st * sy + cp * cy) * v + 
-                         (cp * st * sy - sp * cy) * w)
-                v_down = (-st * u + sp * ct * v + cp * ct * w)
+                # Body to NED rotation (for reference only - not used for position!)
+                v_north_body_derived = (ct * cy * u + (sp * st * cy - cp * sy) * v + 
+                        (cp * st * cy + sp * sy) * w)
+                v_east_body_derived = (ct * sy * u + (sp * st * sy + cp * cy) * v + 
+                        (cp * st * sy - sp * cy) * w)
+                v_down_body_derived = (-st * u + sp * ct * v + cp * ct * w)
                 
                 # Convert m/s to ft/s for FlightGear
-                fdm_data.v_north_ft_per_s = v_north * 3.28084
-                fdm_data.v_east_ft_per_s = v_east * 3.28084
-                fdm_data.v_down_ft_per_s = v_down * 3.28084
+                # NOTE: These are for DISPLAY ONLY (speedometer, GPS, etc.)
+                # FlightGear may integrate v_body_* for visual position!
+                fdm_data.v_north_ft_per_s = v_north_body_derived * 3.28084
+                fdm_data.v_east_ft_per_s = v_east_body_derived * 3.28084
+                fdm_data.v_down_ft_per_s = v_down_body_derived * 3.28084
                 
 
                 # Control surfaces (if we have inputs)
@@ -180,21 +195,15 @@ class FGVisualizerNode(Node):
                     delta_e, delta_a, delta_r, throttle = inputs_copy[:4]
                     
                     # Normalize to FlightGear's expected range [-1, 1] or [0, 1]
-                    e_norm = np.clip(delta_e / 25.0, -1.0, 1.0)  # Assuming max deflection is 25 degrees
-                    a_norm = np.clip(delta_a / 25.0, -1.0, 1.0)
-                    r_norm = np.clip(delta_r / 30.0, -1.0, 1.0)  # Rudder may have larger deflection
-                    # throttle_norm = np.clip(throttle, 0.0, 1.0)  # Assuming throttle is [0, 1]
+                    e_norm = np.clip(delta_e / (10 * np.pi / 180), -1.0, 1.0)  # Max deflection 25 degrees
+                    a_norm = np.clip(delta_a / (10 * np.pi / 180), -1.0, 1.0)
+                    r_norm = np.clip(delta_r / (10 * np.pi / 180), -1.0, 1.0)  # Rudder may have larger deflection
                     
                     # Set control surfaces
                     fdm_data.elevator = float(e_norm) 
-                    fdm_data.left_aileron = float(-a_norm)  # Aileron sign convention
+                    fdm_data.left_aileron = float(a_norm)
                     fdm_data.right_aileron = float(a_norm)
                     fdm_data.rudder = float(r_norm)
-                    
-                    # Engine data - FDM v25 requires exactly 4 elements for all engine arrays
-                    # fdm_data.num_engines = 1
-                    # fdm_data.eng_state = [2, 0, 0, 0]  # Running for engine 1, off for others
-                    # fdm_data.rpm = [throttle_norm * 10000.0, 0.0, 0.0, 0.0]
         
         return fdm_data
     

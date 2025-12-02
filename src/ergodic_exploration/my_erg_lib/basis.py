@@ -117,11 +117,12 @@ class Basis():
 
     # Precompute PhiK
     def precalcAllPhiK(self):
-        print("Precalculating PhiK coefficients...")
+        print("Precalculating PhiK coefficients...", end='', flush=True)
         for k1 in range(self.Kmax+1):
             for k2 in range(self.Kmax+1):
                 t_ = time.time()
                 self.calcPhikCoeff(k1, k2)
+        print(" Done")
     
     # Main Coefficients Calculation ---------------------------------------------
     def calcHk(self, k1, k2):

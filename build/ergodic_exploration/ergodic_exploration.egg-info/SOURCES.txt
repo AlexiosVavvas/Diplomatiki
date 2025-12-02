@@ -34,6 +34,7 @@ my_erg_lib/__init__.py
 my_erg_lib/agent.py
 my_erg_lib/basis.py
 my_erg_lib/eid.py
+my_erg_lib/ergodic_controllers copy.py
 my_erg_lib/ergodic_controllers.py
 my_erg_lib/model_dynamics.py
 my_erg_lib/obstacles.py

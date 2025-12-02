@@ -225,7 +225,7 @@ def main(args=None):
     # Lets parse arguments to get agent ID
     parser = argparse.ArgumentParser(description='Run agent node with dynamic ID')
     parser.add_argument('--agent_id',           type=int,            required=True,                  help='Agent ID to name the node')
-    parser.add_argument('--init_pos',           type=float, nargs=2, required=False, default=[9, 3], help='Initial position as [x, y]')
+    parser.add_argument('--init_pos',           type=float, nargs=4, required=False, default=[9, 3, 0, 0], help='Initial position as [x, y] ([x, y, z, yaw(deg)] if airplane)')
     parser.add_argument('--l_bounds',           type=float, nargs=4, required=False, default=[0, 10, 0, 10], help='Initial bounds as [x_min, x_max, y_min, y_max] for ergodic exploration')
     parser.add_argument('--agent_config',       type=str,            required=False, default='src/ergodic_exploration/agent_configs/default.yaml', help='Path to agent configuration YAML file')
     parser.add_argument('--model_type',         type=str,            required=False, default=None, help='Override model type from config (SingleIntegrator, DoubleIntegrator, etc.)')
@@ -239,7 +239,7 @@ def main(args=None):
     # Parse known args only, keep ROS args separate
     parsed_args, ros_args = parser.parse_known_args()  
     AGENT_ID = parsed_args.agent_id
-    INIT_POS_2D = np.array(parsed_args.init_pos)
+    INIT_POS_3D = np.array(parsed_args.init_pos)
     L1_BOUNDS = [parsed_args.l_bounds[0], parsed_args.l_bounds[1]]
     L2_BOUNDS = [parsed_args.l_bounds[2], parsed_args.l_bounds[3]]
     OBSTACLES_YAML_PATH = parsed_args.obstacles_yaml
@@ -324,7 +324,7 @@ def main(args=None):
     
     # Single integrator model ----
     if MODEL_TYPE == "SingleIntegrator":
-        dynamic_model = SingleIntegrator(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1]])
+        dynamic_model = SingleIntegrator(dt=dt, x0=[INIT_POS_3D[0], INIT_POS_3D[1]])
 
     # Double integrator model ----
     elif MODEL_TYPE == "DoubleIntegrator":
@@ -334,7 +334,7 @@ def main(args=None):
             print(f"ERROR: Missing required 'damping' parameter for DoubleIntegrator model")
             print(f"Please check your configuration file: {parsed_args.agent_config}")
             sys.exit(3)
-        dynamic_model = DoubleIntegrator(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], 0, 0], damping=damping)
+        dynamic_model = DoubleIntegrator(dt=dt, x0=[INIT_POS_3D[0], INIT_POS_3D[1], 0, 0], damping=damping)
     
     # Simple Boat Second Order model ----
     elif MODEL_TYPE == "SimpleBoatSecondOrder":
@@ -350,7 +350,7 @@ def main(args=None):
             print("Required parameters: m, Iz, d_v, d_w, k_delta")
             sys.exit(3)
         
-        dynamic_model = SimpleBoatSecondOrder(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0],
+        dynamic_model = SimpleBoatSecondOrder(dt=dt, x0=[INIT_POS_3D[0], INIT_POS_3D[1], -0.39, 0, 0],
                                             m=m, Iz=Iz, d_v=d_v, d_w=d_w, k_delta=k_delta)
 
     # Simple Car Second Order model ----
@@ -373,7 +373,7 @@ def main(args=None):
             print("Required parameters: m, L, b_v, d_v, k_delta, k_steer, Iz, d_r, u_epsilon, max_allowed_rev_thr, steer_priority")
             sys.exit(3)
 
-        dynamic_model = SimpleCarSecondOrder(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -0.39, 0, 0, 0],
+        dynamic_model = SimpleCarSecondOrder(dt=dt, x0=[INIT_POS_3D[0], INIT_POS_3D[1], -0.39, 0, 0, 0],
                                            m=m, L=L, b_v=b_v, d_v=d_v, k_delta=k_delta, k_steer=k_steer, 
                                            Iz=Iz, d_r=d_r, u_epsilon=u_epsilon, 
                                            max_allowed_rev_thr=max_allowed_rev_thr, steer_priority=steer_priority)
@@ -390,13 +390,13 @@ def main(args=None):
             print("Required parameters: v_trim, use_linear_f, use_linear_fx_fu")
             sys.exit(3)
         
-        # Only X, Y, Z and Yaw (psi) can be changed from here. The others are overwritten by trim state.
-        #                                                   x0=[x,              y,              z,      φ, θ,    ψ,     u,      v, w, p, q, r]
+        # Only X, Y, Z and Yaw (psi) can be changed from here. The others are overwritten by trim state. 0.053
+        #                                                   x0=[x,              y,              z,              φ, θ,    ψ,                   u,   v,      w, p, q, r]
         if MODEL_TYPE == "FixedWing12DOFTrainer":
-            dynamic_model = FixedWing12DOFTrainer(dt=dt,    x0=[INIT_POS_2D[0], INIT_POS_2D[1], -100.0, 0, 0.12, 0.053, v_trim, 0, 0, 0, 0, 0],
+            dynamic_model = FixedWing12DOFTrainer(dt=dt,    x0=[INIT_POS_3D[0], INIT_POS_3D[1], INIT_POS_3D[2], 0, 0.12, INIT_POS_3D[3]*np.pi/180, v_trim, 0, 0, 0, 0, 0],
                                                 v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
         else:
-            dynamic_model = FixedWing12DOFTrainerJAX(dt=dt, x0=[INIT_POS_2D[0], INIT_POS_2D[1], -100.0, 0, 0.12, 0.053, v_trim, 0, 0, 0, 0, 0],
+            dynamic_model = FixedWing12DOFTrainerJAX(dt=dt, x0=[INIT_POS_3D[0], INIT_POS_3D[1], INIT_POS_3D[2], 0, 0.12, INIT_POS_3D[3]*np.pi/180, v_trim, 0, 0, 0, 0, 0],
                                                 v_trim=v_trim, use_linear_f=use_linear_f, use_linear_fx_fu=use_linear_fx_fu)
         
         # Add trim inputs to every input from now on using a nominal function
@@ -433,7 +433,7 @@ def main(args=None):
         R_lqr_matrix = np.diag(R_lqr) if R_lqr is not None else None
         
         # Set initial position with z_target
-        x0 = [INIT_POS_2D[0], INIT_POS_2D[1], z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        x0 = [INIT_POS_3D[0], INIT_POS_3D[1], z_target, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         
         dynamic_model = Quadcopter(dt=dt, x0=x0, z_target=z_target, motor_limits=motor_limits, 
                                  zero_out_states=zero_out_states, mass=mass, damping=damping,
@@ -479,7 +479,7 @@ def main(args=None):
     agent.declare_parameter('update_eid_flag', UPDATE_EID_FLAG, descriptor=descriptor)
     agent.declare_parameter('save_images_flag', SAVE_IMAGES_FLAG, descriptor=descriptor)
     agent.declare_parameter('imax', IMAX, descriptor=descriptor)
-    agent.declare_parameter('init_position_2d', INIT_POS_2D.tolist(), descriptor=descriptor)
+    agent.declare_parameter('init_position_3d', INIT_POS_3D.tolist(), descriptor=descriptor)
     agent.declare_parameter('model_type', agent.model.type, descriptor=descriptor)
 
     # Declare antenna_radius parameter (not read-only) and update agent's antenna_rad

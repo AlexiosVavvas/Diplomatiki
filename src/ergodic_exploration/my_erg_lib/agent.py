@@ -644,9 +644,10 @@ class Agent(Node):
     def calcHessianH(self, x, epsilon=1e-3):
         # Lets use finite differences to calculate the Hessian of h(x)
         hessian_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
-
-        for i in range(self.model.num_of_states):
-            for j in range(i, self.model.num_of_states):  # compute for j >= i to exploit symmetry
+        
+        # H depends only on positional dimensions X and Y
+        for i in range(2):
+            for j in range(i, 2):  # compute for j >= i to exploit symmetry
                 if i == j:
                     x_plus = x.copy()
                     x_plus[i] += epsilon
@@ -691,12 +692,11 @@ class Agent(Node):
         h, grad_h = self.calcHGradient(x[:2], also_return_h_flag=True)
 
         # Calculate CBF Hessian
-        hess_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
+        hess_h = self.calcHessianH(x)
 
         # System Dynamics
         f = self.model.f(x, udef_now)
         f_x = self.model.f_x(x, udef_now)
-        g = self.model.h(x)
 
         h_dot = grad_h.T @ f    
         h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
@@ -704,8 +704,8 @@ class Agent(Node):
         PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
 
         # Beta Calculation
-        # beta = (f.T @ hess_h + grad_h.T @ f_x) @ g
-        beta = (self.model.g(x).T @ hess_h + grad_h.T @ self.model.f_x(x, np.zeros_like(udef_now))) @ g
+        # beta = (grad_h.T @ self.model.f_x(x, udef_now)) @ self.model.h(x)
+        beta = (f.T @ hess_h + grad_h.T @ self.model.f_x(x, udef_now)) @ self.model.h(x)
 
         if PSI >= 0:
             # No need to change the control input if PSI > 0, we are not in a danger zone
@@ -714,165 +714,12 @@ class Agent(Node):
             if np.linalg.norm(beta) < 1e-6:
                 u_safe = np.zeros_like(udef_now)
             else:
-                # If we have a boat, we need to prioritize rudder over thrust (to avoid using reverse thrust)
-                if isinstance(self.model, SimpleBoatSecondOrder):
-                    # Create weighting matrix to prioritize rudder over thrust
-                    # Assume control input order is [thrust, rudder]
-                    W = np.diag([1.0, self.model.rudder_priority])  # Higher weight on rudder
-                    
-                    # Weighted least squares solution for safety control
-                    beta_weighted = W @ beta.T
-                    u_safe_weighted = -beta_weighted / (np.linalg.norm(beta_weighted)**2) * PSI
-                    
-                    # Transform back to original control space
-                    u_safe = W @ u_safe_weighted
-                    
-                    # Additional constraint: don't allow thrust to go above maximum (less negative = less forward thrust)
-                    if len(u_safe) >= 1:  # Ensure we have thrust control
-                        # If the safety control would make total thrust positive (reverse), redistribute to rudder
-                        total_thrust = udef_now[0] + u_safe[0]
-                        
-                        if total_thrust > self.model.max_allowed_rev_thr:  # total_thrust becoming positive means reverse
-                            thrust_excess = total_thrust - self.model.max_allowed_rev_thr
-                            u_safe[0] = self.model.max_allowed_rev_thr - udef_now[0]  # Adjust thrust to maximum allowed (0 or negative)
-
-                            # If we have rudder control, increase rudder authority to compensate
-                            if len(u_safe) >= 2:
-                                # Choose redistribution sign robustly:
-                                if np.abs(beta[1]) > 1e-5:
-                                    sign_steer = np.sign(beta[1])
-                                else:
-                                    # Fallback: use cross product of velocity and grad_h to pick turning side
-                                    v = f[:2]        # translational velocity (x,y)
-                                    g2 = grad_h[:2]  # gradient in x,y
-                                    cross = v[0]*g2[1] - v[1]*g2[0]
-                                    # If cross>0 -> turning in one direction, cross<0 -> the other
-                                    sign_steer = np.sign(cross) if np.abs(cross) > 1e-6 else 1.0
-
-                                additional_steer = -thrust_excess * sign_steer * self.model.rudder_priority
-                                u_safe[1] += additional_steer
-                                
-                elif isinstance(self.model, SimpleCarSecondOrder):
-                    # Create weighting matrix to prioritize steering over thrust
-                    # Assume control input order is [thrust, steering]
-                    W = np.diag([1.0, self.model.steer_priority])  # Higher weight on steering
-                    
-                    # Weighted least squares solution for safety control
-                    beta_weighted = W @ beta.T
-                    u_safe_weighted = -beta_weighted / (np.linalg.norm(beta_weighted)**2) * PSI
-                    
-                    # Transform back to original control space
-                    u_safe = W @ u_safe_weighted
-
-                    # print(f"--> Car Safety Control: PSI={PSI:.4f}, beta={beta}, u_safe_initial={u_safe}")
-
-                    # Additional constraint: don't allow thrust to go above maximum (less negative = less forward thrust)
-                    if len(u_safe) >= 1:  # Ensure we have thrust control
-                        # If the safety control would make total thrust positive (reverse), redistribute to rudder
-                        total_thrust = udef_now[0] + u_safe[0]
-                        
-                        if total_thrust > self.model.max_allowed_rev_thr:  # total_thrust becoming positive means reverse
-                            thrust_excess = total_thrust - self.model.max_allowed_rev_thr
-                            u_safe[0] = self.model.max_allowed_rev_thr - udef_now[0]  # Adjust thrust to maximum allowed (0 or negative)
-
-                            # If we have rudder control, increase rudder authority to compensate
-                            if len(u_safe) >= 2:
-                                # Choose redistribution sign robustly:
-                                if np.abs(beta[1]) > 1e-5:
-                                    sign_steer = np.sign(beta[1])
-                                else:
-                                    # Fallback: use cross product of velocity and grad_h to pick turning side
-                                    # use cross product between velocity vector and gradient to pick side
-                                    v = f[:2]         # translational velocity (x,y) -> car: (u*cos, u*sin)
-                                    g2 = grad_h[:2]
-                                    cross = v[0]*g2[1] - v[1]*g2[0]
-                                    sign_steer = np.sign(cross) if np.abs(cross) > 1e-6 else np.sign(beta[1]) if np.abs(beta[1])>1e-6 else 1.0
-
-                                additional_steer = -thrust_excess * sign_steer * self.model.steer_priority
-                                u_safe[1] += additional_steer
-
-                # TODO: Quad relative degree is more than 2 for roll, pitch, yaw. So cbf returns actions for only throttle (due to our linearization)
-                elif isinstance(self.model, Quadcopter):
-
-                    # input order assumed: [thrust, yaw, pitch, roll]
-                    m = self.model.m
-                    hover_thrust = m * 9.81
-
-                    # weights: make thrust very expensive to change; attitude and yaw cheap(er)
-                    w_thrust = 100.0       # very large -> penalize thrust changes
-                    w_yaw   = 0.1
-                    w_pitch = 0.1
-                    w_roll  = 0.1
-                    W = np.diag([w_thrust, w_yaw, w_pitch, w_roll])
-                    Winv = np.linalg.inv(W)
-
-                    beta_vec = np.asarray(beta).reshape(-1)   # shape (4,)
-                    if np.linalg.norm(beta_vec) < 1e-9:
-                        print(f"[Quadcopter CBF] beta_vec norm too small ({np.linalg.norm(beta_vec):.2e}), setting u_safe = 0")
-                        u_safe = np.zeros_like(udef_now)
-                    else:
-                        denom = beta_vec @ (Winv @ beta_vec)
-                        print(f"[Quadcopter CBF] denom: {denom:.4e}, PSI: {PSI:.4e}")
-                        if np.abs(denom) < 1e-12:
-                            print(f"[Quadcopter CBF] denom too small ({denom:.2e}), setting u_safe = 0")
-                            u_safe = np.zeros_like(udef_now)
-                        else:
-                            # weighted-LS closed form
-                            u_delta = - (Winv @ beta_vec) * (PSI / denom) * 10 ** -4 * 3  # proposed delta to nominal
-                            print(f"[Quadcopter CBF] u_delta (proposed): {u_delta}")
-
-                            # enforce a minimum allowed total thrust (so we don't "dive through")
-                            min_thrust_fraction = 0.95   # tune: 0.6..0.95 depending on safety desired
-                            min_allowed_total_thrust = min_thrust_fraction * hover_thrust
-                            proposed_total_thrust = udef_now[0] + u_delta[0]
-                            print(f"[Quadcopter CBF] proposed_total_thrust: {proposed_total_thrust:.4f}, min_allowed_total_thrust: {min_allowed_total_thrust:.4f}")
-
-                            if proposed_total_thrust < min_allowed_total_thrust:
-                                print(f"[Quadcopter CBF] proposed_total_thrust below minimum, fixing thrust to {min_allowed_total_thrust:.4f}")
-                                # fix thrust delta to reach the minimum allowed total thrust
-                                u_delta_thrust_fixed = min_allowed_total_thrust - udef_now[0]
-                                # compute remaining RHS after accounting for the fixed thrust contribution
-                                b0 = beta_vec[0] * u_delta_thrust_fixed * 10
-                                residual_rhs = -PSI - b0
-
-                                # redistribute residual among attitude channels (indices 1..3)
-                                beta_others = beta_vec[1:]
-                                W_others = W[1:, 1:]
-                                try:
-                                    Winv_others = np.linalg.inv(W_others)
-                                except np.linalg.LinAlgError:
-                                    print("[Quadcopter CBF] Winv_others not invertible, using thrust only")
-                                    # fallback: cannot invert, return with clipped thrust only
-                                    u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
-                                else:
-                                    denom2 = beta_others @ (Winv_others @ beta_others)
-                                    print(f"[Quadcopter CBF] denom2: {denom2:.4e}, residual_rhs: {residual_rhs:.4e}")
-                                    if np.abs(denom2) < 1e-12:
-                                        print("[Quadcopter CBF] denom2 too small, using thrust only")
-                                        # can't redistribute, use thrust only (clipped)
-                                        u_safe = np.array([u_delta_thrust_fixed, 0.0, 0.0, 0.0])
-                                    else:
-                                        u_others_delta = - (Winv_others @ beta_others) * (residual_rhs / denom2)
-                                        print(f"[Quadcopter CBF] u_others_delta: {u_others_delta}")
-                                        u_safe = np.concatenate(([u_delta_thrust_fixed], u_others_delta))
-                            else:
-                                print(f"[Quadcopter CBF] using u_delta as u_safe: {u_delta}")
-                                u_safe = u_delta
-
-                    # Clip to allowed uLimits
-                    u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
-
-                else:
-                    # Standard least squares solution for safety control
-                    u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
+                u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
                     
 
         # Apply control limits
-        u_safe = np.clip(u_safe, self.erg_c.uLimits[:, 0], self.erg_c.uLimits[:, 1])
-
-        # TODO: Currently we need to Reverse rudder for this to work, or change sign in Cn_dr (-1 => +1). Inspect more on why.
-        if self.model.type == 'FixedWing12DOFTrainer' or self.model.type == 'FixedWing12DOFTrainerJAX':
-            u_safe[2] *= -1
+        u_safe[:3] = np.clip(u_safe[:3], self.erg_c.uLimits[:3, 0], self.erg_c.uLimits[:3, 1])
+        u_safe[3] = np.clip(u_safe[3], -1, 1)
 
         # Publish debug information
         debug_msg = ObsAvoidanceDebug()

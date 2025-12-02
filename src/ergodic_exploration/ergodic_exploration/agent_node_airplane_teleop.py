@@ -81,10 +81,29 @@ class TeleopAgent(Node):
         )
         
         # ROS2 Publishers (reusing AgentData message for visualization)
-        from my_interfaces.msg import AgentData
+        from my_interfaces.msg import AgentData, MultipleObstacles, MultipleTargetEstimates, CkTable
         self.data_pub = self.create_publisher(
             AgentData,
             f'/agent_{self.agent_id}/data',
+            10
+        )
+        
+        # Add publishers for other topics expected by dashboard
+        self.obstacles_pub = self.create_publisher(
+            MultipleObstacles,
+            f'agent_{self.agent_id}/known_obstacles',
+            10
+        )
+        
+        self.target_estimates_pub = self.create_publisher(
+            MultipleTargetEstimates,
+            f'agent_{self.agent_id}/target_estimates',
+            10
+        )
+        
+        self.ck_pub = self.create_publisher(
+            CkTable,
+            f'agent_{self.agent_id}/ck',
             10
         )
         
@@ -202,7 +221,7 @@ class TeleopAgent(Node):
     
     def publishDataCallback(self):
         """Publish agent state data for visualization"""
-        from my_interfaces.msg import AgentData
+        from my_interfaces.msg import AgentData, MultipleObstacles, MultipleTargetEstimates, CkTable
         from std_msgs.msg import Header
         
         msg = AgentData()
@@ -228,12 +247,31 @@ class TeleopAgent(Node):
         # Additional info
         msg.ergodic_cost = 0.0  # Not applicable in teleop mode
         msg.active_cbf_flag = False
-        msg.delta_t_ts = 1.0
+        msg.delta_t_ts = -1.0
         
         # No agents in range for teleop mode
         msg.in_range_agents_ids = []
         
         self.data_pub.publish(msg)
+        
+        # Publish empty messages for other topics to keep dashboard.py happy
+        obstacles_msg = MultipleObstacles()
+        obstacles_msg.obstacles = []
+        self.obstacles_pub.publish(obstacles_msg)
+        
+        target_estimates_msg = MultipleTargetEstimates()
+        target_estimates_msg.target_estimates = []
+        target_estimates_msg.ground_truths = []
+        self.target_estimates_pub.publish(target_estimates_msg)
+        
+        # Publish empty CK table
+        ck_msg = CkTable()
+        ck_msg.table_size = 0
+        ck_msg.ck_values = []
+        ck_msg.total_erg_cost_in_range = 0.0
+        ck_msg.l_bounds = [self.L1_BOUNDS[0], self.L1_BOUNDS[1], 
+                          self.L2_BOUNDS[0], self.L2_BOUNDS[1]]
+        self.ck_pub.publish(ck_msg)
     
     def step(self):
         """Step the simulation forward one timestep"""

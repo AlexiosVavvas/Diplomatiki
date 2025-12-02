@@ -5,23 +5,23 @@ agent:
   
   # Dynamics model parameters
   dynamics:
-    dt: 0.001
-    v_trim: 10             # [m/s] Desired trim speed
+    dt: 0.0005              # def: 0.001 s
+    v_trim: 16.0            # [m/s] Desired trim speed
     use_linear_f: false     # Whether to use linearised model for f(x,u)
     use_linear_fx_fu: false # Whether to use linearised model for f_x, f_u
     
   # Control parameters
   control:
     # Control limits: [elevator, aileron, rudder, throttle]
-    # elevator/aileron/rudder: ±25 deg = ±0.4363 rad
+    # elevator/aileron/rudder: ±10 deg ~= ±0.1745 rad
     # throttle: 0..1
-    u_limits_init: [[-0.4363, 0.4363], [-0.4363, 0.4363], [-0.4363, 0.4363], [0.0, 1.0]]
-    u_limits: [[-0.4363, 0.4363], [-0.4363, 0.4363], [-0.4363, 0.4363], [0.0, 1.0]]
-    time_to_apply_ulimits: 0  # [s] after which to switch u_limits
+    u_limits_init: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    u_limits: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    time_to_apply_ulimits: 0.0  # [s] after which to switch u_limits
     u_nominal: "trim"  # Special value indicating to use trim inputs
     
     # Ergodic controller parameters
-    Q: 2000  # 2 * 10^3
+    Q: 2  # 200-2000
     # R matrix - less penalty on throttle changes
     R: [[1.4, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.01]]
     prediction_dt_multiplier: 40  # PREDICTION_DT = dt * multiplier
@@ -40,13 +40,13 @@ agent:
     # Safety parameters (CBF)
     cbf_skip_iter: 5        # How often to apply CBF safety filter
     delta_safe: 0.1
-    alpha_hdot: 1
-    alpha_h: 0.008
+    alpha_hdot: 2   # 1
+    alpha_h: 0.01   # 0.008
     
-    kappa_wall: 10
-    rho_wall: 35.0
+    kappa_wall: 30  # 10.0
+    rho_wall: 30.0  # 35.0
     
-    kappa_obs: 20
+    kappa_obs: 30   # 20
     rho_obs: 30
     
     kappa_obs_virtual: 1    # Parameters for avoiding other agents

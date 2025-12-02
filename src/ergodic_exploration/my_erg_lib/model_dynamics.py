@@ -792,7 +792,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
             'k': 0.0639,         # induced drag factor
             'Cm_alpha': -0.8,
             'Cm_q': -8.0,
-            'Cm_de': -1.2,
+            'Cm_de': -0.3,
             # lateral-directional
             'C_ell_beta': -0.12,
             'C_ell_p': -0.26,
@@ -803,15 +803,15 @@ class FixedWing12DOFTrainer(DynamicsBase):
             'CY_beta': -0.02,
             # control-surface derivatives (starter guesses)
             'C_ell_da': 0.10,   # roll per aileron rad
-            'C_ell_dr': 0.03,   # roll per rudder rad (def: 0.01)
-            'Cn_da': -0.03,     # yaw per aileron rad (adverse yaw)
-            'Cn_dr': -0.10,     # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
-            'CY_da': 0.0,       # side force per aileron rad
-            'CY_dr': 0.12,      # side force per rudder rad
-            'CY_p': 0.0,
-            'CY_r': 0.0,
+            'C_ell_dr': 0.01,   # roll per rudder rad (def: 0.01)
+            'Cn_da': 0.05,     # yaw per aileron rad (adverse yaw)
+            'Cn_dr': 0.02,      # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
+            'CY_da': 0.1,     # Small adverse side force (can leave at 0 if negligible)
+            'CY_dr': 0.08,      # side force per rudder rad
+            'CY_p': -0.075,     # Typical for trainers
+            'CY_r': 0.25,       # Strong lateral damping (typical for good trainers)
             # propulsion
-            'T_max': 10.0,   # N (example static thrust)
+            'T_max': 15.0,   # N (example static thrust)
             # input limits: [min, max] for [de, da, dr, throttle]
             'input_limits': np.array([[-0.4363, 0.4363],  # elevator ±25 deg
                                     [-0.4363, 0.4363],  # aileron ±25 deg
@@ -898,6 +898,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
         # clip inputs
         u = np.clip(u, self.input_limits[:, 0], self.input_limits[:, 1])
         delta_e, delta_a, delta_r, throttle = u
+        # delta_r *= -1
 
         # If using linear model, just do that
         if self.use_linear_model_for_f:
@@ -1115,6 +1116,7 @@ class FixedWing12DOFTrainer(DynamicsBase):
         # Precompute common terms (speeds up calculations quite a lot, who would have thought hahaha)
         uvw_sq = u_b**2 + v_b**2 + w_b**2
         sq_uvw = np.sqrt(uvw_sq)
+        c_q_u_b = c*q*u_b
         sin_phi = np.sin(phi); cos_phi = np.cos(phi)
         sin_psi = np.sin(psi); cos_psi = np.cos(psi)
         sin_theta = np.sin(theta); cos_theta = np.cos(theta); tan_theta = np.tan(theta)
@@ -1149,10 +1151,10 @@ class FixedWing12DOFTrainer(DynamicsBase):
         A[5, 10] = sin_phi/cos_theta
         A[5, 11] = cos_phi/cos_theta
         A[6, 4] = -g*cos_theta
-        A[6, 6] = S*rho*(2*k_drag*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c*q*u_b**3)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 4*u_b**2*w_b*(u_b**2 + w_b**2)**(7/2)*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 2*u_b**2*(u_b**2 + w_b**2)**(7/2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2 - w_b**2*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)**3*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2 + 2*w_b*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)) + 2*w_b*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c*q*u_b**3)*(uvw_sq)**(5/2) + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(7/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**4*(uvw_sq)**3)
-        A[6, 7] = (CL_q*S*c*k_drag*q*rho*u_b*v_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) + CL_q*S*c*q*rho*u_b*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(5/2)*np.abs(u_b) - 2*S*rho*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - S*rho*v_b*(u_b**2 + w_b**2)**(3/2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2*np.abs(u_b) + 4*m*r*u_b**2*(u_b**2 + w_b**2)**2*(uvw_sq)**3)/(4*m*u_b**2*(u_b**2 + w_b**2)**2*(uvw_sq)**3)
-        A[6, 8] = (-S*rho*w_b*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c*q*u_b*w_b + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw))*np.abs(u_b)/4 + S*rho*w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2 + 2*w_b*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw))*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(3/2)*np.abs(u_b)/8 - S*rho*(u_b**2 + w_b**2)**(5/2)*(k_drag*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c*q*u_b*w_b)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) + w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2))*sq_uvw*np.abs(u_b)/4 - S*rho*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b)/4 - m*q*u_b**2*(u_b**2 + w_b**2)**3*(uvw_sq)**(3/2))/(m*u_b**2*(u_b**2 + w_b**2)**3*(uvw_sq)**(3/2))
-        A[6, 10] = (-CL_q*S*c*k_drag*rho*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - CL_q*S*c*rho*w_b*sq_uvw*np.abs(u_b) - 4*m*u_b*w_b*np.sqrt(u_b**2 + w_b**2))/(4*m*u_b*np.sqrt(u_b**2 + w_b**2))
+        A[6, 6] = S*rho*(2*k_drag*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c_q_u_b**3)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 4*u_b**2*w_b*(u_b**2 + w_b**2)**(7/2)*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 2*u_b**2*(u_b**2 + w_b**2)**(7/2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2 - w_b**2*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)**3*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2 + 2*w_b*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)) + 2*w_b*(u_b**2 + w_b**2)**(7/2)*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c_q_u_b**3)*(uvw_sq)**(5/2) + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(7/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**4*(uvw_sq)**3)
+        A[6, 7] = (CL_q*S*c*k_drag*q*rho*u_b*v_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) + CL_q*S*c*q*rho*u_b*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(5/2)*np.abs(u_b) - 2*S*rho*v_b*w_b*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - S*rho*v_b*(u_b**2 + w_b**2)**(3/2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2*np.abs(u_b) + 4*m*r*u_b**2*(u_b**2 + w_b**2)**2*(uvw_sq)**3)/(4*m*u_b**2*(u_b**2 + w_b**2)**2*(uvw_sq)**3)
+        A[6, 8] = (-S*rho*w_b*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c_q_u_b*w_b + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw))*np.abs(u_b)/4 + S*rho*w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2 + 2*w_b*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw))*(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)**(3/2)*np.abs(u_b)/8 - S*rho*(u_b**2 + w_b**2)**(5/2)*(k_drag*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c_q_u_b*w_b)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) + w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2))*sq_uvw*np.abs(u_b)/4 - S*rho*(u_b**2 + w_b**2)**(5/2)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b)/4 - m*q*u_b**2*(u_b**2 + w_b**2)**3*(uvw_sq)**(3/2))/(m*u_b**2*(u_b**2 + w_b**2)**3*(uvw_sq)**(3/2))
+        A[6, 10] = (-CL_q*S*c*k_drag*rho*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - CL_q*S*c*rho*w_b*sq_uvw*np.abs(u_b) - 4*m*u_b*w_b*np.sqrt(u_b**2 + w_b**2))/(4*m*u_b*np.sqrt(u_b**2 + w_b**2))
         A[6, 11] = v_b
         A[7, 3] = g*cos_phi*cos_theta
         A[7, 4] = -g*sin_phi*sin_theta
@@ -1163,11 +1165,11 @@ class FixedWing12DOFTrainer(DynamicsBase):
         A[7, 11] = CY_r*S*b*rho*sq_uvw/(4*m) - u_b
         A[8, 3] = -g*sin_phi*cos_theta
         A[8, 4] = -g*sin_theta*cos_phi
-        A[8, 6] = (2*S*k_drag*rho*w_b*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c*q*u_b**3)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 4*S*rho*u_b**4*(u_b**2 + w_b**2)**5*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 2*S*rho*u_b**2*w_b**2*(u_b**2 + w_b**2)**4*(uvw_sq)**(7/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 2*S*rho*u_b**2*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2*np.abs(u_b) + 2*S*rho*u_b**2*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c*q*u_b**3)*(uvw_sq)**(5/2)*np.abs(u_b) - S*rho*w_b**3*(u_b**2 + w_b**2)**4*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**3*np.abs(u_b) + S*rho*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**3*np.abs(u_b) + 8*m*q*u_b**4*(u_b**2 + w_b**2)**(11/2)*(uvw_sq)**3)/(8*m*u_b**4*(u_b**2 + w_b**2)**(11/2)*(uvw_sq)**3)
+        A[8, 6] = (2*S*k_drag*rho*w_b*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c_q_u_b**3)*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 4*S*rho*u_b**4*(u_b**2 + w_b**2)**5*(uvw_sq)**(5/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 2*S*rho*u_b**2*w_b**2*(u_b**2 + w_b**2)**4*(uvw_sq)**(7/2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - 2*S*rho*u_b**2*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**2*np.abs(u_b) + 2*S*rho*u_b**2*(u_b**2 + w_b**2)**5*(2*CL_alpha*w_b*(uvw_sq)**(3/2) + CL_q*c_q_u_b**3)*(uvw_sq)**(5/2)*np.abs(u_b) - S*rho*w_b**3*(u_b**2 + w_b**2)**4*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**3*np.abs(u_b) + S*rho*w_b*(u_b**2 + w_b**2)**5*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**3*np.abs(u_b) + 8*m*q*u_b**4*(u_b**2 + w_b**2)**(11/2)*(uvw_sq)**3)/(8*m*u_b**4*(u_b**2 + w_b**2)**(11/2)*(uvw_sq)**3)
         A[8, 7] = -p + (CL_q*S*c*k_drag*q*rho*v_b*w_b*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*sq_uvw))/(2*u_b*np.sqrt(1 + w_b**2/u_b**2)*sq_uvw) + CL_q*S*c*q*rho*v_b/(4*np.sqrt(1 + w_b**2/u_b**2)*sq_uvw) - S*rho*v_b*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*sq_uvw))/np.sqrt(1 + w_b**2/u_b**2) - S*rho*v_b*w_b*(CD0 + k_drag*(CL0 + CL_alpha*w_b/u_b + CL_de*delta_e + CL_q*c*q/(2*sq_uvw))**2)/(u_b*np.sqrt(1 + w_b**2/u_b**2)))/m
-        A[8, 8] = S*rho*(2*u_b**2*w_b*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 2*u_b**2*(u_b**2 + w_b**2)*(uvw_sq)*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c*q*u_b*w_b + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)) + w_b**2*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**(3/2) - 2*w_b*(u_b**2 + w_b**2)*(k_drag*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c*q*u_b*w_b)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) + w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2))*sq_uvw - (u_b**2 + w_b**2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**(3/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(3/2))
+        A[8, 8] = S*rho*(2*u_b**2*w_b*(uvw_sq)**2*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - 2*u_b**2*(u_b**2 + w_b**2)*(uvw_sq)*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c_q_u_b*w_b + 2*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)) + w_b**2*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**(3/2) - 2*w_b*(u_b**2 + w_b**2)*(k_drag*(2*CL_alpha*(uvw_sq)**(3/2) - CL_q*c_q_u_b*w_b)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) + w_b*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2))*sq_uvw - (u_b**2 + w_b**2)*(4*CD0*u_b**2*(uvw_sq) + k_drag*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)**2)*(uvw_sq)**(3/2))*np.abs(u_b)/(8*m*u_b**3*(u_b**2 + w_b**2)**(3/2)*(uvw_sq)**(3/2))
         A[8, 9] = -v_b
-        A[8, 10] = (-CL_q*S*c*k_drag*rho*w_b*np.sqrt(u_b**2 + w_b**2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - CL_q*S*c*rho*u_b**2*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)*np.abs(u_b) + 4*m*u_b**3*(u_b**2 + w_b**2))/(4*m*u_b**2*(u_b**2 + w_b**2))
+        A[8, 10] = (-CL_q*S*c*k_drag*rho*w_b*np.sqrt(u_b**2 + w_b**2)*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.abs(u_b) - CL_q*S*c*rho*u_b**2*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4)*np.abs(u_b) + 4*m*u_b**3*(u_b**2 + w_b**2))/(4*m*u_b**2*(u_b**2 + w_b**2))
         A[9, 6] = S*b*rho*u_b*(Ixz*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*sq_uvw) + Iz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*sq_uvw))/(4*(Ix*Iz - Ixz**2)*sq_uvw)
         A[9, 7] = S*b*rho*(Ixz*(2*Cn_beta*(uvw_sq) - v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r) + 2*v_b*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 2*(Cn_da*delta_a + Cn_dr*delta_r)*sq_uvw)) + Iz*(2*C_ell_beta*(uvw_sq) - v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r) + 2*v_b*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 2*(C_ell_da*delta_a + C_ell_dr*delta_r)*sq_uvw)))/(4*(Ix*Iz - Ixz**2)*sq_uvw)
         A[9, 8] = S*b*rho*w_b*(Ixz*(2*Cn_beta*v_b + Cn_p*b*p + Cn_r*b*r + 4*(Cn_da*delta_a + Cn_dr*delta_r)*sq_uvw) + Iz*(2*C_ell_beta*v_b + C_ell_p*b*p + C_ell_r*b*r + 4*(C_ell_da*delta_a + C_ell_dr*delta_r)*sq_uvw))/(4*(Ix*Iz - Ixz**2)*sq_uvw)
@@ -1232,17 +1234,20 @@ class FixedWing12DOFTrainer(DynamicsBase):
         # Note: Only non-zero elements are computed for efficiency
         uvw_sq = u_b**2 + v_b**2 + w_b**2
         sq_uvw = np.sqrt(uvw_sq)
+        c_q_u_b = c*q*u_b
 
-        B[6, 0] = CL_de*S*rho*(-k_drag*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - w_b*(uvw_sq))*np.abs(u_b)/(2*m*u_b*np.sqrt(u_b**2 + w_b**2))
+        B[6, 0] = CL_de*S*rho*(-k_drag*sq_uvw*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw) - w_b*(uvw_sq))*np.abs(u_b)/(2*m*u_b*np.sqrt(u_b**2 + w_b**2))
         B[6, 3] = T_max/m
         B[7, 1] = CY_da*S*rho*(uvw_sq)/(2*m)
         B[7, 2] = CY_dr*S*rho*(uvw_sq)/(2*m)
-        B[8, 0] = CL_de*S*rho*(-k_drag*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c*q*u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4) - u_b**2*np.sqrt(u_b**2 + w_b**2)*(uvw_sq))*np.abs(u_b)/(2*m*u_b**2*(u_b**2 + w_b**2))
+        B[8, 0] = CL_de*S*rho*(-k_drag*w_b*(2*CL_alpha*w_b*sq_uvw + CL_q*c_q_u_b + 2*u_b*(CL0 + CL_de*delta_e)*sq_uvw)*np.sqrt(u_b**4 + u_b**2*v_b**2 + 2*u_b**2*w_b**2 + v_b**2*w_b**2 + w_b**4) - u_b**2*np.sqrt(u_b**2 + w_b**2)*(uvw_sq))*np.abs(u_b)/(2*m*u_b**2*(u_b**2 + w_b**2))
         B[9, 1] = S*b*rho*(C_ell_da*Iz + Cn_da*Ixz)*(uvw_sq)/(2*(Ix*Iz - Ixz**2))
         B[9, 2] = S*b*rho*(C_ell_dr*Iz + Cn_dr*Ixz)*(uvw_sq)/(2*(Ix*Iz - Ixz**2))
         B[10, 0] = Cm_de*S*c*rho*(uvw_sq)/(2*Iy)
         B[11, 1] = S*b*rho*(C_ell_da*Ixz + Cn_da*Ix)*(uvw_sq)/(2*(Ix*Iz - Ixz**2))
         B[11, 2] = S*b*rho*(C_ell_dr*Ixz + Cn_dr*Ix)*(uvw_sq)/(2*(Ix*Iz - Ixz**2))
+
+        # B[:, 2] *= -1.0  # Rudder input has negative effect on side force and moments
 
         return B
 
@@ -1290,69 +1295,188 @@ class FixedWing12DOFTrainer(DynamicsBase):
         """
         def _trimObjective(vars, plane, V_trim):
             """
-            vars: [w, theta, delta_e, throttle]
-            w: body z-velocity
-            theta: pitch angle (rad)
-            delta_e: elevator (rad)
-            throttle: 0..1
-            plane: instance of FixedWing12DOFTrainer
-            V_trim: desired airspeed (m/s) used for u (body-x)
-            returns residuals [udot, wdot, qdot, u - V_trim]
-            Note: class state ordering is:
-            x = [X, Y, Z, phi, theta, psi, u, v, w, p, q, r]
+            vars: [u, w, theta, delta_e, throttle]
             """
             u, w, theta, delta_e, throttle = vars
+            
             # build state with symmetric (no lateral motion), no angular rates
-            X = 0.0; Y = 0.0; Z = -0.0  # choose Z reference (your convention)
-            phi = 0.0
-            psi = 0.0
+            X = 0.0; Y = 0.0; Z = 0.0
+            phi = 0.0; psi = 0.0
             v = 0.0
             p = 0.0; q = 0.0; r = 0.0
 
             x = np.array([X, Y, Z, phi, theta, psi, u, v, w, p, q, r], dtype=float)
-            u_ctrl = np.array([delta_e, 0.0, 0.0, throttle])  # symmetric (ail/rud zero)
+            u_ctrl = np.array([delta_e, 0.0, 0.0, throttle])
 
             # evaluate dynamics
             xdot = plane.f(x, u_ctrl)
 
-            # residuals: udot = 0, wdot = 0, qdot = 0 (pitch accel), Zdot=0, and u - V_trim = 0
-            # xdot ordering in this implementation:
-            # xdot[0:3] = pos_dot (Xdot,Ydot,Zdot)
-            # xdot[3:6] = [phi_dot, theta_dot, psi_dot]
-            # xdot[6:9] = [udot, vdot, wdot]
-            # xdot[9:12] = [pdot, qdot, rdot]
+            # For level flight trim we want:
+            # 1. udot = 0 (constant forward speed)
+            # 2. wdot = 0 (no vertical acceleration in body frame)
+            # 3. qdot = 0 (no pitch acceleration)
+            # 4. Zdot = 0 (constant altitude in inertial frame)
             udot = xdot[6]
             wdot = xdot[8]
             qdot = xdot[10]
-            Zdot = xdot[2]  # vertical speed should be zero for level flight
-            airspeed = np.sqrt(u**2 + v**2 + w**2)
-            # last residual enforces body-x speed equals V_trim (u - V_trim = 0)
-            res = np.array([udot, wdot, qdot, Zdot, airspeed - V_trim])
-            # res = np.array([udot, wdot, qdot, Zdot])
-            # res = np.array([udot, wdot, qdot, u - V_trim])
+            Zdot = xdot[2]
+            
+            # Compute actual airspeed
+            V_actual = np.sqrt(u**2 + v**2 + w**2)
+            
+            # Residuals: want all accelerations zero and airspeed to match
+            res = np.array([udot, wdot, qdot, Zdot, V_actual - V_trim])
+            
             return res
         
-        # initial guess: small w, small pitch, small elevator, half throttle
-        guess = np.array([V_trim, 0.0, 0.05, 0.0, 0.5])  # [V_trim, w, theta, delta_e, throttle]
-        sol = root(_trimObjective, guess, args=(self, V_trim), method='hybr', tol=1e-8)
-
-        if not sol.success:
-            print("Trim solver did not converge:", sol.message)
-            # still return a best-effort guess
+        # Better initial guess
+        # Typical trainer trim: small positive w, small positive theta, small negative elevator
+        # Throttle to overcome drag at cruise
+        guess = np.array([V_trim * 0.98, 0.5, 0.05, -0.05, 0.4])
+        
+        # Try multiple initial guesses if first one fails
+        solutions = []
+        guesses = [
+            np.array([V_trim * 0.98, 0.5, 0.05, -0.05, 0.4]),   # conservative
+            np.array([V_trim * 0.95, 1.0, 0.08, -0.08, 0.5]),   # moderate
+            np.array([V_trim,        0.2, 0.03, -0.03, 0.35]),  # aggressive
+        ]
+        
+        for guess in guesses:
+            sol = root(_trimObjective, guess, args=(self, V_trim), method='hybr', tol=1e-8)
+            if sol.success:
+                solutions.append((sol, np.linalg.norm(sol.fun)))
+        
+        # print all solutions
+        print("Trim solver solutions:")
+        for s, res_norm in solutions:
+            u_s, w_s, theta_s, delta_e_s, throttle_s = s.x
+            alpha_s = np.arctan2(w_s, u_s)
+            print(f"  u={u_s:.2f}, w={w_s:.2f}, theta={theta_s*180/np.pi:.2f}°, δe={delta_e_s*180/np.pi:.2f}°, throttle={throttle_s:.2%}, AoA={alpha_s*180/np.pi:.2f}°, residual norm={res_norm:.2e}")
+        
+        if not solutions:
+            print("WARNING: All trim solvers failed!")
+            sol = root(_trimObjective, guesses[0], args=(self, V_trim), method='hybr', tol=1e-8)
+        else:
+            # Pick solution with smallest residual
+            sol, _ = min(solutions, key=lambda x: x[1])
+        
         u, w, theta, delta_e, throttle = sol.x
+        
+
+
+        # Validate trim solution
+        alpha = np.arctan2(w, u)
+        if abs(alpha) > 0.3:  # ~17 degrees
+            print(f"WARNING: Trim angle of attack = {alpha*180/np.pi:.1f}° is very high!")
+        
+        if throttle < 0.1 or throttle > 0.9:
+            print(f"WARNING: Trim throttle = {throttle:.1%} is at extremes!")
+        
         x_trim = np.array([0.0, 0.0, 0.0,  # X, Y, Z
                         0.0, theta, 0.0,   # phi, theta, psi
                         u, 0.0, w,         # u, v, w
                         0.0, 0.0, 0.0])    # p, q, r
         u_trim = np.array([delta_e, 0.0, 0.0, np.clip(throttle, 0.0, 1.0)])
 
-        # Print trim state message
+        # ========== DETAILED PHYSICS VALIDATION ==========
+        P = self.params
+        m = P['m']
+        S = P['S']
+        rho = P['rho']
+        g = 9.81
+        
+        V = np.sqrt(u**2 + w**2)
+        qbar = 0.5 * rho * V**2
+        
+        # Lift coefficient at trim
+        CL = P['CL0'] + P['CL_alpha'] * alpha + P['CL_de'] * delta_e
+        # (ignoring CL_q since q=0 at trim)
+        
+        # Drag coefficient
+        CD = P['CD0'] + P['k'] * CL**2
+        
+        # Forces
+        Lift = qbar * S * CL
+        Drag = qbar * S * CD
+        Weight = m * g
+        Thrust = P['T_max'] * throttle
+        
+        # Compute stall speed (max CL condition)
+        CL_max = P['CL0'] + P['CL_alpha'] * 0.30  # Assume max alpha ~17° before stall
+        V_stall = np.sqrt(2 * Weight / (rho * S * CL_max))
+        
+        # Safety margin
+        V_min_safe = 1.2 * V_stall  # 20% margin above stall
+        
+        # Force balance checks (in body axes)
+        # For level flight: Lift*cos(alpha) ≈ Weight, Thrust ≈ Drag
+        Lift_vertical = Lift * np.cos(alpha)  # Component opposing gravity
+        Lift_horizontal = Lift * np.sin(alpha)  # Component along flight path
+        
         print("==============================================")
-        print("Trim solver success:", sol.success, sol.message)
-        print(f"Trim state (partial): u, w, theta = {x_trim[6]:.2f}, {x_trim[8]:.2f}, {180 / np.pi * x_trim[4]:.2f}")
-        print(f"Trim inputs (de, throttle) = {180/np.pi*u_trim[0]:.2f}°, {u_trim[3]:.2%}")
+        print("TRIM SOLUTION VALIDATION")
+        print("==============================================")
+        print("Trim solver:", "SUCCESS" if sol.success else "FAILED", sol.message)
+        print(f"Residual norm: {np.linalg.norm(sol.fun):.2e}")
+        print("")
+        
+        print("--- STATE ---")
+        print(f"  Airspeed:      V = {V:.2f} m/s")
+        print(f"  Body vel:      u = {u:.2f} m/s, w = {w:.2f} m/s")
+        print(f"  Pitch angle:   θ = {theta*180/np.pi:.2f}°")
+        print(f"  Angle of attack: α = {alpha*180/np.pi:.2f}°")
+        print("")
+        
+        print("--- CONTROLS ---")
+        print(f"  Elevator:   δe = {delta_e*180/np.pi:.2f}°")
+        print(f"  Throttle:   τ  = {throttle:.1%}")
+        print("")
+        
+        print("--- AERODYNAMICS ---")
+        print(f"  Dynamic pressure: q̄ = {qbar:.2f} Pa")
+        print(f"  Lift coeff:      CL = {CL:.3f}")
+        print(f"  Drag coeff:      CD = {CD:.4f}")
+        print(f"  Lift/Drag:      L/D = {CL/CD:.2f}")
+        print("")
+        
+        print("--- FORCES (Body Frame) ---")
+        print(f"  Lift:        L = {Lift:.2f} N")
+        print(f"    Vertical:  L⊥ = {Lift_vertical:.2f} N")
+        print(f"    Horizontal: L∥ = {Lift_horizontal:.2f} N")
+        print(f"  Drag:        D = {Drag:.2f} N")
+        print(f"  Weight:      W = {Weight:.2f} N")
+        print(f"  Thrust:      T = {Thrust:.2f} N")
+        print("")
+        
+        print("--- FORCE BALANCE ---")
+        print(f"  Vertical:   L⊥ = {Lift_vertical:.2f} N  vs  W = {Weight:.2f} N")
+        print(f"    → Error:  {abs(Lift_vertical - Weight):.3f} N ({100*abs(Lift_vertical - Weight)/Weight:.2f}%)")
+        print(f"  Horizontal: T = {Thrust:.2f} N  vs  D = {Drag:.2f} N")
+        print(f"    → Error:  {abs(Thrust - Drag):.3f} N ({100*abs(Thrust - Drag)/max(Thrust, 1e-6):.2f}%)")
+        print("")
+        
+        print("--- STALL CHARACTERISTICS ---")
+        print(f"  Stall speed:     V_stall = {V_stall:.2f} m/s")
+        print(f"  Min safe speed:  V_min = {V_min_safe:.2f} m/s (1.2 × V_stall)")
+        print(f"  Trim speed:      V_trim = {V:.2f} m/s")
+        if V < V_min_safe:
+            print(f"  ⚠️  WARNING: Trim speed is {(V_min_safe - V):.2f} m/s BELOW safe margin!")
+        else:
+            print(f"  ✓ Trim speed is {(V - V_min_safe):.2f} m/s above safe margin")
+        print("")
+        
+        print("--- ACCELERATIONS AT TRIM (Should be ~0) ---")
+        xdot_trim = self.f(x_trim, u_trim)
+        print(f"  udot = {xdot_trim[6]:.3e} m/s²")
+        print(f"  wdot = {xdot_trim[8]:.3e} m/s²")
+        print(f"  qdot = {xdot_trim[10]:.3e} rad/s²")
+        print(f"  Zdot = {xdot_trim[2]:.3e} m/s (inertial)")
         print("==============================================")
 
+        # Stop execution for review
+        # import sys
+        # sys.exit(0)
         return x_trim, u_trim, sol
 
     def linearizeAtTrimPoint(self, x_trim, u_trim, eps=1e-6):
@@ -1476,7 +1600,7 @@ class FixedWing12DOFTrainerJAX(FixedWing12DOFTrainer):
         
         # default parameter set (good starting point for 1.5 m trainer)
         default_params = {
-            'm': 2,          # kg
+            'm': 2,          # kg (def: 1.6)
             'S': 0.36,       # m^2
             'b': 1.50,       # m (span)
             'c': 0.2407,     # m (mean aerodynamic chord ~ S/b)
@@ -1494,7 +1618,7 @@ class FixedWing12DOFTrainerJAX(FixedWing12DOFTrainer):
             'k': 0.0639,         # induced drag factor
             'Cm_alpha': -0.8,
             'Cm_q': -8.0,
-            'Cm_de': -1.2,
+            'Cm_de': -0.3,
             # lateral-directional
             'C_ell_beta': -0.12,
             'C_ell_p': -0.26,
@@ -1505,15 +1629,15 @@ class FixedWing12DOFTrainerJAX(FixedWing12DOFTrainer):
             'CY_beta': -0.02,
             # control-surface derivatives (starter guesses)
             'C_ell_da': 0.10,   # roll per aileron rad
-            'C_ell_dr': 0.03,   # roll per rudder rad
-            'Cn_da': -0.03,     # yaw per aileron rad (adverse yaw)
-            'Cn_dr': -0.10,     # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
-            'CY_da': 0.0,       # side force per aileron rad
-            'CY_dr': 0.12,      # side force per rudder rad
-            'CY_p': 0.0,
-            'CY_r': 0.0,
+            'C_ell_dr': 0.01,   # roll per rudder rad (def: 0.01)
+            'Cn_da': 0.05,     # yaw per aileron rad (adverse yaw)
+            'Cn_dr': 0.02,      # yaw per rudder rad (If we dont reverse Usafe, this should be positive)
+            'CY_da': 0.1,     # Small adverse side force (can leave at 0 if negligible)
+            'CY_dr': 0.08,      # side force per rudder rad
+            'CY_p': -0.075,     # Typical for trainers
+            'CY_r': 0.25,       # Strong lateral damping (typical for good trainers)
             # propulsion
-            'T_max': 10.0,   # N (example static thrust)
+            'T_max': 15.0,   # N (example static thrust)
             # input limits: [min, max] for [de, da, dr, throttle]
             'input_limits': np.array([[-0.4363, 0.4363],  # elevator ±25 deg
                                     [-0.4363, 0.4363],  # aileron ±25 deg

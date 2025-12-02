@@ -1,0 +1,256 @@
+[0.029s] Invoking command in '/home/avavvas/dipl/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble VIRTUAL_ENV_PROMPT=(venv) /usr/bin/cmake --build /home/avavvas/dipl/build/my_interfaces -- -j12 -l12
+[0.408s] [  1%] Built target my_interfaces__cpp
+[0.413s] [ 12%] Built target my_interfaces__rosidl_generator_c
+[0.478s] [ 24%] Built target my_interfaces__rosidl_typesupport_introspection_cpp
+[0.494s] [ 24%] Built target ament_cmake_python_symlink_my_interfaces
+[0.495s] [ 35%] Built target my_interfaces__rosidl_typesupport_introspection_c
+[0.525s] [ 47%] Built target my_interfaces__rosidl_typesupport_cpp
+[0.536s] [ 58%] Built target my_interfaces__rosidl_typesupport_fastrtps_c
+[0.557s] [ 70%] Built target my_interfaces__rosidl_typesupport_fastrtps_cpp
+[0.566s] [ 82%] Built target my_interfaces__rosidl_typesupport_c
+[0.662s] [ 82%] Built target my_interfaces
+[0.776s] [ 83%] Built target my_interfaces__py
+[0.850s] [ 93%] Built target my_interfaces__rosidl_generator_py
+[0.897s] [ 95%] Built target my_interfaces__rosidl_typesupport_introspection_c__pyext
+[0.938s] [ 97%] Built target my_interfaces__rosidl_typesupport_fastrtps_c__pyext
+[1.002s] [100%] Built target my_interfaces__rosidl_typesupport_c__pyext
+[2.307s] running egg_info
+[2.455s] writing my_interfaces.egg-info/PKG-INFO
+[2.459s] writing dependency_links to my_interfaces.egg-info/dependency_links.txt
+[2.461s] writing top-level names to my_interfaces.egg-info/top_level.txt
+[2.890s] reading manifest file 'my_interfaces.egg-info/SOURCES.txt'
+[2.901s] writing manifest file 'my_interfaces.egg-info/SOURCES.txt'
+[3.090s] [100%] Built target ament_cmake_python_build_my_interfaces_egg
+[3.119s] Invoked command in '/home/avavvas/dipl/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble VIRTUAL_ENV_PROMPT=(venv) /usr/bin/cmake --build /home/avavvas/dipl/build/my_interfaces -- -j12 -l12
+[3.146s] Invoking command in '/home/avavvas/dipl/build/my_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble VIRTUAL_ENV_PROMPT=(venv) /usr/bin/cmake --install /home/avavvas/dipl/build/my_interfaces
+[3.167s] -- Install configuration: ""
+[3.172s] -- Execute custom install script
+[3.174s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/rosidl_interfaces/my_interfaces
+[3.180s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.h
+[3.182s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/aircraft_data.h
+[3.183s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.h
+[3.184s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__functions.h
+[3.185s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.h
+[3.186s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.h
+[3.187s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__functions.h
+[3.188s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__struct.h
+[3.188s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__type_support.h
+[3.189s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__functions.h
+[3.190s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.h
+[3.190s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.h
+[3.191s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__functions.h
+[3.192s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__struct.h
+[3.192s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__type_support.h
+[3.193s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__functions.h
+[3.194s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.h
+[3.195s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.h
+[3.196s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__functions.h
+[3.196s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__functions.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__struct.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__type_support.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__functions.h
+[3.197s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__functions.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/joystick_data.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.h
+[3.198s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/obs_avoidance_debug.h
+[3.200s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_c__visibility_control.h
+[3.201s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.h
+[3.201s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.h
+[3.203s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/library_path.sh
+[3.204s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/library_path.dsv
+[3.209s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_c.h
+[3.210s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_fastrtps_c.h
+[3.211s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_c.h
+[3.212s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__rosidl_typesupport_fastrtps_c.h
+[3.213s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_c.h
+[3.214s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_c.h
+[3.215s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_fastrtps_c.h
+[3.215s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_c.h
+[3.216s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_c.h
+[3.217s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[3.219s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_c.h
+[3.221s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_introspection_c.h
+[3.222s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_c.h
+[3.223s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__rosidl_typesupport_introspection_c.h
+[3.223s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_c.h
+[3.224s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_c.h
+[3.224s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_introspection_c.h
+[3.224s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_c.h
+[3.225s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_c.h
+[3.226s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[3.231s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/agent_data.hpp
+[3.232s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/aircraft_data.hpp
+[3.233s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/ck_table.hpp
+[3.235s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__builder.hpp
+[3.236s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__struct.hpp
+[3.237s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__traits.hpp
+[3.238s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__type_support.hpp
+[3.239s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__builder.hpp
+[3.240s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__struct.hpp
+[3.241s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__traits.hpp
+[3.241s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__type_support.hpp
+[3.241s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__builder.hpp
+[3.242s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__struct.hpp
+[3.242s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__traits.hpp
+[3.242s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__type_support.hpp
+[3.244s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__builder.hpp
+[3.245s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__struct.hpp
+[3.246s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__traits.hpp
+[3.247s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__type_support.hpp
+[3.248s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__builder.hpp
+[3.249s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__struct.hpp
+[3.249s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__traits.hpp
+[3.251s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__type_support.hpp
+[3.252s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__builder.hpp
+[3.253s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__struct.hpp
+[3.253s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__traits.hpp
+[3.254s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__type_support.hpp
+[3.255s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__builder.hpp
+[3.256s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__struct.hpp
+[3.257s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__traits.hpp
+[3.258s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp
+[3.259s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__builder.hpp
+[3.260s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__struct.hpp
+[3.261s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__traits.hpp
+[3.263s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__type_support.hpp
+[3.263s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__builder.hpp
+[3.267s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__struct.hpp
+[3.268s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__traits.hpp
+[3.268s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__type_support.hpp
+[3.269s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/joystick_data.hpp
+[3.270s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_obstacles.hpp
+[3.271s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/multiple_target_estimates.hpp
+[3.271s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/obs_avoidance_debug.hpp
+[3.272s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+[3.273s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_obstacle.hpp
+[3.273s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/single_target_estimate.hpp
+[3.274s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_fastrtps_cpp.hpp
+[3.275s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_fastrtps_cpp.hpp
+[3.276s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_fastrtps_cpp.hpp
+[3.277s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__rosidl_typesupport_fastrtps_cpp.hpp
+[3.278s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_fastrtps_cpp.hpp
+[3.279s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_fastrtps_cpp.hpp
+[3.280s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_fastrtps_cpp.hpp
+[3.281s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_cpp.hpp
+[3.282s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_fastrtps_cpp.hpp
+[3.283s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[3.284s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/agent_data__rosidl_typesupport_introspection_cpp.hpp
+[3.285s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/aircraft_data__rosidl_typesupport_introspection_cpp.hpp
+[3.285s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/ck_table__rosidl_typesupport_introspection_cpp.hpp
+[3.286s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/joystick_data__rosidl_typesupport_introspection_cpp.hpp
+[3.286s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_obstacles__rosidl_typesupport_introspection_cpp.hpp
+[3.286s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/multiple_target_estimates__rosidl_typesupport_introspection_cpp.hpp
+[3.287s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/obs_avoidance_debug__rosidl_typesupport_introspection_cpp.hpp
+[3.287s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_introspection_cpp.hpp
+[3.287s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/include/my_interfaces/my_interfaces/msg/detail/single_target_estimate__rosidl_typesupport_introspection_cpp.hpp
+[3.288s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/pythonpath.sh
+[3.290s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/pythonpath.dsv
+[3.293s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info/PKG-INFO
+[3.294s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt
+[3.295s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt
+[3.295s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces-0.0.0-py3.10.egg-info/top_level.txt
+[3.301s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/__init__.py
+[3.302s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_c.c
+[3.302s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[3.303s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/_my_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[3.304s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/libmy_interfaces__rosidl_generator_py.so
+[3.304s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/__init__.py
+[3.305s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_agent_data.py
+[3.306s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_agent_data_s.c
+[3.307s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_aircraft_data.py
+[3.307s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_aircraft_data_s.c
+[3.308s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_ck_table.py
+[3.309s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_ck_table_s.c
+[3.310s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_joystick_data.py
+[3.311s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_joystick_data_s.c
+[3.311s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_multiple_obstacles.py
+[3.312s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_multiple_obstacles_s.c
+[3.314s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_multiple_target_estimates.py
+[3.315s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_multiple_target_estimates_s.c
+[3.316s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_obs_avoidance_debug.py
+[3.316s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_obs_avoidance_debug_s.c
+[3.317s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_single_obstacle.py
+[3.318s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_single_obstacle_s.c
+[3.318s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_single_target_estimate.py
+[3.319s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg/_single_target_estimate_s.c
+[3.321s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[3.322s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[3.323s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[3.324s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[3.325s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[3.327s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/my_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[3.328s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/CkTable.idl
+[3.330s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AgentData.idl
+[3.330s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AircraftData.idl
+[3.332s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.idl
+[3.333s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.idl
+[3.334s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.idl
+[3.335s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.idl
+[3.335s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/ObsAvoidanceDebug.idl
+[3.337s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/JoystickData.idl
+[3.338s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/CkTable.msg
+[3.341s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AgentData.msg
+[3.341s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/AircraftData.msg
+[3.342s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleObstacle.msg
+[3.342s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleObstacles.msg
+[3.347s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/SingleTargetEstimate.msg
+[3.348s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/MultipleTargetEstimates.msg
+[3.348s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/ObsAvoidanceDebug.msg
+[3.348s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/msg/JoystickData.msg
+[3.348s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/package_run_dependencies/my_interfaces
+[3.349s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/parent_prefix_path/my_interfaces
+[3.350s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.sh
+[3.351s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/ament_prefix_path.dsv
+[3.352s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/path.sh
+[3.353s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/environment/path.dsv
+[3.355s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.bash
+[3.355s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.sh
+[3.356s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.zsh
+[3.359s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/local_setup.dsv
+[3.359s] -- Symlinking: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/package.dsv
+[3.374s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/ament_index/resource_index/packages/my_interfaces
+[3.375s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake-extras.cmake
+[3.375s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[3.375s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[3.377s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[3.378s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[3.379s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[3.379s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[3.380s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig.cmake
+[3.380s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfacesConfig-version.cmake
+[3.380s] -- Up-to-date symlink: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/package.xml
+[3.382s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_c.so
+[3.385s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_c.so
+[3.386s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_c.so
+[3.388s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_c.so
+[3.390s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[3.393s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_introspection_cpp.so
+[3.395s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_typesupport_cpp.so
+[3.458s] Listing '/home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces'...
+[3.459s] Listing '/home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages/my_interfaces/msg'...
+[3.469s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/lib/libmy_interfaces__rosidl_generator_py.so
+[3.471s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport.cmake
+[3.473s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cExport-noconfig.cmake
+[3.474s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[3.475s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[3.476s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[3.477s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[3.477s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport.cmake
+[3.477s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_cppExport.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/my_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport.cmake
+[3.478s] -- Up-to-date: /home/avavvas/dipl/install/my_interfaces/share/my_interfaces/cmake/export_my_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[3.491s] Invoked command in '/home/avavvas/dipl/build/my_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/avavvas/dipl/install/ergodic_exploration:/opt/ros/humble VIRTUAL_ENV_PROMPT=(venv) /usr/bin/cmake --install /home/avavvas/dipl/build/my_interfaces

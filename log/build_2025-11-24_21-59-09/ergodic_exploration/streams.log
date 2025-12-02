@@ -1,0 +1,22 @@
+[0.766s] Invoking command in '/home/avavvas/dipl/build/ergodic_exploration': PYTHONPATH=/home/avavvas/dipl/build/ergodic_exploration/prefix_override:/home/avavvas/venvs/venv/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages:/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages VIRTUAL_ENV_PROMPT=(venv) /home/avavvas/venvs/venv/bin/python -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/avavvas/dipl/build/ergodic_exploration/build --no-deps symlink_data
+[0.957s] running develop
+[1.105s] running egg_info
+[1.113s] writing ergodic_exploration.egg-info/PKG-INFO
+[1.114s] writing dependency_links to ergodic_exploration.egg-info/dependency_links.txt
+[1.114s] writing entry points to ergodic_exploration.egg-info/entry_points.txt
+[1.115s] writing requirements to ergodic_exploration.egg-info/requires.txt
+[1.115s] writing top-level names to ergodic_exploration.egg-info/top_level.txt
+[1.133s] reading manifest file 'ergodic_exploration.egg-info/SOURCES.txt'
+[1.136s] writing manifest file 'ergodic_exploration.egg-info/SOURCES.txt'
+[1.145s] running build_ext
+[1.146s] Creating /home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages/ergodic-exploration.egg-link (link to .)
+[1.146s] Installing agent_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] Installing agent_node_airplane_teleop script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] Installing aircraft_data_converter script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] Installing environment_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] Installing fg_visualizer_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] Installing joystick_node script to /home/avavvas/dipl/install/ergodic_exploration/lib/ergodic_exploration
+[1.147s] 
+[1.148s] Installed /home/avavvas/dipl/build/ergodic_exploration
+[1.148s] running symlink_data
+[1.177s] Invoked command in '/home/avavvas/dipl/build/ergodic_exploration' returned '0': PYTHONPATH=/home/avavvas/dipl/build/ergodic_exploration/prefix_override:/home/avavvas/venvs/venv/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/home/avavvas/dipl/install/my_interfaces/lib/python3.10/site-packages:/home/avavvas/dipl/build/ergodic_exploration:/home/avavvas/dipl/install/ergodic_exploration/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages VIRTUAL_ENV_PROMPT=(venv) /home/avavvas/venvs/venv/bin/python -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/avavvas/dipl/build/ergodic_exploration/build --no-deps symlink_data
