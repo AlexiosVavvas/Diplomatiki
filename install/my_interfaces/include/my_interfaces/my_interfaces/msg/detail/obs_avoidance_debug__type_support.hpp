@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp/my_interfaces/msg/detail/obs_avoidance_debug__type_support.hpp

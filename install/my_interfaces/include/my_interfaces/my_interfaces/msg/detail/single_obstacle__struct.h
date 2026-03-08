@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/single_obstacle__struct.h

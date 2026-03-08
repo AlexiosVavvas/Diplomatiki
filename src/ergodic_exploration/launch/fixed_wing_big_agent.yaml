@@ -1,0 +1,94 @@
+# Fixed Wing 12DOF Trainer Agent Configuration
+# Agent type and model parameters
+agent:
+  model_type: "FixedWing12DOFTrainer"
+  
+  # Dynamics model parameters
+  dynamics:
+    dt: 0.0005              # def: 0.001 s
+    v_trim: 16.0            # [m/s] Desired trim speed
+    use_linear_f: false     # Whether to use linearised model for f(x,u)
+    use_linear_fx_fu: false # Whether to use linearised model for f_x, f_u
+    
+  # Control parameters
+  control:
+    # Control limits: [elevator, aileron, rudder, throttle]
+    # elevator/aileron/rudder: ±10 deg ~= ±0.1745 rad
+    # throttle: 0..1
+    u_limits_init: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    u_limits: [[-0.28, 0.28], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    time_to_apply_ulimits: 0.0  # [s] after which to switch u_limits
+    u_nominal: "trim"  # Special value indicating to use trim inputs
+    
+    # Ergodic controller parameters
+    Q: 250  # 200-2000
+    # R matrix - less penalty on throttle changes
+    R: [[1.4, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.01]]
+    prediction_dt_multiplier: 40  # PREDICTION_DT = dt * multiplier
+    relax_factor: 0.7
+    
+    # Timing parameters
+    ts: 0.4                # Sampling time
+    t_h: 4                # Horizon time
+    delta_t_erg: 0.5        # Ergodic time window
+    
+    # Optimization parameters
+    inf_buf_flag: true      # Whether to use infinite states buffer
+    bar_weight: 0
+    update_eid_freq: 2640   # How often to update EID phi function (110*2*3*4)
+    
+    # Safety parameters (CBF)
+    cbf_skip_iter: 5        # How often to apply CBF safety filter
+    delta_safe: 0.1
+    alpha_hdot: 2.6   # 2
+    alpha_h: 1.3     # 0.01
+    
+    kappa_wall: 25000  # 30.0
+    rho_wall: 100.0  # 30.0
+    
+    kappa_obs: 25000   # 30
+    rho_obs: 100     # 30.0
+    
+    kappa_obs_virtual: 1    # Parameters for avoiding other agents
+    rho_obs_virtual: 1.0
+    
+  # System parameters
+  system:
+    imax: ".inf"
+    publish_data_freq: 17    # How often to publish data to ROS topic
+  
+  # Agent communication and range parameters (optional - can be overridden by command line)
+  antenna_radius: ".inf"        # Infinite range by default
+  kmax: 8                       # Maximum Fourier modes for reconstruction
+  antenna_range_flag: false     # Whether antenna range is limited
+  talk_alike_flag: false        # Whether to communicate only with similar models
+  same_l_bounds_flag: true      # Whether to communicate only with agents having same L bounds
+
+# Target and EKF configuration
+targets:
+  # Ground truth target positions [x, y, z] - note the higher altitude
+  real_positions:
+    - [2.0, 2.0, 0.0]
+    - [4.0, 8.0, 0.0]
+    - [8.0, 6.0, 0.0]
+  
+  # EKF parameters for target estimation
+  ekf:
+    # Initial estimate covariance (3x3 diagonal values)
+    sigma_init_diag: [0.5, 0.5, 0.5]
+    
+    # Sensor noise covariance (2x2 diagonal values)
+    R_diag: [0.1, 0.1]
+    
+    # Process noise covariance (3x3 diagonal values) 
+    Q_diag: [0.0001, 0.0001, 0.0001]
+    
+    # Sensor parameters
+    sensor_range: 3.0
+    sensor_R_diag: [0.1, 0.1]  # Sensor noise covariance
+
+# System flags
+flags:
+  localise_targets: false
+  update_eid: false
+  save_images: false

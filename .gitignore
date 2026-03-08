@@ -1,4 +1,25 @@
+# Other
 rt_erg_lib/
+*.backup
+
+# Python
+__pycache__/
+*.pyc
+env/
+venv/
+ENV/
+.venv/
+
+# IDE / Workspace
+.vscode/
+*.code-workspace
+
+# ROS
 rosbag/
-src/ergodic_exploration/meshes/drone_big.stl.backup
-src/ergodic_exploration/meshes/drone_small.stl.backup
+build/
+install/
+log/
+
+# Large simulation data files (CSV results)
+results/paper/**/*.csv
+*.csv

@@ -87,3 +87,20 @@ flags:
   localise_targets: true
   update_eid: false
   save_images: false
+
+# Phi (exploration density) configuration
+# type: 'uniform' for constant uniform coverage, 'gaussian_bumps' for Gaussian bump-based coverage
+phi:
+  type: uniform  # Options: 'uniform', 'gaussian_bumps'
+  base_level: 0.01  # Base exploration level added everywhere (only used with gaussian_bumps)
+  # Uncomment and configure bumps if type is 'gaussian_bumps'
+  # bumps:
+  #   # Each bump has: x_pos_perc, y_pos_perc (position as % of bounds), height, width_scale
+  #   - x_pos_perc: 0.7    # x position as percentage of L1 range (0.0 to 1.0)
+  #     y_pos_perc: 0.3    # y position as percentage of L2 range (0.0 to 1.0)
+  #     height: 5          # amplitude/height of the bump
+  #     width_scale: 0.7   # width scaling factor (multiplied by auto-calculated width_base)
+  #   - x_pos_perc: 0.3
+  #     y_pos_perc: 0.7
+  #     height: 5
+  #     width_scale: 0.7

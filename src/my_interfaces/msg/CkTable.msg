@@ -1,6 +1,8 @@
 # Table of floats message
 # Represents a square table/matrix of float values
 
+std_msgs/Header header    # Header with timestamp and frame_id
+
 string model_type         # Model type
 float64[] l_bounds        # [x_min, x_max, y_min, y_max] L1, L2 boundaries for ergodic search in space
 

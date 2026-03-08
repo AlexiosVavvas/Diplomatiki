@@ -7,26 +7,27 @@ if TYPE_CHECKING:
 
 class Obstacle():
     """
-    Implements basic potential field obstacles
-        - Circle
-        - Rectangle
-        - Wall
-    The obstacles are defined in a 2D space (for now)
+    Implements basic potential field obstacles in 2D/3D:
+        - Circle (2D)
+        - Sphere (3D)
+        - Rectangle (2D)
+        - Wall / plane (3D)
+    2D ones are infinite in the z direction.
     """
     def __init__(self, pos, dimensions, kappa, obs_type, rho0, r0=None, obs_name=None):
         """
         Parameters:
-            - pos: position of the obstacle center (2D coordinates)
-            - dimensions: dimensions of the obstacle
-                o Circle: radius
-                o Rectangle: width, height
-                o Wall: normal vector (the length of the vector defines the length of the wall for plotting purposes only, the wall is infinite) 
-                    eg. norm[0, +10], horizontal wall, only working up, size = 10m
-            - kappa: potential field strength parameter
-            - obs_type: type of the obstacle ('circle', 'rectangle', 'wall')
-            - rho0: obstacle vicinity distance (measured from the border of the obstacle and on)
-            - r0: safety radius for circle obstacles (defaults to radius if not provided)
-            - obs_name: name of the obstacle (for debugging purposes)
+            - pos:        obstacle reference point (2D for circle/rectangle, 3D for sphere/wall)
+            - dimensions: geometry descriptor
+                o circle (2D):      radius
+                o sphere (3D):      radius
+                o rectangle (2D):   width, height
+                o wall (3D):        normal vector; length only used for plotting wall extent
+            - kappa:    potential field strength parameter
+            - obs_type: obstacle type ('circle', 'sphere', 'rectangle', 'wall')
+            - rho0:     obstacle vicinity distance measured from the obstacle boundary
+            - r0:       optional safety radius for circle/sphere (defaults to radius when omitted)
+            - obs_name: identifier for debugging/logging
         """
         # Save variables
         self.type = obs_type
@@ -43,25 +44,47 @@ class Obstacle():
         dimensions = np.asarray(dimensions) if isinstance(dimensions, (list, tuple, np.ndarray)) else np.array([dimensions])
         if obs_type == 'circle':
             assert dimensions.size == 1 and dimensions > 0, "Circle obstacle must have only one dimension (radius) > 0"
+            assert len(self.pos) == 2, "Circle obstacle position must be a 2D vector"
             self.r = dimensions[0]
             self.r0 = r0 if r0 is not None else self.r  # r0 is the radius used to calculation of pot fields. Could be greater than r, for safety.
 
             # Lets define distance and gradient functions
             # Distance function: ρ(x) = ||x - pos|| - r0
             def _rhoFunc(x):
-                return np.linalg.norm(x - self.pos) - self.r0
+                return np.linalg.norm(x[:2] - self.pos) - self.r0
             self.rhoFunc = _rhoFunc
 
             # Gradient function: ∇ρ(x) = (x - pos) / ||x - pos||
             def _gradRhoFunc(x):
-                norm = np.linalg.norm(x - self.pos)
+                norm = np.linalg.norm(x[:2] - self.pos)
                 if norm < 1e-8:  # Avoid division by zero
-                    return np.zeros_like(x - self.pos)
-                return (x - self.pos) / norm
+                    return np.zeros(3)
+                return np.append((x[:2] - self.pos) / norm, 0)
+            self.gradRhoFunc = _gradRhoFunc
+
+        elif obs_type == 'sphere':
+            assert dimensions.size == 1 and dimensions > 0, "Circle obstacle must have only one dimension (radius) > 0"
+            assert len(self.pos) == 3, "Sphere obstacle position must be a 3D vector"
+            self.r = dimensions[0]
+            self.r0 = r0 if r0 is not None else self.r  # r0 is the radius used to calculation of pot fields. Could be greater than r, for safety.
+
+            # Lets define distance and gradient functions
+            # Distance function: ρ(x) = ||x - pos|| - r0
+            def _rhoFunc(x):
+                return np.linalg.norm(x[:3] - self.pos) - self.r0
+            self.rhoFunc = _rhoFunc
+
+            # Gradient function: ∇ρ(x) = (x - pos) / ||x - pos||
+            def _gradRhoFunc(x):
+                norm = np.linalg.norm(x[:3] - self.pos)
+                if norm < 1e-8:  # Avoid division by zero
+                    return np.zeros(3)
+                return (x[:3] - self.pos) / norm
             self.gradRhoFunc = _gradRhoFunc
 
         elif obs_type == 'rectangle':
             assert len(dimensions) == 2 and dimensions.all(), "Rectangle obstacle must have two dimensions (width, height) > 0"
+            assert len(self.pos) == 2, "Rectangle obstacle position must be a 2D vector"
             self.width = dimensions[0]
             self.height = dimensions[1]
             self.bottom_left = self.pos - np.array([self.width / 2, self.height / 2])
@@ -71,7 +94,7 @@ class Obstacle():
             # Lets define distance and gradient functions
             # Distance function
             def _rhoFunc(x):
-                E = np.abs(x - self.pos) - self.W
+                E = np.abs(x[:2] - self.pos) - self.W
                 maxE = np.max(E)
                 if maxE >= 0:
                     return maxE
@@ -81,46 +104,44 @@ class Obstacle():
 
             # Gradient function
             def _gradRhoFunc(x):
-                E = np.abs(x - self.pos) - self.W
+                E = np.abs(x[:2] - self.pos) - self.W
                 if np.max(E) >= 0:
                     # outside or on: gradient points in the direction
                     # of the coordinate that attained the max
                     if E[0] >= E[1]:
-                        return np.array([np.sign(x[0] - self.pos[0]), 0])
+                        return np.array([np.sign(x[0] - self.pos[0]), 0, 0])
                     else:
-                        return np.array([0, np.sign(x[1] - self.pos[1])])
+                        return np.array([0, np.sign(x[1] - self.pos[1]), 0])
                 else:
                     # inside: gradient also points to the nearest side
                     G = - E
                     if G[0] <= G[1]:
-                        return np.array([np.sign(x[0] - self.pos[0]), 0])
+                        return np.array([np.sign(x[0] - self.pos[0]), 0, 0])
                     else:
-                        return np.array([0, np.sign(x[1] - self.pos[1])])
+                        return np.array([0, np.sign(x[1] - self.pos[1]), 0])
             self.gradRhoFunc = _gradRhoFunc
 
 
         elif obs_type == 'wall':
             """ 
-            Wall Object is an infinite line that restricts the agent to only the one side
-            A wall object is defined by a point and a normal vector
-            The normal vector is the direction of the permitted side
-            The wall is defined by the equation: (x - p) . n = 0
-            where: 
-                - x is the point on the wall
-                - p is the point defining the wall center
-                - n is the normal vector
-            Equation: 
-                (x - x0) nx + (y - y0) ny = 0
-            Example:
-                Horizontal wall: n = [0, 1], p = [x0, y0]
-                Vertical wall:   n = [1, 0], p = [x0, y0]
+            Wall object is an infinite plane that restricts the agent to one side.
+            Defined by a point p on the plane and a normal vector n that points to
+            the permitted half-space. In 3D the plane equation is: (x - p) . n = 0
+            where:
+                - x is any point on the plane
+                - p is the point defining the plane
+                - n is the plane normal (size 3)
+            3D examples:
+                - Horizontal plane at z = z0: n = [0, 0, 1], p = [x0, y0, z0]
+                - Vertical plane:             n = [1, 0, 0], p = [x0, y0, z0]
             Parameters:
-                - pos: point defining the wall
-                - dimensions: normal vector of the wall
+                - pos: point defining the plane
+                - dimensions: normal vector of the plane
             """
             n = np.asarray(dimensions)
-            assert n.size == 2 and np.linalg.norm(n) > 0, "Wall obstacle must have a normal vector of size 2 and non-zero length"
-            self.wall_length = np.linalg.norm(n)  # For plotting purposes only
+            assert n.size == 3 and np.linalg.norm(n) > 0, "Wall obstacle must have a normal vector of size 3 and non-zero length"
+            assert len(self.pos) == 3, "Wall obstacle position must be a 3D vector"
+            self.wall_length = np.linalg.norm(n[:2])  # For plotting purposes only
             n = n / np.linalg.norm(n)
             self.n = n
 
@@ -136,10 +157,10 @@ class Obstacle():
             self.gradRhoFunc = _gradRhoFunc
 
         else:
-            raise ValueError("Obstacle type must be either 'circle', 'rectangle' or 'wall'")
+            raise ValueError("Obstacle type must be either 'circle', 'sphere', 'rectangle' or 'wall'")
 
         # Make sure we have the right format
-        assert len(self.pos) == 2, "Obstacle position must be a 2D vector for now"
+        assert len(self.pos) <= 3, "Obstacle position must be a 2D or 3D vector for now"
 
         # Debug print
         # if self.type == 'circle':
@@ -156,7 +177,7 @@ class Obstacle():
         if self.type == 'wall':
             # Wall equation: (x - p) . n = 0
             # Distance to the wall: d = (x - p) . n
-            return np.dot(x - self.pos, self.n)
+            return np.dot(x[:3] - self.pos, self.n)
         
         else:
             raise ValueError("Distance to wall is only available for wall obstacles")
@@ -165,10 +186,16 @@ class Obstacle():
         """
         Check if the agent is within reach of the obstacle
         """
-        assert len(x) == 2, f"{self.name_id}.withinReach(x): Obstacle avoidance is only available for 2D systems. Please provide a 2D state vector x"
+        if len(x) == 2:
+            # append a zero z-coordinate for 2D states
+            x = np.append(x, 0)
+        assert len(x) == 3, "State x must be a 2D or 3D vector"
 
         if self.type == 'circle':
             return np.linalg.norm(x[:2] - self.pos) <= self.r
+        
+        elif self.type == 'sphere':
+            return np.linalg.norm(x[:3] - self.pos) <= self.r
 
         elif self.type == 'rectangle':
             # Check if the agent is within the rectangle
@@ -176,66 +203,17 @@ class Obstacle():
 
         elif self.type == 'wall':
             # Check if the agent is within the wall distance
-            return self.distanceToTheWall(x[:2]) <= 0
+            return self.distanceToTheWall(x[:3]) <= 0
 
         else:
-            raise ValueError("Obstacle type must be either 'circle', 'rectangle' or 'wall'")
-
-    def returnBoundaryPointsForPlotting(self, num_of_points=100):
-        # Return a 2d array of points that define the boundary of the obstacle
-        if self.type == 'circle':
-            theta = np.linspace(0, 2 * np.pi, num_of_points)
-            x = self.pos[0] + self.r * np.cos(theta)
-            y = self.pos[1] + self.r * np.sin(theta)
-            # Lets also put some points inside the circle uniformly using angle and radious
-            r_steps = np.linspace(0, self.r, num_of_points // 2)
-            theta_steps = np.linspace(0, 2 * np.pi, num_of_points // 2)
-            x_inner = self.pos[0] + r_steps[:, None] * np.cos(theta_steps)
-            y_inner = self.pos[1] + r_steps[:, None] * np.sin(theta_steps)
-            # Combine outer and inner points
-            x = np.concatenate((x, x_inner.flatten()))
-            y = np.concatenate((y, y_inner.flatten()))
-            return np.column_stack((x, y))
-
-        elif self.type == 'rectangle':
-            # Left wall using num_of_points
-            x_left = np.linspace(self.bottom_left[0], self.bottom_left[0], num_of_points)
-            y_left = np.linspace(self.bottom_left[1], self.bottom_left[1] + self.height, num_of_points)
-
-            x_right = np.linspace(self.bottom_left[0] + self.width, self.bottom_left[0] + self.width, num_of_points)
-            y_right = np.linspace(self.bottom_left[1], self.bottom_left[1] + self.height, num_of_points)
-
-            x_top = np.linspace(self.bottom_left[0], self.bottom_left[0] + self.width, num_of_points)
-            y_top = np.linspace(self.bottom_left[1] + self.height, self.bottom_left[1] + self.height, num_of_points)
-
-            x_bottom = np.linspace(self.bottom_left[0], self.bottom_left[0] + self.width, num_of_points)
-            y_bottom = np.linspace(self.bottom_left[1], self.bottom_left[1], num_of_points)
-
-            # Lets put some points inside the rectangle uniformly
-            # Calculate number of points based on rectangle dimensions
-            width_points = max(num_of_points // 4, int(num_of_points * self.width / (self.width + self.height)))
-            height_points = max(num_of_points // 4, int(num_of_points * self.height / (self.width + self.height)))
-            
-            x_inner = np.linspace(self.bottom_left[0] + 0.1, self.bottom_left[0] + self.width - 0.1, width_points)
-            y_inner = np.linspace(self.bottom_left[1] + 0.1, self.bottom_left[1] + self.height - 0.1, height_points)
-            x_inner, y_inner = np.meshgrid(x_inner, y_inner)
-            x_inner = x_inner.flatten()
-            y_inner = y_inner.flatten()
-
-            # Combine all points
-            x = np.concatenate((x_left, x_right, x_top, x_bottom, x_inner))
-            y = np.concatenate((y_left, y_right, y_top, y_bottom, y_inner))
-            return np.column_stack((x, y))
+            raise ValueError("Obstacle type must be either 'circle', 'sphere', 'rectangle' or 'wall'")
         
-        elif self.type == 'wall':
-            # return empty array
-            return np.empty((0, 2))  # Wall has no boundary points to plot
 
     def U(self, x):
         """
         Potential function for the obstacle avoidance.
         """
-        rho = self.rhoFunc(x[:2])
+        rho = self.rhoFunc(x[:3])
 
         # Quick distance check before calculation
         if rho >= self.rho0:
@@ -267,24 +245,24 @@ class Obstacle():
         Returns both the potential function and its gradient for the obstacle avoidance.
         More efficient than calling U() and gradU() separately as it computes rho only once.
         """
-        rho = self.rhoFunc(x[:2])
+        rho = self.rhoFunc(x[:3])
 
         # Quick distance check before calculation
         if rho >= self.rho0:
             # U = 0 for rho >= rho0
-            return 0.0, np.zeros(2) # ∇ρ = 0 -> ∇U = 0
+            return 0.0, np.zeros(3) # ∇ρ = 0 -> ∇U = 0
         
         if rho <= 0:
             # Agent is inside the obstacle
             rho = 1e-6  # Avoid division by zero in gradient calculation
-            grad_rho = self.gradRhoFunc(x[:2])
+            grad_rho = self.gradRhoFunc(x[:3])
             return np.inf, grad_rho
         
         # Normal case: 0 < rho < rho0
         ratio = 1 / rho - 1 / self.rho0
         U = 0.5 * self.kappa * ratio * ratio # ratio ** 2 but avoids python overhead for exponentiation
         
-        grad_rho = self.gradRhoFunc(x[:2])
+        grad_rho = self.gradRhoFunc(x[:3])
         grad_U = -self.kappa / (rho * rho) * ratio * grad_rho
 
         return U, grad_U

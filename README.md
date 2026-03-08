@@ -1,458 +1,289 @@
-# Ergodic Control Navigation
+# Safe Ergodic Exploration for Fixed-Wing UAVs
 
-## Project Overview
-This repository contains an implementation of ergodic control algorithms for multi-agent robotic systems with **ROS2 Humble integration**. Ergodic control is a control strategy that drives agents to match a specified spatial distribution, making it useful for exploration, surveillance, and monitoring applications.
+Diploma thesis & accompanying paper — [Alexios Vavvas](mailto:alexios.vavvas@gmail.com), supervised by Prof. K. J. Kyriakopoulos, NTUA (2025).
 
-The core concept is to make the time-averaged statistics of an agent's trajectory match a desired spatial distribution, creating an efficient exploration pattern that focuses more time on high-importance regions while still covering the entire space. Agents now communicate via ROS2 topics using custom messages for real-time coordination.
-
-![Quadrotor Ergodic Exploration](images/gifs/phi2_animation.gif)
-*The animation shows a 12-DoF quadrotor model ergodically exploring a spatial distribution, demonstrating how the algorithm balances between visiting high-density regions while maintaining coverage of the entire domain.*
-
-![Double Integrator w/ Obstacles](images/gifs/phi_obs_double_int_animation.gif)
-*The animation shows a simple double integrator model ergodically exploring the given spatial distribution in the presence of obstacles / forbidden regions of space*
-
-![Quadrotor Ergodic Exploration w/ Obstacles](images/gifs/phiQuadWithObs_animation.gif)
-*The animation shows a 12-DoF quadrotor model ergodically exploring the given spatial distribution in the presence of obstacles / forbidden regions of space*
-
-![Quadrotor Ergodic Exploration w/ Obstacles + EKF Target Localisation](images/gifs/phi_single_target_tracking_w_obstacles.gif)
-*The animation shows a 12-DoF quad model searching for a target using bearing only measurements and localising it using an EKF filter. The EID map updates using the Expected Information Matrix in each location.*
-
-## Repository Structure
-- `my_erg_lib/`: Custom implementation of the ergodic control library
-  - Contains models, controllers, and utility functions for ergodic control
-- `src/ergodic_exploration/`: ROS2 package for multi-agent coordination
-  - Custom message types for Ck coefficients, obstacles, and target estimates
-  - Node-based agent implementation with topic communication
-- `dashboard_ros.py`: Real-time Python dashboard for multi-agent visualization
-- `images/`: Visualization outputs and animations
-  - `gifs/`: Animations of system behavior and distribution convergence
-- `more/`: Additional test scripts and experimental features
-  - Integration method comparisons
-  - Parallel processing implementations
-  - Potential field visualization
-
-## ROS2 Integration
-
-<img src="images/images/ros/ros2_humble_icon.png" width="100" alt="ROS2 Humble Logo">
-
-The system now leverages **ROS2 Humble** for inter-agent communication and real-time visualization:
-
-### Custom Message Types
-- **Ck Coefficients**: For sharing Fourier spectral information between agents
-- **Obstacle Positions**: For dynamic obstacle information sharing  
-- **Target Estimates**: For coordinated multi-target tracking
-
-### Node Architecture
-- Each agent runs as an independent ROS2 node for true parallel execution
-- Topic-based communication enables real-time coordination
-- Environment node provides RViz visualization markers and system monitoring
-- Custom Python dashboard provides live system monitoring
-- Real-time Ck coefficient visualization for ergodic performance analysis
+> A heterogeneous fleet of vehicles — ground robots, surface vessels, quadrotors, and fixed-wing aircraft — jointly explore an area of interest to locate dispersed targets using **ergodic control**. An **Integral High-Order Control Barrier Function (I-HOCBF)** safety filter wraps the ergodic controller so that a 12-DOF fixed-wing model can maneuver aggressively through cluttered environments while respecting stall limits, actuator bounds, and geofence constraints — all without trajectory planning.
 
 <div align="center">
-<img src="images/images/ros/rqt_ros_topology.png" width="80%" alt="ROS2 Node Topology">
+<img src="results/paper/first_page_teaser_image_top_right.png" width="70%" alt="Fixed-wing UAVs performing collaborative ergodic exploration">
 </div>
-*ROS2 node topology showing multi-agent communication structure*
 
-<br><br>
+<p align="center"><em>Fixed-wing UAVs performing collaborative ergodic exploration in a 3D environment with obstacles.</em></p>
 
+---
 
+## What This Repo Contains
+
+| Layer | What | Where |
+|-------|------|-------|
+| **Paper** (source only) | IEEE-format conference paper on the I-HOCBF safety filter for fixed-wing UAVs (PDF not included — pending review) | `main.tex` |
+| **Thesis** | Full diploma thesis covering ergodic theory, multi-agent coordination, target localization, and all vehicle models | `docs/Diplomatiki_Vavvas_Alexios.pdf`, `docs/Diplimatiki_Markdown/` |
+| **Library** | Pure-Python ergodic control library (`my_erg_lib`) with dynamics, controllers, obstacles, CBF solver, EKF-based target tracking | `src/ergodic_exploration/my_erg_lib/` |
+| **ROS 2 nodes** | Agent, environment, FlightGear bridge, joystick teleop, aircraft data converter | `src/ergodic_exploration/ergodic_exploration/` |
+| **Launch configs** | YAML-driven mission definitions (agent params + obstacle layouts) for all paper/thesis scenarios | `src/ergodic_exploration/launch/` |
+| **Scripts** | Real-time dashboard, RViz config generator, Ck visualizer, bag replay, FlightGear launcher | `scripts/` |
+| **Results** | Figures, gifs, and screenshots from all experiments | `results/` |
+
+---
+
+## Core Ideas
+
+### Ergodic Control
+
+Instead of waypoints, the operator defines a **target spatial distribution** Φ(s) encoding where the vehicle should spend time (e.g., Gaussian peaks over suspected target locations). The **Receding-Horizon Ergodic Exploration (RHEE)** algorithm minimizes the spectral mismatch between Φ and the time-averaged trajectory statistics. Multi-agent coordination emerges by sharing Fourier coefficients — no task allocation needed.
+
+![Double Integrator w/ Obstacles](results/diplomatiki/images/gifs/phi_obs_double_int_animation.gif)
+
+*The animation shows a simple double integrator model ergodically exploring the given spatial distribution in the presence of obstacles / forbidden regions of space.*
+
+### I-HOCBF Safety Filter (Paper Contribution)
+
+The 12-DOF fixed-wing dynamics are **non-control-affine** — CBFs cannot be applied directly. We use **state augmentation**: actuator deflections become states, actuator *rates* become the new control input, and the system becomes control-affine by construction. This yields an augmented 16-state system where obstacle constraints have **relative degree 3**.
+
+A QP-based safety filter runs at each timestep and minimally modifies the ergodic controller's output to enforce:
+- **Obstacle avoidance** — spheres, cylinders, planes, rectangles with potential-based barrier functions
+- **Stall prevention** — angle-of-attack limit as a soft constraint with slack variable
+- **Geofence / altitude limits** — plane primitives with appropriate normals
+- **Actuator bounds** — translated to rate constraints via their own CBFs
+
+Aggressive maneuvers emerge naturally: bank-and-yank coordinated turns, reactive wall avoidance near stall, barrel rolls — all without explicit trajectory planning.
+
+### Target Localization
+
+Bearing-only measurements feed an **Extended Kalman Filter** per target. The **Fisher Information Matrix** defines an Expected Information Density (EID) that replaces Φ(s), driving agents toward informative viewpoints. Target lifecycle (spawn / merge / delete) is handled automatically via Mahalanobis and Bhattacharyya distances.
+
+---
+
+## Vehicle Models
+
+All models implement a common `ModelDynamics` interface with `step()`, analytical Jacobians, and optional LQR/trim utilities.
+
+| Model | States | Inputs | Notes |
+|-------|--------|--------|-------|
+| `SingleIntegrator` | 2 | 2 | Velocity commands |
+| `DoubleIntegrator` | 4 | 2 | With optional damping |
+| `Quadcopter` | 12 | 4 | Full Newton-Euler, motor mixing, LQR hover |
+| `SimpleBoatSecondOrder` | 5 | 2 | Thrust + rudder, nonlinear drag |
+| `SimpleCarSecondOrder` | 6 | 2 | Steering actuator dynamics |
+| `FixedWing12DOFTrainer` | 12 | 4 | Elevator, aileron, rudder, throttle; stability derivatives; symbolic Jacobians validated against finite differences; RK4 integration; trim solver |
+
+---
+
+## Simulation Results (Paper)
+
+Seven scenarios demonstrate the safety filter on the fixed-wing model:
+
+| Case | Scenario | Key Behavior |
+|------|----------|-------------|
+| **A** | Minimum altitude barrier | Elevator override arrests dive, filter holds altitude under sustained faulty input |
+| **B** | High-speed cornering (30 m/s) | Emergent "bank-and-yank": pre-emptive pitch-down creates vertical margin, then 90° roll turn |
+| **C** | Head-on wall + stall prevention | Without AoA limit → stall; tuned → coordinated turn; extreme slack → barrel roll |
+| **D** | Dense obstacle corridor | Weaves through cylinders, spheres, and wall gates; h stays positive throughout |
+| **E** | Multi-agent collision avoidance | 4–6 agents deconflict into traffic-circle pattern with altitude management |
+| **F** | Multi-agent ergodic exploration | Waypoint-free loitering over Gaussian regions of interest with real-time Fourier sharing |
+| **G** | Stress test: dense field | Sustained avoidance eventually bleeds energy — reveals reactive filter limitations |
 
 <div align="center">
-<img src="images/images/ros/dashboard_ros_agent_traj.png" width="80%" alt="Multi-Agent Dashboard">
+<img src="results/paper/D_High_Density_Corridor_dashboard_combined.png" width="80%" alt="Case D: Dense corridor navigation">
 </div>
-*Real-time dashboard visualization showing cooperative space coverage with obstacles. Black crosses indicate ground truth target positions, while colored ellipses represent independent target position estimates from each agent's EKF. Each agent performs decentralized target localization using bearing-only measurements but still localises target indipendent of the others.*
-
-
-<br><br>
-
+<p align="center"><em>Case D — Aircraft weaving through cylindrical gates and spherical obstacles.</em></p>
 
 <div align="center">
-<img src="images/images/ros/dashboard_ros_erg_cost_focused.png" width="80%" alt="Cooperative Ergodic Metric">
+<img src="results/paper/E_MultiAgent_Collision_Avoidance_dashboard_6_correct.png" height="270" alt="Case E: 6-agent collision avoidance 3D">
+<img src="results/paper/E_MultiAgent_Collision_Avoidance_top_down_6.png" height="270" alt="Case E: 6-agent collision avoidance top-down">
 </div>
-*Real-time plot of ergodic metric reduction via cooperative area coverage. The line at the bottom is the total ergodic metric*
-
-<br><br>
+<p align="center"><em>Case E — Six fixed-wing agents deconflicting into a traffic-circle pattern (3D and top-down views).</em></p>
 
 <div align="center">
-<img src="images/images/ros/rviz_screenshot_w_boat.png" width="80%" alt="RViz 3D Visualization">
+<img src="results/paper/F_Multi_Agent_WP_Ergodic_Exploration_phi_combined.png" width="85%" alt="Case F: Ergodic exploration distributions">
 </div>
+<p align="center"><em>Case F — Target distribution Φ(s) (left), Fourier reconstruction (middle), and trajectory coverage (right).</em></p>
+
 <div align="center">
-<img src="images/images/ros/rviz_screenshot_w_boat_and_car.png" width="80%" alt="RViz 3D Visualization">
+<img src="results/paper/G_Dense_Obstacle_Field_dashboard.png" height="270" alt="Case G: Dense obstacle field 3D">
+<img src="results/paper/G_Dense_Obstacle_Field_top_down.png" height="270" alt="Case G: Dense obstacle field top-down">
 </div>
+<p align="center"><em>Case G — Two agents searching a dense obstacle field (cylinders + spheres + walls).</em></p>
+
+---
+
+## Thesis Results (Multi-Agent, Multi-Vehicle)
+
+The full thesis covers ground robots, boats, quadrotors, and cars with CBF and APF obstacle avoidance:
+
 <div align="center">
-<img src="images/images/ros/rviz_screen_airplane.png" width="80%" alt="RViz 3D Visualization">
+<img src="results/diplomatiki/images/gifs/phi_obs_double_int_animation.gif" width="75%" alt="Double integrator with obstacles">
 </div>
-*Airplane control 12-DoF non linear model, with direct inputs (elevator, aileron, rudder angles + throttle command)*
+<p align="center"><em>Double integrator with CBF obstacle avoidance.</em></p>
+
 <div align="center">
-<img src="images/images/ros/rviz_tight_space_drone_2_focused.png" width="80%" alt="RViz 3D Visualization">
+<img src="results/diplomatiki/images/gifs/phiQuadWithObs_animation.gif" width="75%" alt="Quadrotor with obstacles">
 </div>
+<p align="center"><em>Quadrotor with CBF obstacle avoidance.</em></p>
+
 <div align="center">
-<img src="images/images/ros/rviz_tight_space_drone.png" width="80%" alt="RViz 3D Visualization">
+<img src="results/diplomatiki/images/gifs/phi_single_target_tracking_w_obstacles.gif" width="75%" alt="Target tracking with EKF">
 </div>
-<br><br>
-*RViz 3D visualization showing multi-agent trajectories, target positions, and obstacle avoidance in real-time. The environment node publishes visualization markers for comprehensive 3D monitoring of the ergodic exploration system.*
+<p align="center"><em>Quadrotor tracking a target using bearing-only EKF with EID-driven exploration.</em></p>
 
-<br><br>
+<div align="center">
+<img src="results/diplomatiki/images/gifs/measurementsEKF_animation_spawnTargets_Merge.gif" width="65%" alt="Multi-Target Tracking">
+</div>
+<p align="center"><em>Multi-target localization using bearing-only measurements and EKF. The system spawns new target estimates, associates measurements, and merges or deletes estimates automatically.</em></p>
 
-## Key Components
+<div align="center">
+<img src="results/diplomatiki/images/images/ros/dashboard_ros_agent_traj.png" height="270" alt="Multi-Agent Dashboard">
+<img src="results/diplomatiki/images/images/ros/dashboard_ros_erg_cost_focused.png" height="270" alt="Cooperative Ergodic Metric">
+</div>
+<p align="center"><em>Real-time dashboard: cooperative space coverage with EKF target estimates (left) and ergodic metric reduction (right).</em></p>
 
-### Dynamics Models
-  - `SingleIntegrator`: Simple first-order dynamics
-  - `DoubleIntegrator`: Second-order dynamics
-  - `SimpleBoatSecondOrder`: 5-state nonlinear boat model with:
-    - 2D position, heading, surge speed, and yaw rate
-    - Thrust and rudder control inputs
-    - Nonlinear drag and rudder effectiveness
-    - Realistic marine dynamics for small robotic hulls
-  - `SimpleCarSecondOrder`: 6-state nonlinear car model with:
-    - 2D position, heading, speed, steering angle, and yaw rate
-    - Drive force and steering command inputs
-    - Nonlinear drag, steering actuator, and yaw dynamics
-    - Suitable for small UGVs and ground robots
-  - `Quadcopter`: Full 12-DoF quadrotor model with realistic dynamics including:
-    - Position (x, y, z)
-    - Orientation (roll, pitch, yaw)
-    - Linear and angular velocities
-    - Motor command mixing and thrust generation
-    - LQR stabilization with customizable gains for obstacle avoidance
-  - `FixedWing12DOFTrainer`: Full 12-DoF fixed-wing airplane model with:
-    - 3D position and orientation (Euler angles)
-    - Linear and angular velocities
-    - Nonlinear aerodynamic forces and moments
-    - Control surfaces (elevator, aileron, rudder) and throttle input
-    - Runge-Kutta 4 integration and trim/linearization utilities
+<div align="center">
+<img src="results/diplomatiki/images/images/ros/rviz_screenshot_w_boat_and_car.png" width="75%" alt="Heterogeneous fleet in RViz">
+</div>
+<p align="center"><em>Heterogeneous fleet (boat, car, quadrotors) in RViz.</em></p>
 
-### Control
-- `ergodic_controllers.py`: Core implementation of ergodic control strategies:
-  - `DecentralisedErgodicController`: Novel implementation for decentralized multi-agent settings
-  - Receding-horizon implementation with trajectory optimization
-  - Adjoint-based gradient descent for ergodic metric optimization
-- `basis.py`: Fourier basis functions for spectral decomposition of spatial distributions
-  - Integration methods: Gauss quadrature and `nquad`
-  - Spectral coefficient caching for performance
-  - Distribution reconstruction capabilities
-- `barriers.py`: Barrier functions to enforce state and control constraints
-- **CBF Safety Filter**: Control Barrier Function implementation in `agent.py`:
-  - Real-time safety constraint monitoring using `calcH()`, `calcHGradient()`, and `calcHessianH()`
-  - Quadratic program formulation for minimal control intervention
-  - Second-order CBF implementation with configurable class-K functions
+<div align="center">
+<img src="results/diplomatiki/images/images/ros/rviz_screen_airplane.png" width="75%" alt="Fixed-wing in RViz">
+</div>
+<p align="center"><em>12-DoF fixed-wing model in RViz.</em></p>
 
-### Advanced Obstacle Avoidance System
-The system implements a sophisticated dual-layer obstacle avoidance approach combining traditional Artificial Potential Fields (APF) with modern Control Barrier Functions (CBF):
+<div align="center">
+<img src="results/diplomatiki/images/images/ros/rviz_tight_space_drone_2_focused.png" width="75%" alt="Tight space drone navigation">
+</div>
+<p align="center"><em>Quadrotor navigating a tight C-shaped corridor with CBF obstacle avoidance.</em></p>
 
-#### Control Barrier Function (CBF) Safety Filter - **NEW**
-- **Smart Safety Layer**: CBF acts as a safety filter on top of the primary controller, only intervening when necessary
-- **Danger Quantification**: Uses potential field-based barrier functions `h(x) = 1/(1+U(x)) - δ` to quantify proximity to danger
-- **Intelligent Course Correction**: Only alters the control input when the system detects imminent collision risk (PSI < 0)
-- **Minimal Interference**: Unlike reactive APF approaches that constantly push away from obstacles, CBF allows natural navigation until safety intervention is required
-- **Mathematical Rigor**: Guarantees forward invariance of safe sets through Lie derivatives and barrier constraints
+---
 
-#### Traditional Artificial Potential Fields (APF)
-- `obstacles.py`: Implementation of reactive obstacle avoidance using potential fields:
-  - Support for multiple obstacle types:
-    - Circular obstacles with customizable radius
-    - Rectangular obstacles with width and height parameters
-    - Wall obstacles with normal vector definition
-  - Continuous repulsive forces based on proximity to obstacles
-  - Customizable force parameters (`kappa`, `rho0`) and influence regions
-  - Boundary enforcement to keep agents within exploration space
+## Architecture
 
-#### Mathematical Formulation of CBF Safety Filter
+Built on **ROS 2 Humble**. Each agent runs as an independent node; coordination happens via topic-based exchange of Fourier coefficients (`CkTable` messages).
 
-The CBF safety filter implements a second-order control barrier function approach:
-
-**Barrier Function**: `h(x) = 1/(1 + U(x)) - δ` where `U(x)` is the total potential field from all obstacles
-
-**Safety Constraint**: The system maintains safety by ensuring `ψ(x,u) ≥ 0` where:
 ```
-ψ = ḧ + 2α₁ḣ + α₂h ≥ 0
+src/
+├── ergodic_exploration/
+│   ├── ergodic_exploration/      # ROS 2 nodes
+│   │   ├── agent_node.py         # Main agent (all vehicle types)
+│   │   ├── agent_node_airplane_teleop.py  # Fixed-wing teleop node
+│   │   ├── environment.py        # RViz marker publisher + system monitor
+│   │   ├── fg_visualizer_node.py # FlightGear UDP bridge
+│   │   ├── joystick_node.py      # Arduino joystick input
+│   │   └── aircraft_data_converter.py
+│   ├── my_erg_lib/               # Core library (no ROS dependency)
+│   │   ├── model_dynamics.py     # All 6 vehicle models
+│   │   ├── ergodic_controllers.py # RHEE algorithm
+│   │   ├── obstacles.py          # APF + primitives (sphere, cylinder, plane, rect)
+│   │   ├── cbf_qp_solver.py      # I-HOCBF QP (CVXOPT)
+│   │   ├── agent.py              # Agent class tying everything together
+│   │   ├── eid.py                # EKF, FIM, EID, data association
+│   │   ├── basis.py              # Fourier basis with caching
+│   │   └── vis.py                # Offline visualization & animation
+│   ├── agent_configs/            # Per-model YAML defaults
+│   └── launch/                   # Mission configs (B1–B6, C1–C2, fixed-wing scenarios)
+├── my_interfaces/
+│   └── msg/                      # CkTable, AgentData, AircraftData, JoystickData, ...
+scripts/
+├── dashboard_ros.py              # Real-time multi-agent dashboard
+├── vis_ck_erg.py                 # Ck coefficient & ergodic cost plotter
+├── generate_rviz_config.py       # Auto-generate RViz config for N agents
+├── bagplay.sh                    # ROS bag replay utility
+└── launch_flightgear.sh          # FlightGear visualization setup
 ```
-
-**Safety-Critical Control**: When `ψ < 0`, the safety filter computes minimal intervention:
-```
-u_safe = -β^T/||β||² * ψ
-```
-where `β = (f^T∇²h + ∇h^T∇f)g` represents the control authority direction.
-
-**Key Parameters**:
-- `α₁, α₂`: Class-K function gains (typically α₁=2.0, α₂=1.0)
-- `δ`: Safety margin parameter (typically 0.05)
-- Control limits and smoothing ensure practical implementation
-
-This approach guarantees that the agent remains in the safe set `{x : h(x) ≥ 0}` while minimally interfering with the primary ergodic exploration objective.
-
-#### Key Differences: CBF vs APF Approach
-- **APF (Reactive)**: Continuously generates repulsive forces based on position relative to obstacles
-- **CBF (Proactive Safety Filter)**: Monitors safety constraints and only intervenes when violation is imminent
-- **CBF Advantages**: 
-  - More natural trajectory behavior in obstacle-rich environments
-  - Reduced control chattering and oscillations
-  - Mathematically guaranteed safety with minimal intervention
-  - Better integration with primary control objectives (ergodic exploration)
 
 <div align="center">
-<img src="images/images/potential_field_4.png" width="90%" alt="Potential field visualization">
+<img src="results/diplomatiki/images/images/ros/rqt_ros_topology.png" width="70%" alt="ROS 2 node topology">
 </div>
+<p align="center"><em>ROS 2 node graph for a multi-agent mission.</em></p>
 
-### Target Localization and Tracking
-- `eid.py`: Comprehensive multi-target localization system:
-  - **Measurement Model**: Vectorized bearing-only sensor model computing azimuth and elevation angles
-  - **Extended Kalman Filter (EKF)**: Real-time state estimation with uncertainty quantification
-  - **Sensor Class**: Configurable range-limited sensor with realistic noise characteristics
-  - **Data Association**: Mahalanobis distance-based measurement-to-target association
-  - **Target Lifecycle Management**:
-    - *Spawning*: Creates new target estimates from unassociated measurements
-    - *Merging*: Combines nearby estimates using Bhattacharyya distance criteria
-    - *Deletion*: Removes stale estimates based on age and confidence metrics
-  - **Information-Driven Exploration**: EID (Expected Information Density) maps using Fisher Information Matrix
-  - **Multi-Target Tracking**: Simultaneous estimation of multiple moving targets with covariance intersection
+---
 
-<div align="center">
-<img src="images/gifs/measurementsEKF_animation_spawnTargets_Merge.gif" width="70%" alt="Multi-Target Tracking">
-</div>
+## Quick Start
 
-*The animation demonstrates multi-target localization using bearing-only measurements and EKF estimation. The system dynamically spawns new target estimates, associates measurements with existing targets, and merges or deletes estimates as needed.*
+```bash
+# 0. Install dependencies (first time only)
+pip3 install --user numpy scipy matplotlib cvxopt
 
-### Integration
-- `agent.py`: Agent implementation that combines models and controllers
-  - Boundary checking and safety mechanisms
-  - Integration with obstacle avoidance system
-- `replay_buffer.py`: Storage for trajectory samples for reinforcement learning
-- `Utilities.py`: Helper functions for the library
+# 1. Build
+colcon build
+source install/setup.bash   # or: ./b_and_source.sh
 
-### Visualization
-- `vis.py`: Visualization tools including:
-  - 3D rendering of quadrotor trajectories
-  - Distribution visualization and comparison
-  - Animation generation for ergodic coverage analysis
-  - Potential field visualization for obstacle avoidance
-  - Trajectory replay with time-series plotting
-- `dashboard_ros.py`: Real-time multi-agent dashboard for ROS2 systems
-- `vis_ck_erg.py`: Real-time Ck coefficient visualization and ergodic cost monitoring
-- **RViz Integration**: 3D visualization support with environment node for marker publishing
+# 2. Run a predefined scenario (e.g., 3-drone exploration with obstacles)
+ros2 launch ergodic_exploration B2.launch.py
 
-### Spectral Distribution Analysis
-- `ReconstructedPhi` and `ReconstructedPhiFromCk`: Classes for analyzing and reconstructing spatial distributions
-  - Fourier coefficient calculation for arbitrary distributions
-  - Distribution reconstruction from trajectory statistics
-  - Comparison between target and achieved distributions
+# 3. Dashboard (separate terminal)
+source source.sh
+python scripts/dashboard_ros.py
+
+# 4. RViz (separate terminal)
+bash scripts/launch_rviz.sh
+```
+
+### Single agent
+```bash
+# Simple models (double integrator, quadcopter)
+ros2 run ergodic_exploration agent_node --agent_id 1 --init_pos 9 3
+
+# Fixed-wing (requires agent_config with CBF parameters)
+ros2 launch ergodic_exploration fixed_wing_free_fly.launch.py
+```
+
+### Fixed-wing teleop with FlightGear
+```bash
+bash scripts/launch_flightgear.sh
+ros2 launch ergodic_exploration fixed_wing_teleop_agent.launch.py
+```
+
+---
+
+## Configuration
+
+Missions are defined via YAML files:
+- **Agent config** (`agent_configs/*.yaml`): model type, control gains, ergodic parameters, CBF tuning
+- **Obstacle config** (`launch/*_obs.yaml`): obstacle primitives with positions, dimensions, influence radii
+- **Launch file** (`launch/*.launch.py`): wires agents to their configs and sets initial positions
+
+See `docs/README_agent_configs.md` for the full parameter reference.
+
+---
 
 ## Dependencies
-- NumPy: For numerical operations
-- Matplotlib: For visualization and animation
-- SciPy: For optimization and linear algebra
-- PIL: For image processing and saving animations
 
-## Usage
-
-### Running the System
-
-#### Build and Setup
+**System-wide Python packages** (required for ROS 2 nodes):
 ```bash
-# Build the ROS2 workspace
-colcon build
-
-# Source the setup (or use ./b_and_source.sh for faster execution)
-source install/setup.bash
+pip3 install --user numpy scipy matplotlib cvxopt
 ```
 
-#### Single Agent
-```bash
-ros2 run ergodic_exploration agent_node --agent_id 1 --init_pos 9 3
-```
+**ROS 2**:
+- ROS 2 Humble
 
-#### Multiple Agents with Launch File
-Create a launch file (e.g., `multi_agent_launch.yaml`):
-```yaml
-launch:
-- arg:
-    name: "num_agents"
-    default: "3"
-    description: "Number of agents to launch"
+**Optional**:
+- FlightGear for 3D fixed-wing visualization
 
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_1"
-    args: "--agent_id 1 --init_pos 9 3 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
+> **Note**: ROS 2 uses the system Python interpreter, not virtual environments. Install all Python dependencies system-wide with `pip3 install --user` or `sudo pip3 install`.
 
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_2"
-    args: "--agent_id 2 --init_pos 5 7 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
+---
 
-- node:
-    pkg: "ergodic_exploration"
-    exec: "agent_node"
-    name: "agent_3"
-    args: "--agent_id 3 --init_pos 2 1 --ros-args --log-level WARN"
-    output: "screen"
-    emulate_tty: true
-```
+## Documentation
 
-#### Real-time Dashboard
-In a separate terminal:
-```bash
-# Source the environment
-. source.sh
+| Document | Description |
+|----------|-------------|
+| `main.tex` | Conference paper: I-HOCBF safety filter for fixed-wing UAVs |
+| `docs/Diplimatiki_Markdown/document.md` | Full diploma thesis |
+| `docs/ARCHITECTURE.md` | System architecture overview |
+| `docs/README_currentApproachMath.md` | Mathematical derivation of the CBF approach |
+| `docs/README_stateAugmentation.md` | State augmentation and I-HOCBF derivation |
+| `docs/README_mathIntuitionCBF.md` | Intuitive explanation of CBF theory |
+| `docs/README_tunningCBF.md` | CBF parameter tuning guide |
+| `docs/README_obstacles.md` | Obstacle configuration reference |
+| `docs/README_aircraft.md` | Fixed-wing model and FlightGear setup |
+| `docs/README_teleop.md` | Teleop and joystick control |
+| `docs/README_dashboard.md` | Dashboard usage |
 
-# Launch the visualization dashboard
-python dashboard_ros.py
-```
-
-#### RViz Visualization
-For 3D visualization of the multi-agent system in RViz:
-```bash
-# Launch RViz with the custom configuration
-ros2 run rviz2 rviz2 -d rviz_configuration.rviz
-```
-
-#### Ck Coefficient Visualization
-For real-time visualization of ergodic cost and Ck coefficients:
-```bash
-# Visualize specific agent's ergodic performance (replace '1' with desired agent ID)
-python vis_ck_erg.py --mode realtime --plot-mode ros-only 1
-```
-
-### Library Usage
-This library is designed for multi-agent robotic control in various scenarios:
-
-```python
-# Example usage with quadrotor model, advanced CBF safety filter, and multi-target tracking
-import numpy as np
-from my_erg_lib.agent import Agent
-from my_erg_lib.model_dynamics import Quadcopter
-from my_erg_lib.ergodic_controllers import DecentralisedErgodicController
-from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory
-
-# Create quadrotor model with specified parameters
-x0 = [0.8, 0.8, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-model = Quadcopter(dt=0.001, x0=x0, z_target=2, 
-                   motor_limits=[[-2, 2], [-2, 2], [-2, 2], [-2, 2]])
-
-# Create target distribution function
-def phi_func(s):
-    x, y = s[0], s[1]
-    return 3 * np.exp(-30 * ((x-0.2)**2 + (y-0.3)**2)) + 2
-
-# Set up agent with ergodic controller
-agent = Agent(L1=1.0, L2=1.0, Kmax=5, dynamics_model=model, phi=phi_func, x0=x0)
-agent.erg_c = DecentralisedErgodicController(agent, uNominal=model.calcLQRcontrol, 
-                                            T_sampling=0.1, T_horizon=1.25)
-
-# Add obstacles to the environment for both APF and CBF
-obstacles = [
-    Obstacle(pos=[0.2, 0.2], dimensions=0.1, kappa=10.0, rho0=0.2, 
-             obs_type='circle', obs_name="Obstacle 1"),
-    Obstacle(pos=[0.6, 0.3], dimensions=[0.2, 0.5], kappa=15.0, rho0=0.25, 
-             obs_type='rectangle', obs_name="Obstacle 2")
-]
-saveObstaclesToMemory(agent, obs_list=obstacles)
-
-# CBF safety filter parameters
-ALPHA_HDOT = 2.0    # First derivative gain
-ALPHA_H = 1.0       # Function value gain  
-DELTA_SAFE = 0.05   # Safety margin
-RELAX_FACTOR = 0.7  # Control smoothing factor
-
-# Initialize simulation variables
-time_list = [0]
-Ts_iter = int(agent.erg_c.Ts / agent.model.dt)  # Iterations per sampling time
-u_previous = np.zeros(agent.model.num_of_inputs)
-
-# Main simulation loop with CBF safety filter
-for i in range(10000):
-    current_time = time_list[i]
-    
-    # Calculate ergodic control every sampling period
-    if i % Ts_iter == 0:
-        # Multi-target tracking
-        measurements = agent.sensor.getMultipleMeasurements(
-            agent.real_target_positions, agent.model.state[:3])
-        
-        # Data association and EKF updates
-        if measurements and agent.num_of_targets == 0:
-            # Initialize targets if first measurements
-            for measurement in measurements:
-                agent.spawnNewTargetEstimate(measurement, current_time)
-        
-        associated_measurements = agent.associateTargetsWithMahalanobis(
-            measurements, agent.model.state[:3])
-        
-        # Update existing targets
-        for j, measurement in enumerate(associated_measurements):
-            if measurement is not None:
-                agent.ekfs[j].update(agent.model.state[:3], measurement, current_time)
-        
-        # Spawn new targets for unassociated measurements
-        for m in measurements or []:
-            if not any(np.array_equal(m, am) for am in associated_measurements if am is not None):
-                agent.spawnNewTargetEstimate(measurement=m, current_time=current_time)
-        
-        # Target management
-        agent.mergeTargetsIfNeeded()
-        agent.searchAndRemoveOldTargetEstimates(current_time)
-        
-        # Update exploration distribution periodically
-        if i % (Ts_iter * 30) == 0:  # Every 30 ergodic iterations
-            agent.updateEIDphiFunction()
-        
-        # Calculate ergodic control
-        us, tau, lamda_dur, erg_cost = agent.erg_c.calcNextActionTriplet(current_time)
-        agent.erg_c.updateActionMask(current_time, us, tau, lamda_dur)
-    
-    # Get current control action
-    us_current = agent.erg_c.ustar_mask[i % Ts_iter]
-    if not us_current.any():
-        us_current = agent.erg_c.uNominal(agent.model.state, current_time)
-    
-    # **Apply CBF Safety Filter** - This is the key new feature!
-    u_safe = agent.calcUsafe(agent.model.state, us_current, 
-                            alpha_1=ALPHA_HDOT, alpha_2=ALPHA_H, delta=DELTA_SAFE)
-    
-    # Combine ergodic control with safety correction
-    u_total = us_current + u_safe
-    
-    # Apply control limits and smoothing
-    u_total = np.clip(u_total, agent.erg_c.uLimits[:, 0], agent.erg_c.uLimits[:, 1])
-    u_smooth = RELAX_FACTOR * u_total + (1 - RELAX_FACTOR) * u_previous
-    u_previous = u_smooth.copy()
-    
-    # Apply control and step model
-    agent.model.state = agent.model.step(agent.model.state, u_smooth)
-    agent.erg_c.past_states_buffer.push(agent.model.state[:2])
-    
-    # Update time
-    time_list.append(current_time + agent.model.dt)
-```
-
-## Key Features
-- **ROS2 Humble Integration**: True parallel multi-agent execution with topic-based communication
-- **Custom Message Types**: Specialized messages for Ck coefficients, obstacles, and target estimates
-- **Real-time Dashboard**: Python-based visualization for live system monitoring
-- **Advanced Safety Architecture**: Novel CBF (Control Barrier Function) safety filter that acts as an intelligent safety layer, only intervening when collision risk is detected
-- Spectral decomposition of target distributions using Fourier basis functions
-- Receding horizon control for ergodic exploration
-- LQR stabilization for complex dynamic models
-- Multi-agent coordination through Fourier coefficient exchange
-- Advanced integration methods (Runge-Kutta 4) for accurate dynamics simulation
-- **Dual-Layer Obstacle Avoidance**: 
-  - Traditional APF for continuous repulsive guidance
-  - Smart CBF safety filter for minimal-intervention collision avoidance
-- Multi-target localization with bearing-only measurements
-- Dynamic target management with spawning, merging, and deletion
-- Information-driven exploration using Fisher Information Matrix
-- Mahalanobis distance-based data association
-- Comprehensive visualization tools for analysis and debugging
-- Performance profiling for optimization
-- Support for complex spatial distribution functions
+---
 
 ## References
-- Mavrommati, A., Tzorakoleftherakis, E., Abraham, I., and Murphey, T. D. (2017). Real-time area coverage and target localization using receding-horizon ergodic exploration. IEEE Transactions on Robotics, 34(1), 62-80. [arXiv:1708.08416](https://arxiv.org/abs/1708.08416)
-- Abraham, I., and Murphey, T. D. (2018). Decentralized ergodic control: distribution-driven sensing and exploration for multiagent systems. IEEE Robotics and Automation Letters, 3(4), 2987-2994. [arXiv:1708.08416](https://arxiv.org/abs/1708.08416)
+
+- Mavrommati, A., et al. (2018). *Real-time area coverage and target localization using receding-horizon ergodic exploration.* IEEE Trans. Robotics, 34(1), 62–80.
+- Abraham, I. & Murphey, T. D. (2018). *Decentralized ergodic control.* IEEE Robot. Autom. Lett., 3(4), 2987–2994.
+- Xiao, W., Cassandras, C. G. & Belta, C. (2023). *Safe Autonomy with Control Barrier Functions.* Springer.
+- Ames, A. D., et al. (2019). *Control barrier functions: Theory and applications.* Proc. ECC, 3420–3431.
+- Molnar, T. G., et al. (2024). *Collision avoidance and geofencing for fixed-wing aircraft with CBFs.* IEEE TCST.

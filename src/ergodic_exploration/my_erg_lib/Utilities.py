@@ -123,17 +123,17 @@ def loadObstaclesFromYaml(yaml_file_path, L1_BOUNDS, L2_BOUNDS, kappa_obs=1.0, r
                     
                     # Calculate position and dimensions based on wall type
                     if wall_type == 'bottom':
-                        pos = [L1_min + L1_size/2, L2_min]
-                        dimensions = [0, +L1_size]
+                        pos = [L1_min + L1_size/2, L2_min, 0]
+                        dimensions = [0, +L1_size, 0]
                     elif wall_type == 'top':
-                        pos = [L1_min + L1_size/2, L2_max]
-                        dimensions = [0, -L1_size]
+                        pos = [L1_min + L1_size/2, L2_max, 0]
+                        dimensions = [0, -L1_size, 0]
                     elif wall_type == 'left':
-                        pos = [L1_min, L2_min + L2_size/2]
-                        dimensions = [+L2_size, 0]
+                        pos = [L1_min, L2_min + L2_size/2, 0]
+                        dimensions = [+L2_size, 0, 0]
                     elif wall_type == 'right':
-                        pos = [L1_max, L2_min + L2_size/2]
-                        dimensions = [-L2_size, 0]
+                        pos = [L1_max, L2_min + L2_size/2, 0]
+                        dimensions = [-L2_size, 0, 0]
                     else:
                         print(f"Warning: Unknown wall type '{wall_type}', skipping...")
                         continue
@@ -336,6 +336,10 @@ def loadAgentConfigFromYaml(yaml_file_path, L1_BOUNDS=None, L2_BOUNDS=None):
             'targets': targets_config,
             'flags': flags_config
         }
+        
+        # Add phi configuration if present (optional - defaults to uniform in agent_node.py)
+        if 'phi' in config:
+            final_config['phi'] = config['phi']
         
         # Add optional agent parameters to the final config for easy access
         optional_params = ['antenna_radius', 'kmax', 'antenna_range_flag', 'talk_alike_flag', 'same_l_bounds_flag']

@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_generator_c/my_interfaces/msg/detail/multiple_obstacles__functions.h

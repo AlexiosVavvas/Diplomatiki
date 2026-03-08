@@ -1,0 +1,1 @@
+Needs Uniform Ergodic Search for clearer demonstration of the effect (Less altitude fluctuations)

@@ -1,1 +1,0 @@
-/home/avavvas/dipl/src/my_interfaces/msg/JoystickData.msg

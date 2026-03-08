@@ -194,7 +194,7 @@ class DecentralisedErgodicController():
             ck = self.agent.basis.calcCkCoeff(erg_traj, x_buffer=self.past_states_buffer.get() ,ti=ti, T=self.T)
 
         # Publish ck values to ROS topic
-        self.agent.publishCk(ck.flatten())
+        self.agent.publishCk(ck.flatten(), time_now=ti)
         
         erg_cost = self.calcErgodicCost(ck) 
         
@@ -273,7 +273,7 @@ class DecentralisedErgodicController():
 
         # Publish ck values to ROS topic
         t_start = time.perf_counter()
-        self.agent.publishCk(ck.flatten())
+        self.agent.publishCk(ck.flatten(), time_now=ti)
         timings['Publish Ck'] = (time.perf_counter() - t_start) * 1000
         
         t_start = time.perf_counter()

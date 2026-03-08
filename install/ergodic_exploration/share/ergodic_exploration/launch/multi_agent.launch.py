@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/ergodic_exploration/launch/multi_agent.launch.py

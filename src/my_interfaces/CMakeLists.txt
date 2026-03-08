@@ -12,6 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 
 # ADDED MESSAGE FILES
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -24,7 +25,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MultipleTargetEstimates.msg"
   "msg/ObsAvoidanceDebug.msg"
   "msg/JoystickData.msg"
-  DEPENDENCIES std_msgs geometry_msgs
+  "msg/SyncBarrier.msg"
+  DEPENDENCIES std_msgs geometry_msgs builtin_interfaces
 )
 
 # EXPORT DEPENDENCIES

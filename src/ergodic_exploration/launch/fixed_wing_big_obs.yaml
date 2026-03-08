@@ -1,0 +1,33 @@
+obstacles:
+  # Small circle obstacles scattered across the domain
+  - pos: [100.0, 100.0]
+    dimensions: 30.0
+    obs_type: 'circle'
+    obs_name: "Circle 1"
+  
+  - pos: [280.0, 120.0]
+    dimensions: 25.0
+    obs_type: 'circle'
+    obs_name: "Circle 2"
+  
+  - pos: [150.0, 280.0]
+    dimensions: 30.0
+    obs_type: 'circle'
+    obs_name: "Circle 3"
+  
+  - pos: [300.0, 300.0]
+    dimensions: 25.0
+    obs_type: 'circle'
+    obs_name: "Circle 4"
+
+walls:
+  # - obs_type: 'wall'
+  #   pos: [85.0, 65.0, 0]
+  #   dimensions: [-400.0, -300.0, 0]
+  #   obs_name: "Custom Wall"
+
+  - obs_type: 'wall'
+    pos: [0, 0, 340]
+    dimensions: [0, 0, 1]
+    rho: 150
+    obs_name: "Low Barrier Wall"

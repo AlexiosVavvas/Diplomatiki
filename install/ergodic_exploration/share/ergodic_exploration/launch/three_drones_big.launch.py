@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/ergodic_exploration/launch/three_drones_big.launch.py

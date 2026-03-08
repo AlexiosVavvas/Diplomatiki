@@ -38,6 +38,7 @@ setup(
             'aircraft_data_converter = ergodic_exploration.aircraft_data_converter:main',
             'joystick_node = ergodic_exploration.joystick_node:main',
             'agent_node_airplane_teleop = ergodic_exploration.agent_node_airplane_teleop:main',
+            'tf_visualizer_airplane = ergodic_exploration.tf_visualizer_airplane:main',
         ],
     },
 )

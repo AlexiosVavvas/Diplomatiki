@@ -2,15 +2,17 @@ import numpy as np
 
 class ReplayBufferFIFO:
     """
-    A simple FIFO replay buffer for storing states.
+    A simple FIFO replay buffer for storing states using a circular buffer.
     The capacity is fixed but the size is expandable up to the capacity.
-    It starts with what is has and rolls the elements when full.
+    Uses O(1) push operations instead of O(n) roll operations.
     """
     def __init__(self, capacity, element_size=(2,), init_content=None):
-        self.capacity = capacity if capacity > 0 else 1
+        self.capacity = int(capacity) if capacity > 0 else 1
         self.element_size = element_size
-        self.buffer = np.zeros((0, *element_size))
+        # Pre-allocate the full buffer for O(1) writes
+        self.buffer = np.zeros((self.capacity, *element_size))
         self.current_size = 0
+        self.head = 0  # Points to the next write position (oldest element when full)
 
         # Lets initialise the buffer with the initial content if provided
         if init_content is not None:
@@ -26,8 +28,8 @@ class ReplayBufferFIFO:
 
     def reset(self, last_perc_to_keep=0):
         if last_perc_to_keep == 0:
-            self.buffer = np.zeros((0, *self.element_size))
             self.current_size = 0
+            self.head = 0
         else:
             if not (0 < last_perc_to_keep <= 1):
                 raise ValueError("last_perc_to_keep must be between 0 and 1.")
@@ -35,11 +37,16 @@ class ReplayBufferFIFO:
             # Calculate the number of elements to keep
             num_to_keep = int(self.current_size * last_perc_to_keep)
             if num_to_keep > 0:
-                self.buffer = self.buffer[-num_to_keep:]
-                self.current_size = num_to_keep
-            else:
-                self.buffer = np.zeros((0, *self.element_size))
+                # Get the ordered data and keep only the last num_to_keep elements
+                ordered_data = self.get()[-num_to_keep:]
+                # Reset and re-add
                 self.current_size = 0
+                self.head = 0
+                for i in range(num_to_keep):
+                    self.push(ordered_data[i])
+            else:
+                self.current_size = 0
+                self.head = 0
 
     def push(self, state):
         # Validate input state has the expected shape
@@ -47,25 +54,40 @@ class ReplayBufferFIFO:
         if state_array.shape != self.element_size:
             raise ValueError(f"Expected state with shape {self.element_size}, got {state_array.shape}")
             
-        # Add the new state to the buffer
+        # Add the new state to the buffer (O(1) operation)
         if self.current_size < self.capacity:
-            # If buffer has space, append the new state
-            self.buffer = np.vstack([self.buffer, state_array[np.newaxis, ...]])
+            # Buffer not yet full - just append at current_size position
+            self.buffer[self.current_size] = state_array
             self.current_size += 1
         else:
-            # If buffer is full, roll elements and replace the last one
-            self.buffer = np.roll(self.buffer, -1, axis=0)
-            self.buffer[-1] = state_array
+            # Buffer is full - overwrite oldest element at head position
+            self.buffer[self.head] = state_array
+            self.head = (self.head + 1) % self.capacity
 
     def get(self):
-        # Return the buffer
-        return self.buffer.copy()
+        """Return the buffer contents in FIFO order (oldest first)"""
+        if self.current_size < self.capacity:
+            # Buffer not full yet - data is already in order
+            return self.buffer[:self.current_size].copy()
+        else:
+            # Buffer is full - need to reorder: [head:end] + [0:head]
+            return np.concatenate([
+                self.buffer[self.head:],
+                self.buffer[:self.head]
+            ], axis=0)
 
     def getElement(self, index):
-        """Get an element at a specific index"""
+        """Get an element at a specific index (in FIFO order)"""
         if index < 0 or index >= self.current_size:
             raise IndexError(f"Index {index} out of bounds for buffer of size {self.current_size}.")
-        return self.buffer[index].copy() #.copy() necessary to avoid modifying the buffer!! AAAaaahhhh!!
+        
+        if self.current_size < self.capacity:
+            # Buffer not full - direct indexing
+            return self.buffer[index].copy()
+        else:
+            # Buffer full - translate index through circular buffer
+            actual_index = (self.head + index) % self.capacity
+            return self.buffer[actual_index].copy()
 
     def __len__(self):
         return self.current_size

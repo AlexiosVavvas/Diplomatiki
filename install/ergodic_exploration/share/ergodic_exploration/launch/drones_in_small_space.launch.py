@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/ergodic_exploration/launch/drones_in_small_space.launch.py

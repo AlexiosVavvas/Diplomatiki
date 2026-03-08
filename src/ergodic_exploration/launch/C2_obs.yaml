@@ -1,0 +1,47 @@
+obstacles:
+  # Avoiding bumps at ~(100, 260) top-left and ~(260, 100) bottom-right
+  
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [60.0, 80.0]
+    dimensions: 40.0
+    obs_type: 'circle'
+    obs_name: "Circle BL"
+
+  # Top-right corner - mirrors bottom-right bump  
+  - pos: [300.0, 290.0]
+    dimensions: 45.0
+    obs_type: 'circle'
+    obs_name: "Circle TR"
+
+  # Center - creates a chokepoint between bumps
+  - pos: [150.0, 170.0]
+    dimensions: [200.0, 35.0]
+    obs_type: 'rectangle'
+    obs_name: "Rectangle Center"
+
+  # Top edge center - guards upper passage
+  - pos: [180.0, 340.0]
+    dimensions: 35.0
+    obs_type: 'circle'
+    obs_name: "Circle Top"
+
+  # Bottom edge center - guards lower passage
+  - pos: [180.0, 30.0]
+    dimensions: 35.0
+    obs_type: 'circle'
+    obs_name: "Circle Bottom"
+
+# walls:
+#   # - obs_type: 'wall'                   # Type: 'wall'
+#   #   pos: [85.0, 65.0, 0]               # Explicit position [x, y, z]
+#   #   dimensions: [-400.0, -300.0, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+#   #   # kappa: 40
+#   #   # rho: 40
+#   #   obs_name: "Custom Wall"       # Descriptive name
+
+#   - obs_type: 'wall'                   # Type: 'wall'
+#     pos: [0, 0, 360]               # Explicit position [x, y, z]
+#     dimensions: [0, 0, 1]    # Normal vector [nx, ny, nz] - magnitude = visual length
+#     # kappa: 40
+#     rho: 150
+#     obs_name: "Low Barrier Wall"       # Descriptive name

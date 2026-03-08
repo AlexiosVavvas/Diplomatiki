@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_cmake/rosidl_cmake-extras.cmake

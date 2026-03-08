@@ -5,6 +5,8 @@ from rclpy.node import Node
 import re
 import numpy as np
 import math
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
 from my_interfaces.msg import AgentData, MultipleObstacles, SingleObstacle, MultipleTargetEstimates, SingleTargetEstimate
 from geometry_msgs.msg import Point, PoseStamped
 from visualization_msgs.msg import Marker, MarkerArray
@@ -66,6 +68,9 @@ class EnvironmentNode(Node):
         # Publisher for agent markers
         self.marker_publisher = self.create_publisher(MarkerArray, 'agent_markers', 10)
         
+        # TF broadcaster for agent frames
+        self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
+        
         # Publisher for obstacle markers
         self.obstacle_marker_publisher = self.create_publisher(MarkerArray, 'obstacle_markers', 10)
         
@@ -96,6 +101,9 @@ class EnvironmentNode(Node):
         
         # Timer to publish target estimate markers
         self.target_estimate_marker_timer = self.create_timer(0.5, self.publish_target_estimate_markers)  # Every 0.5 seconds
+        
+        # Timer to publish TF transforms at high frequency
+        self.tf_timer = self.create_timer(0.02, self.publish_agent_transforms)  # 50 Hz
 
         self.get_logger().info(f'Environment node initialized with map size: {self.grid_width}x{self.grid_height} pixels')
 
@@ -499,7 +507,12 @@ class EnvironmentNode(Node):
                                                  or self.agent_states[agent_id].get('is_quadcopter', False) \
                                                  or self.agent_states[agent_id].get('is_boat', False) \
                                                  or self.agent_states[agent_id].get('is_car', False)) else DEFAULT_DRONE_HEIGHT
-            
+            # If is airplane reverse x, y and negate z to match visualization orientation
+            if self.agent_states[agent_id].get('is_airplane', False):
+                pose_stamped.pose.position.x = x
+                pose_stamped.pose.position.y = y
+                pose_stamped.pose.position.z = z
+
             # Set orientation (no rotation for now)
             pose_stamped.pose.orientation.x = 0.0
             pose_stamped.pose.orientation.y = 0.0
@@ -1048,6 +1061,62 @@ class EnvironmentNode(Node):
         
         return qx, qy, qz, qw
 
+    def publish_agent_transforms(self):
+        """Publish TF transforms for all active agents"""
+        # Store timestamp for synchronization with markers
+        self.current_tf_time = self.get_clock().now().to_msg()
+        
+        for agent_id in sorted(self.discovered_agents):
+            if agent_id in self.agent_positions and agent_id in self.agent_states:
+                position = self.agent_positions[agent_id]
+                state = self.agent_states[agent_id]
+                
+                # Create transform message
+                t = TransformStamped()
+                t.header.stamp = self.current_tf_time
+                t.header.frame_id = "map"  # Parent frame
+                t.child_frame_id = f"agent_{agent_id}_base_link"  # Child frame
+                
+                # Set translation
+                t.transform.translation.x = float(position[0])
+                t.transform.translation.y = float(position[1])
+                t.transform.translation.z = float(position[2])
+                
+                # Set rotation based on agent type
+                if state.get('is_airplane', False):
+                    t.transform.translation.x = float(position[0])
+                    t.transform.translation.y = float(position[1])
+                    t.transform.translation.z = float(position[2])  
+                    # Full 3D orientation for airplanes
+                    phi = state.get('phi', 0.0)
+                    theta = state.get('theta', 0.0)
+                    psi = state.get('psi', 0.0)
+                    qx, qy, qz, qw = self.euler_to_quaternion(phi, theta, psi)
+                    
+                elif state.get('is_quadcopter', False):
+                    # Full 3D orientation for quadcopters
+                    phi = state.get('phi', 0.0)
+                    theta = state.get('theta', 0.0)
+                    psi = state.get('psi', 0.0)
+                    qx, qy, qz, qw = self.euler_to_quaternion(phi, theta, psi)
+                    
+                elif state.get('is_boat', False) or state.get('is_car', False):
+                    # Only yaw orientation for boats and cars
+                    psi = state.get('psi', 0.0)
+                    qx, qy, qz, qw = self.yaw_to_quaternion(psi)
+                    
+                else:
+                    # No orientation for other agents
+                    qx, qy, qz, qw = 0.0, 0.0, 0.0, 1.0
+                
+                t.transform.rotation.x = qx
+                t.transform.rotation.y = qy
+                t.transform.rotation.z = qz
+                t.transform.rotation.w = qw
+                
+                # Broadcast the transform
+                self.tf_broadcaster.sendTransform(t)
+
     def publish_agent_markers(self):
         """Publish MarkerArray with cylinder markers for each active agent"""
         marker_array = MarkerArray()
@@ -1059,16 +1128,18 @@ class EnvironmentNode(Node):
                 state = self.agent_states[agent_id]
                 
                 marker = Marker()
-                marker.header.frame_id = "map"  # Change this to your desired frame
-                marker.header.stamp = self.get_clock().now().to_msg()
+                # Attach marker to agent's TF frame for smooth motion
+                marker.header.frame_id = f"agent_{agent_id}_base_link"
+                # Use latest TF timestamp if available, otherwise generate new one
+                marker.header.stamp = getattr(self, 'current_tf_time', self.get_clock().now().to_msg())
                 marker.ns = "agents"
                 marker.id = agent_id
                 marker.action = Marker.ADD
                 
-                # Set position
-                marker.pose.position.x = float(position[0])
-                marker.pose.position.y = float(position[1])
-                marker.pose.position.z = float(position[2]) + 0.5  # Raise marker slightly above ground
+                # Set position relative to agent frame (origin with height offset)
+                marker.pose.position.x = 0.0
+                marker.pose.position.y = 0.0
+                marker.pose.position.z = 0.5  # Height above agent frame origin
                 
                 # Debug logging
                 is_boat = state.get('is_boat', False)
@@ -1086,21 +1157,20 @@ class EnvironmentNode(Node):
                     # Use package relative path for the STL file
                     marker.mesh_resource = "package://ergodic_exploration/meshes/boat.stl"
                     
-                    # Set mesh orientation based on yaw angle (psi)
-                    psi = state['psi'] + np.pi
-                    qx, qy, qz, qw = self.yaw_to_quaternion(psi)
+                    # Orientation is handled by TF frame, use identity + 180° correction if needed
+                    qx, qy, qz, qw = self.yaw_to_quaternion(np.pi)  # 180° rotation around z-axis
                     marker.pose.orientation.x = qx
                     marker.pose.orientation.y = qy
                     marker.pose.orientation.z = qz
                     marker.pose.orientation.w = qw
                     
-                    # Set mesh scale (start with small scale to ensure visibility)
-                    marker.scale.x = 1.0  # Small scale to test visibility
-                    marker.scale.y = 1.0  # Small scale to test visibility
-                    marker.scale.z = 1.0  # Small scale to test visibility
+                    # Set mesh scale
+                    marker.scale.x = 1.0
+                    marker.scale.y = 1.0
+                    marker.scale.z = 1.0
 
-                    # Adjust z position for mesh
-                    marker.pose.position.z = float(position[2]) + 0.1
+                    # Position is handled by TF frame
+                    marker.pose.position.z = 0.1
                     
                     # Enable mesh_use_embedded_materials if needed
                     marker.mesh_use_embedded_materials = False
@@ -1116,21 +1186,20 @@ class EnvironmentNode(Node):
                     # Use package relative path for the STL file
                     marker.mesh_resource = "package://ergodic_exploration/meshes/car.stl"
                     
-                    # Set mesh orientation based on yaw angle (psi)
-                    psi = state['psi'] + np.pi
-                    qx, qy, qz, qw = self.yaw_to_quaternion(psi)
+                    # Orientation is handled by TF frame, use identity + 180° correction if needed
+                    qx, qy, qz, qw = self.yaw_to_quaternion(np.pi)  # 180° rotation around z-axis
                     marker.pose.orientation.x = qx
                     marker.pose.orientation.y = qy
                     marker.pose.orientation.z = qz
                     marker.pose.orientation.w = qw
                     
-                    # Set mesh scale (start with small scale to ensure visibility)
-                    marker.scale.x = 1.0  # Small scale to test visibility
-                    marker.scale.y = 1.0  # Small scale to test visibility
-                    marker.scale.z = 1.0  # Small scale to test visibility
+                    # Set mesh scale
+                    marker.scale.x = 1.0
+                    marker.scale.y = 1.0
+                    marker.scale.z = 1.0
 
-                    # Adjust z position for mesh
-                    marker.pose.position.z = float(position[2]) + 0.1
+                    # Position is handled by TF frame
+                    marker.pose.position.z = 0.1
                     
                     # Enable mesh_use_embedded_materials if needed
                     marker.mesh_use_embedded_materials = False
@@ -1146,14 +1215,11 @@ class EnvironmentNode(Node):
                     # Use package relative path for the STL file
                     marker.mesh_resource = "package://ergodic_exploration/meshes/hermes.stl"
                     
-                    # Set mesh orientation based on roll, pitch, and yaw angles
-                    phi = state.get('phi', 0.0)      # Roll
-                    phi = -phi
-                    theta = state.get('theta', 0.0)  # Pitch
-                    psi = state.get('psi', 0.0)      # Yaw
-                    
-                    # Convert Euler angles to quaternion
-                    qx, qy, qz, qw = self.euler_to_quaternion(phi, theta, psi)
+                    # Orientation is handled by TF frame, apply mesh correction if needed
+                    phi_correction = 0.0  # Adjust if mesh is not aligned
+                    theta_correction = 0.0
+                    psi_correction = 0.0
+                    qx, qy, qz, qw = self.euler_to_quaternion(phi_correction, theta_correction, psi_correction)
                     marker.pose.orientation.x = qx
                     marker.pose.orientation.y = qy
                     marker.pose.orientation.z = qz
@@ -1164,13 +1230,7 @@ class EnvironmentNode(Node):
                     marker.scale.y = 1.0
                     marker.scale.z = 1.0
 
-                    # Use the actual Z position from the state
-                    marker.pose.position.z = float(state.get('z', position[2]))
-
-                    # Its difficult to follow the marker arround, so lets just fix it in the center
-                    # Remove the following lines and the plane will go as expected
-                    marker.pose.position.x = 0.0
-                    marker.pose.position.y = 0.0
+                    # Position is handled by TF frame (keep at origin)
                     marker.pose.position.z = 0.0
                     
                     # Enable mesh_use_embedded_materials if needed
@@ -1187,25 +1247,19 @@ class EnvironmentNode(Node):
                     # Use package relative path for the STL file
                     marker.mesh_resource = "package://ergodic_exploration/meshes/drone_small.stl"
                     
-                    # Set mesh orientation based on roll, pitch, and yaw angles
-                    phi = state['phi']      # Roll
-                    theta = state['theta']  # Pitch
-                    psi = state['psi']      # Yaw
-                    
-                    # Convert Euler angles to quaternion
-                    qx, qy, qz, qw = self.euler_to_quaternion(phi*4, theta*4, psi*4)
-                    marker.pose.orientation.x = qx
-                    marker.pose.orientation.y = qy
-                    marker.pose.orientation.z = qz
-                    marker.pose.orientation.w = qw
+                    # Orientation is handled by TF frame, use identity
+                    marker.pose.orientation.x = 0.0
+                    marker.pose.orientation.y = 0.0
+                    marker.pose.orientation.z = 0.0
+                    marker.pose.orientation.w = 1.0
                     
                     # Set mesh scale
                     marker.scale.x = 1.4
                     marker.scale.y = 1.4
                     marker.scale.z = 1.4
 
-                    # Use the actual Z position from the state
-                    marker.pose.position.z = float(state.get('z', position[2]))
+                    # Position is handled by TF frame (keep at origin)
+                    marker.pose.position.z = 0.0
                     
                     # Enable mesh_use_embedded_materials if needed
                     marker.mesh_use_embedded_materials = False

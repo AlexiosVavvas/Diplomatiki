@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/ergodic_exploration/launch/big_environment_1.launch.py

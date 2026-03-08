@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_generator_cpp/my_interfaces/msg/detail/joystick_data__builder.hpp

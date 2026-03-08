@@ -1,1 +1,0 @@
-/home/avavvas/dipl/build/my_interfaces/rosidl_typesupport_fastrtps_cpp/my_interfaces/msg/detail/single_obstacle__rosidl_typesupport_fastrtps_cpp.hpp

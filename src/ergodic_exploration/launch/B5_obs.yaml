@@ -1,0 +1,129 @@
+obstacles:
+  # Avoiding bumps at ~(100, 260) top-left and ~(260, 100) bottom-right
+  
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [190.0, 190.0, 400]
+    dimensions: 10.0
+    kappa: 20.0
+    rho0: 20.0
+    obs_type: 'sphere'
+    obs_name: "Central Sphere"
+  
+  - pos: [225.0, 225.0, 380]
+    dimensions: 10.0
+    kappa: 20.0
+    rho0: 20.0
+    obs_type: 'sphere'
+    obs_name: "Central Sphere 2"
+
+  - pos: [260.0, 240.0, 395]
+    dimensions: 10.0
+    kappa: 20.0
+    rho0: 20.0
+    obs_type: 'sphere'
+    obs_name: "Central Sphere 3"
+  
+  - pos: [235.0, 250.0, 385]
+    dimensions: 10.0
+    kappa: 0.0
+    rho0: 20.0
+    obs_type: 'sphere'
+    obs_name: "Central Sphere 4"
+  #   Bottom-left corner - mirrors top-left bump
+  # - pos: [180.0, 180.0]
+  #   dimensions: 10.0
+  #   # kappa: 20.0
+  #   # rho0: 100.0
+  #   obs_type: 'circle'
+  #   obs_name: "Central Sphere"
+
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [172.0, 145.0]
+    dimensions: 10.0
+    kappa: 20.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 1"
+
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [145.0, 172.0]
+    dimensions: 10.0
+    kappa: 20.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 2"
+
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [310.0, 280.0]
+    dimensions: 15.0
+    kappa: 630.0
+    rho0: 30.0
+    obs_type: 'circle'
+    obs_name: "Circle 3"
+
+  # Bottom-left corner - mirrors top-left bump
+  - pos: [265.0, 295.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 4"
+  
+  # Dispersed circles in the -20 to 380 grid
+  - pos: [50.0, 120.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 5"
+
+  - pos: [320.0, 45.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 6"
+
+  - pos: [80.0, 350.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 7"
+
+  - pos: [300.0, 180.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 8"
+
+  - pos: [150.0, 70.0]
+    dimensions: 10.0
+    kappa: 25.0
+    rho0: 10.0
+    obs_type: 'circle'
+    obs_name: "Circle 9"
+
+walls:
+
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [160, 200.0, 0]               # Explicit position [x, y, z]
+    dimensions: [300, -300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    kappa: 350
+    rho0: 70
+    obs_name: "Wall One"             # Descriptive name
+
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [200.0, 160.0, 0]               # Explicit position [x, y, z]
+    dimensions: [-300, 300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    kappa: 350
+    rho0: 70
+    obs_name: "Wall Two"             # Descriptive name
+
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [0, 0, 380]               # Explicit position [x, y, z]
+    dimensions: [0, 0, 1]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    kappa: 300
+    rho: 50
+    obs_name: "Low Barrier Wall"       # Descriptive name

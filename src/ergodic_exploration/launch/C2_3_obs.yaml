@@ -1,0 +1,74 @@
+obstacles:
+  # 10 circles evenly distributed (non-grid) in the region (-20, 280) x (-20, 280)
+  
+  - pos: [50.0, 50.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 1"
+
+  - pos: [150.0, 80.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 2"
+
+  - pos: [230.0, 60.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 3"
+
+  - pos: [80.0, 140.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 4"
+
+  - pos: [220.0, 135.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 5"
+
+  - pos: [130.0, 210.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 6"
+
+  - pos: [40.0, 230.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 7"
+
+  - pos: [180.0, 240.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 8"
+
+  - pos: [120.0, 120.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 9"
+
+  - pos: [250.0, 180.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle 10"
+
+walls:
+
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [0, 0, 350]               # Explicit position [x, y, z]
+    dimensions: [0, 0, 1]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    obs_name: "Low Barrier Wall"       # Descriptive name
+
+
+  # - obs_type: 'wall'                   # Type: 'wall'
+  #   pos: [125, 165.0, 0]               # Explicit position [x, y, z]
+  #   dimensions: [300, -300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+  #   # kappa: 40
+  #   # rho: 40
+  #   obs_name: "Top Wall 1"             # Descriptive name
+
+  # - obs_type: 'wall'                   # Type: 'wall'
+  #   pos: [175.0, 135.0, 0]               # Explicit position [x, y, z]
+  #   dimensions: [-300, 300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+  #   # kappa: 40
+  #   # rho: 40
+  #   obs_name: "Top Wall 2"             # Descriptive name

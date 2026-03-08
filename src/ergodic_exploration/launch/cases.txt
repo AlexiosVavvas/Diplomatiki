@@ -1,0 +1,206 @@
+A:  Ergodic Search with Obstacle Avoidance (Main Demo) 
+    Possible Target Localisation (?)
+------------------------------------------------------------
+B1: Hitting Ground at an Angle                  [ok] [done] [written]
+B2: Bank and Yank, Coordinated turn at a Corner [ok] [done] [written]
+B3: Zig Zag maneuver around 3 tubes             [--]
+B4: Stall Head on to the Wall, Recovery         [ok] [done] [written]
+B5: Agent Via course with 3D spheres            [ok] [done] [written]
+
+B6: Multiple Agent avoid hitting eachother,     [ok] [done] [written]
+    Head on Collision
+
+B7: Angled planes (?)                           [--]
+------------------------------------------------------------
+C1: Uniform Ergodic Search w/ obstacles         [ok] [done] [written]
+C2: Loitering around multiple WP                [ok] [done] [written]
+
+
+
+
+------------------------------------------------------------
+
+A few words for describing each
+
+------------------------------
+
+Scenario B1: Minimum Altitude Barrier Stress Test
+
+This scenario tests the supervisory filter's ability to enforce a minimum altitude barrier (defined by a plane primitive with an upward-pointing normal vector).
+
+1. The Malfunction (1s – 8.5s): > While in steady cruise at 450m, a simulated malfunction pins the elevator to a full "pitch-down" position. As the aircraft dives and approaches the safety barrier (~390m), the supervisory filter overrides the command, pulling the elevator up to arrest the descent. This results in a "ground effect" bounce where the plane stabilizes just above the barrier.
+
+2. Aggressive Maneuvering (8.5s – 13s): > A second failure occurs: the elevator, aileron, and rudder are simultaneously deflected. The user input attempts to roll and yaw the plane into a descending turn that would breach the barrier. The supervisor allows the turn but continues to manipulate the elevator to maintain safe altitude.
+
+3. Sustained Boundary Tracking (13s – End): > Finally, the throttle is pushed to maximum while the turn command persists. The aircraft enters a tight circular trajectory. The high-frequency oscillations in the control surfaces show the supervisory filter actively "chattering" to keep the plane at the edge of the flight envelope, successfully preventing it from dipping below the 390m limit despite the aggressive nose-down commands.
+
+------------------------------
+
+Scenario B2: High-Speed Cornering with Vertical Constraints
+
+This scenario tests the safety filter's capacity for complex, multi-axis obstacle avoidance. The aircraft is commanded to fly at 30 m/s into a corner geofence with only 40m of lead distance, while confined between 380m and 420m altitude barriers.
+
+Emergent Pitch Management: Upon detecting the imminent collision, the filter executes a brief, counter-intuitive pitch-down command and a momentary throttle cut. This "pre-emptive dip" creates a buffer from the upper altitude limit, allowing the aircraft to subsequently apply maximum elevator deflection during the turn without breaching the 420m ceiling.
+
+High-Energy Avoidance: Unlike a simple emergency stop, the filter executes a coordinated "bank-and-yank" maneuver. The aircraft rolls to approximately 90° and restores throttle to cruise levels (and beyond) to maintain the energy required for a tight, high-G turn. The elevator is utilized to pull the aircraft horizontally around the corner, successfully avoiding the wall geofence while maintaining a near-constant altitude (Lost only < 10 meters in total)
+
+------------------------------
+
+Scenario B4: The Head-On Wall Challenge
+
+This test places the aircraft in a critical "do-or-die" situation: heading directly toward a vertical wall geofence at 20 m/s with only 30 m of lead distance. This proximity forces the controller to choose between vertical and lateral evasion under strict aerodynamic limits.
+1. The Symmetry Trap (Stall Prevention Off)
+
+In the baseline case, the symmetry of the head-on approach leads the controller to attempt a "pure" vertical maneuver.
+
+    The Failure: The aircraft commands a gradual pitch-up to clear the wall.
+
+    The Result: Without Angle of Attack (AoA) monitoring, the aircraft bleeds airspeed until it exceeds its critical AoA, resulting in a stall followed by an unrecoverable nose-down dive.
+
+2. Constraint-Driven Lateral Evasion (AoA Constraint On)
+
+When the AoA constraint is active, the controller recognizes that a pure pitch-up will violate safety limits before the wall is cleared.
+
+    The Solution: To satisfy both the wall geofence and the stall boundary, the controller breaks symmetry by commanding a coordinated right turn.
+
+    The Result: By utilizing lateral space, the aircraft successfully bypasses the wall while keeping the wing's Angle of Attack within safe operating parameters.
+
+3. Emergent Aerobatics (High Slack Penalty)
+
+The most striking behavior occurs when the AoA constraint is tuned with an extremely high slack penalty in the Quadratic Programming (QP) formulation.
+
+    The Logic: A high slack penalty essentially tells the solver: "Violating this constraint is infinitely expensive—do anything else instead".
+
+    The Maneuver: Rather than slowing down or turning away, the controller "discovers" a high-energy loophole. It throttles up to gain kinetic energy and executes a full barrel roll. This allows the aircraft to utilize its maximum lift vector to "pull" away from the wall while staying below the commanded AoA limit.
+
+    The Aftermath: While the maneuver clears the wall, it leaves the aircraft in a high-energy, nose-down orientation from which it eventually dives.
+
+What this Demonstrates
+
+This scenario perfectly illustrates the difference between Local Safety and Global Viability:
+
+    Multi-Axis Coordination: It proves the filter can simultaneously manipulate throttle, roll, and pitch to find complex solutions that a human pilot might not immediately consider.
+
+    The "Greedy" Solver: The post-maneuver dive highlights a classic challenge in control theory: the controller solved the immediate safety problem (the wall) but entered a state that was "safe" in the moment but "terminal" in the long run.
+
+
+------------------------------
+
+Scenario B5: High-Density Obstacle Corridor
+
+This test evaluates the performance of the safety filter within a strictly confined, 200m-long corridor bounded by two parallel wall geofences spaced ~55m apart. The aircraft must navigate a series of heterogeneous obstacles including vertical cylindrical "gates" and four 3D spheres distributed at varying positions throughout the path.
+1. Multi-Obstacle Navigation
+
+The agent is required to synthesize multiple safety constraints into a continuous flight path.
+
+    Sequential Gating: At both the entrance and exit of the corridor, the aircraft must identify and navigate the narrow aperture between two vertical cylinders. The supervisor prioritizes the unoccupied space between these boundaries to guide the aircraft through.
+
+    Heterogeneous Obstacle Avoidance: Between the gates, the aircraft encounters four spheres placed at different altitudes and lateral offsets. The filter manages these obstructions by rolling and pitching the aircraft to "weave" through the available free space while respecting the lateral wall constraints.
+
+2. Safety Buffer Performance
+
+The primary metric for success in this scenario is the Control Barrier Function (CBF) value, h.
+
+    Collision Avoidance: Data indicates that the barrier function value h remains strictly greater than zero (h>0) for the duration of the course.
+
+    Proximity Management: Despite the high density of obstacles—particularly during the approach to the exit cylinders—the agent maintains a positive safety margin, never physically contacting an obstacle throughout the 200m path.
+
+Demonstration Significance
+
+This case serves as a benchmark for the algorithm’s ability to handle dense, multi-axis constraints:
+
+    Constraint Synthesis: It demonstrates the filter's capacity to simultaneously process different primitive types (planes, cylinders, and spheres) to find a viable path in a highly restricted volume.
+
+    Precision and Tuning: The successful navigation through the exit gate highlights the precision of the tuned safety filter, allowing the aircraft to operate close to obstacle boundaries to find an exit while maintaining the h>0 safety condition.
+
+    Local Optimization Limitations: While the aircraft reaches the exit in this scenario, it is important to note that this is a tuned case. Because the filter operates on local safety information, there is a recognized risk of the agent becoming trapped in local minima or "loitering" indefinitely if the obstacle geometry creates a sufficiently complex non-convexity.
+
+
+------------------------------
+
+Scenario B6: Inter-Agent Collision Avoidance
+
+In this study, multiple agents are initialized on a circle with a 50m radius and commanded to cruise toward the center point. This setup creates a symmetrical "bottleneck" at the center, forcing agents to negotiate space simultaneously.
+Technical Configuration
+
+    Agent Communication: Each agent broadcasts its position in real-time, assuming zero latency and perfect accuracy for the purpose of this simulation.
+
+    Virtual Modeling: Agents model one another as 3m-radius virtual spheres (providing a safety buffer for the 2m wingspan).
+
+    Synchronization: To ensure simulation integrity across different computer processes, all agents are locked to a shared clock, preventing timing artifacts from influencing the results.
+
+Comparative Case Studies
+
+The following cases demonstrate how the "personality" of the swarm changes based on controller tuning:
+Case	Parameters	Observed Behavior	Result
+A	Insufficient Kappa (Low gain)	Agents fail to prioritize lateral separation early enough. They attempt a cooperative "pitch up" maneuver but cannot clear one another's safety volumes.	Collision/Failure
+B	Proper Tuning (No Alt Limit)	The higher gain forces successful lateral deconfliction. However, the agents "dive" to maintain airspeed during the turn, as there is no vertical barrier to prevent altitude loss.	Avoidance with Altitude Loss
+C	Tuning + Altitude Barrier	The most complex behavior: agents cooperatively roll and turn right. The filter manages stall prevention during the high-load turn and initiates an escape maneuver to restore altitude immediately after clearing the conflict.	Successful Mission Recovery
+Demonstration Significance for Paper
+
+This scenario illustrates the algorithm’s capability for Cooperative Emergent Behavior:
+
+    Symmetry Breaking: The transition from Case A to Case C shows that proper tuning allows the agents to "break symmetry" together (everyone turning right), effectively turning a head-on collision into a revolving "traffic circle."
+
+    Constraint Heirarchy: It proves the safety filter can simultaneously weight inter-agent distances, altitude barriers, and stall prevention. The agents do not just "stop" to avoid a collision; they find a high-energy dynamic solution that preserves the flight envelope.
+
+    Distributed Robustness: While each agent runs as a separate process, the synchronized potential field creates a unified swarm response that prevents "chattering" or indecision at the conflict point.
+
+
+------------------------------
+
+Scenario C2: Multi-Agent Ergodic Waypoint Exploration
+
+In this test, agents are tasked with searching a workspace defined by a target distribution Φ(s) containing three Gaussian "bumps" (located at the top-left, top-right, and bottom-right).
+Distributed Search and Workload Management
+
+As agents are deployed from a single starting point, they communicate their trajectory Fourier coefficients (ck​) in real-time.
+
+    Emergent Cooperation: This communication allows the agents to naturally distribute the workload. They avoid redundant coverage by accounting for the search progress made by their peers, leading to a "division of labor" across the points of interest.
+
+    Loitering Behavior: The agents exhibit sustained loitering around the Gaussian peaks. Because the ergodic metric drives them to match the time-averaged statistics of their path to the target distribution, they naturally revisit high-probability areas without explicit "return-to-waypoint" commands.
+
+Critical Tuning Parameters
+
+The success of this waypoint-free navigation depends on the fine-tuning of the ergodic controller's internal weights:
+
+    Spectral Resolution (Kmax​): This parameter determines the "granularity" of the search.
+
+        Too Low: The agent lacks spatial awareness; for example, it may perceive a 100m straight flight as sufficient coverage for a large area.
+
+        Too High: The agent becomes hyper-fixated on covering every specific point, resulting in overly aggressive maneuvers to fill small gaps in the search history.
+
+    Weighting Ratio (Q/R): Here, Q serves as the multiplier for the ergodic cost.
+
+        A higher Q increases the "urgency" of the agent to minimize the mismatch between its history and the target goal.
+
+        This ratio effectively dictates the agent's drive to fulfill the mission objectives relative to the control effort required.
+
+------------------------------
+
+Scenario C1: High-Density Mixed Obstacle Field with Perimeter Geofencing
+
+This final scenario serves as the ultimate stress test for the integrated framework, combining multi-agent ergodic exploration with a high-density obstacle environment and a fully enclosed 3D safety volume.
+Environment and Mission Configuration
+
+Two agents are deployed into a 400x400 m area with the objective of performing a uniform ergodic search. The workspace is bounded by four vertical perimeter walls and a minimum altitude barrier at 340m, effectively "boxing" the agents into a safe flight volume. The interior is densely cluttered with heterogeneous obstacles:
+
+    9 Vertical Tubes: 30m in diameter.
+
+    20 Randomly Scattered Spheres: Distributed throughout the 3D space.
+
+Performance and Safety Analysis
+
+The agents demonstrate highly effective lateral deconfliction and obstacle avoidance throughout the trial, successfully "weaving" through the forest of cylinders and spheres while maintaining their search mission. However, the simulation identifies a critical challenge in long-term vertical stability under extreme constraint density:
+
+    Energy-Safety Trade-off: To avoid the 29 interior obstacles and the 4 perimeter walls, the aircraft must perform continuous, high-G maneuvers. These aggressive turns naturally bleed airspeed and altitude.
+
+    Geofence Breach: While the discrete obstacles and perimeter walls are avoided with high reliability, the minimum altitude fence emerges as the most difficult constraint to maintain over time. After approximately 1.5 to 2 minutes of intense maneuvering, the agents' altitude decays until the barrier function value h drops below zero (h<0), indicating a breach.
+
+Significance for the Paper
+
+This scenario provides a rigorous and "honest" assessment of reactive safety filters in complex missions for your "Results" section:
+
+    Local Optimization Limits: It proves that while the I-HOCBF is excellent at resolving local, high-divergence conflicts (like hitting a tube or a perimeter wall), it can struggle with "slow-leak" constraints like altitude maintenance when the agent is simultaneously being "pushed" by high-frequency avoidance requirements.
+
+    Constraint Hierarchies: The result highlights that without a global energy-management strategy or a terminal cost, local safety filters may eventually enter an "unavoidable set" where no control input can satisfy the vertical barrier.

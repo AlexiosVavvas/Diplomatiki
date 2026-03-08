@@ -1,8 +1,0 @@
-setuptools
-numpy
-scipy
-matplotlib
-flightgear-python
-
-[test]
-pytest

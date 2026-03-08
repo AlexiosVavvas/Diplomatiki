@@ -1,0 +1,19 @@
+{
+  "B6 - Agents Colliding": {
+    "mode": "3d",
+    "agents": "",
+    "max_points": "3000",
+    "ekf_agent": "",
+    "blue": false,
+    "pos_inverted": "1 2 3",
+    "z_min": "350",
+    "z_max": "410",
+    "wing_trails": true,
+    "wing_span": "2",
+    "skip_points": "9",
+    "follow_agent": "2",
+    "camera_distance": "100",
+    "no_axis": true,
+    "fancy": true
+  }
+}

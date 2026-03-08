@@ -6,16 +6,20 @@ from my_erg_lib.eid import Sensor, EKF
 import my_erg_lib.Utilities as utils
 import time
 from my_erg_lib.obstacles import Obstacle, saveObstaclesToMemory, removeObstaclesFromMemory, updateObstaclePositionInMemory
+from my_erg_lib.cbf_qp_solver import solve_cbf_qp, solve_cbf_qp_old
 
 # ROS Library
 from rclpy.node import Node
-from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates, ObsAvoidanceDebug
+from my_interfaces.msg import CkTable, AgentData, SingleObstacle, MultipleObstacles, SingleTargetEstimate, MultipleTargetEstimates, ObsAvoidanceDebug, SyncBarrier
 import re
+from builtin_interfaces.msg import Time
+import threading
+
 
 class Agent(Node):
     def __init__(self, L1_BOUNDS, L2_BOUNDS, Kmax, dynamics_model, phi=None, x0=None, agent_id=None, 
                  antenna_rad=np.inf, antenna_range_flag=False, same_l_bounds_flag=True, real_target_positions=None, ekf_params=None,
-                 KAPPA_OBS_VIRTUAL=1, RHO_OBS_VIRTUAL=0.75):
+                 KAPPA_OBS_VIRTUAL=1, RHO_OBS_VIRTUAL=0.75, RADIUS_OBS_VIRTUAL=5.0):
         
         self.agent_id = agent_id if agent_id is not None else 0
         self.time_since_start = 0.0
@@ -87,6 +91,7 @@ class Agent(Node):
         # Parameters for virtual obstacles (other agents etc)
         self.KAPPA_OBS_VIRTUAL = KAPPA_OBS_VIRTUAL
         self.RHO_OBS_VIRTUAL = RHO_OBS_VIRTUAL
+        self.RADIUS_OBS_VIRTUAL = RADIUS_OBS_VIRTUAL
 
         # Initialize the basis object
         self.basis = Basis(L1_BOUNDS, L2_BOUNDS, Kmax, phi_=phi, precalc_phik_coeff=False, num_gauss_points=22)
@@ -113,6 +118,24 @@ class Agent(Node):
         
         # Timer for periodic agent discovery (every second)
         self.discovery_timer = self.create_timer(1.0, self.discoverAgentsInROS)
+
+        # ===== Clock Synchronization for Multi-Agent Simulations =====
+        self.sync_clocks_flag = False  # Whether to synchronize clocks across agents
+        self.sync_step = 0  # Current synchronization step
+        self.sync_sim_time = 0.0  # Current simulation time for sync
+        self.agent_sync_steps = {}  # Dict to store sync steps from other agents {agent_id: step}
+        self.sync_lock = threading.Lock()  # Lock for thread-safe access to sync data
+        self.sync_event = threading.Event()  # Event to signal when all agents are synced
+        self.expected_agents_for_sync = set()  # Set of agent IDs we expect to sync with
+        
+        # Create sync publisher and subscriber
+        self.sync_publisher = self.create_publisher(SyncBarrier, '/sync_barrier', 10)
+        self.sync_subscriber = self.create_subscription(
+            SyncBarrier,
+            '/sync_barrier',
+            self.syncBarrierCallback,
+            10
+        )
 
 
     def modifedPhiForObstacles(self, phi, obs_to_exclude=None, obs_list=None):
@@ -143,6 +166,12 @@ class Agent(Node):
             # If we are inside an obstacle, return 0, we dont want to explore ergodically there
             # TODO: If obstacles change position, we need to update the phi coefficients
             for obs in obs_list:
+                # Skip walls that only affect the Z dimension (horizontal walls)
+                # These walls have normals pointing purely in Z direction [0, 0, ±1]
+                # and should not affect the 2D ergodic phi function
+                if obs.type == 'wall' and hasattr(obs, 'n'):
+                    if obs.n[0] == 0 and obs.n[1] == 0 and obs.n[2] != 0:
+                        continue  # Skip this Z-only wall for 2D phi calculation
                 if obs.withinReach(x):
                     return 0
             return phi(x)
@@ -584,31 +613,32 @@ class Agent(Node):
         Calculate the potential function U at a given state x.
         This function sums the potential contributions from all obstacles in the obstacle list.
         """
+        # if x is 2d append 0
+        if len(x) == 2:
+            x = np.append(x, 0)
         U = 0
         for obs in self.obstacle_list:
-            U += obs.U(x[:2])
+            U_obs = obs.U(x[:3])
+            # Debug: identify which obstacle causes inf
+            if np.isinf(U_obs):
+                rho = obs.rhoFunc(x[:3])
+                self.get_logger().warn(f"[CBF DEBUG] Obstacle '{obs.name_id}' (type={obs.type}) returns U=inf! rho={rho}, pos={obs.pos}, x={x[:3]}")
+            U += U_obs
         return U
 
-    # def calcPotentialUGradient(self, x):
-    #     """
-    #     Calculate the gradient of the potential function U at a given state x.
-    #     """
-    #     grad_U = np.zeros(2)
-    #     for obs in self.obstacle_list:
-    #         grad_U += obs.gradU(x[:2])
-
-    #     return grad_U
-    
     def calcPotentialUAndGradient(self, x):
         """
         Calculate both the potential function U and its gradient at a given state x.
         This is more efficient than calling calcPotentialU and calcPotentialUGradient separately,
         as it computes rho only once per obstacle.
         """
+        # if x is 2d append 0
+        if len(x) == 2:
+            x = np.append(x, 0)
         U = 0
-        grad_U = np.zeros(2)
+        grad_U = np.zeros(3)
         for obs in self.obstacle_list:
-            U_obs, grad_U_obs = obs.UandGradU(x[:2])
+            U_obs, grad_U_obs = obs.UandGradU(x[:3])
             U += U_obs
             grad_U += grad_U_obs
         return U, grad_U
@@ -618,22 +648,36 @@ class Agent(Node):
         Calculate h(x), the CBF (Control Barrier Function) value at a given state x.
         This function is used to ensure safety constraints are satisfied.
         """
+        # if x is 2d append 0
+        if len(x) == 2:
+            x = np.append(x, 0)
         U = self.calcPotentialU(x) if u_value_precomputed is None else u_value_precomputed
         h = 1 / (1 + U) - delta
         return h
 
-    def calcHGradient(self, x, also_return_h_flag=False):
+    def calcHGradient(self, x, also_return_h_flag=False, output_convention='ENU'):
         """
         Calculate the gradient of h(x) at a given state x.
         This function is used to ensure safety constraints are satisfied.
-        ATTENTION: Returns 2x1 vector, only for positional dimensions. Need to append accordingly in order to multiply by f(x) later on.
+        ATTENTION: Returns 3x1 vector, only for positional dimensions. Need to append accordingly in order to multiply by f(x) later on.
+        Input: ENU -> Output: ENU or NED
         """
         U, grad_U = self.calcPotentialUAndGradient(x)
         h_grad = -grad_U / (1 + U)**2
 
         # Append zeros for the other dimensions if needed (e.g., for quadcopter)
         if self.model.num_of_states > 2:
-            h_grad = np.append(h_grad, np.zeros(self.model.num_of_states - 2))
+            h_grad = np.append(h_grad, np.zeros(self.model.num_of_states - self.model.pos_dim))
+        if output_convention == 'NED':
+            # Convert from ENU to NED convention
+            # ENU: [∂h/∂x_east, ∂h/∂y_north, ∂h/∂z_up, ...]
+            # NED: [∂h/∂x_north, ∂h/∂y_east, ∂h/∂z_down, ...]
+            # Swap first two elements (east↔north) and negate z component if present
+            h_grad_ned = h_grad.copy()
+            h_grad_ned[0], h_grad_ned[1] = h_grad[1], h_grad[0]  # Swap x and y
+            if len(h_grad_ned) > 2:
+                h_grad_ned[2] = -h_grad[2]  # Negate z (up → down)
+            h_grad = h_grad_ned
 
         if also_return_h_flag:
             h = self.calcH(x, u_value_precomputed=U)
@@ -641,13 +685,16 @@ class Agent(Node):
         else:
             return h_grad
 
-    def calcHessianH(self, x, epsilon=1e-3):
+    def calcHessianH(self, x, epsilon=1e-3, output_convention='ENU'):
+        '''
+        Input: ENU -> Output: ENU or NED
+        '''
         # Lets use finite differences to calculate the Hessian of h(x)
         hessian_h = np.zeros((self.model.num_of_states, self.model.num_of_states))
         
         # H depends only on positional dimensions X and Y
-        for i in range(2):
-            for j in range(i, 2):  # compute for j >= i to exploit symmetry
+        for i in range(self.model.pos_dim):
+            for j in range(i, self.model.pos_dim):  # compute for j >= i to exploit symmetry
                 if i == j:
                     x_plus = x.copy()
                     x_plus[i] += epsilon
@@ -683,51 +730,128 @@ class Agent(Node):
                     hessian_h[i, j] = hessian_value
                     hessian_h[j, i] = hessian_value  # symmetry
 
+        if output_convention == 'NED':
+            # Swap rows and columns for x↔y, negate z-related terms
+            hess_h_ned = hessian_h.copy()
+            hess_h_ned[[0, 1], :] = hessian_h[[1, 0], :]   # Swap rows 0 and 1
+            hess_h_ned[:, [0, 1]] = hess_h_ned[:, [1, 0]]  # Swap columns 0 and 1
+            if hess_h_ned.shape[0] > 2:
+                hess_h_ned[2, :] = -hess_h_ned[2, :]  # Negate z row
+                hess_h_ned[:, 2] = -hess_h_ned[:, 2]  # Negate z column
+            return hess_h_ned
 
         return hessian_h
 
-    def calcUsafe(self, x, udef_now, alpha_1=1.0, alpha_2=1.0, delta=0.0):
-
+    def calcUsafe(self, x, udef_now, u_before, time_now=0.0,
+                  alpha_1=0.1, alpha_2=3.0, alpha_3=15.0,
+                  alpha_u=50.0, Kp=5.0, dt=0.025,
+                  alpha_max_deg=8.0, alpha_aoa_1=10.0, alpha_aoa_2=15.0,
+                  slack_penalty_aoa=300.0, use_aoa_constraint=True, delta=0.0):
+        """
+        Wrapper function to compute safe control input using CBF-QP.
+        
+        This function gathers all necessary CBF and dynamics information,
+        then delegates to the CBF-QP solver module for the actual computation.
+        
+        Args:
+            x:                  Current state
+            udef_now:           Reference control input
+            u_before:           Previous control input (part of augmented state)
+            time_now:           Current simulation time in seconds (for message timestamps)
+            alpha_1:            First HOCBF Class-K coefficient
+            alpha_2:            Second HOCBF Class-K coefficient
+            alpha_3:            Third HOCBF Class-K coefficient
+            alpha_u:            Aggressiveness for input limit constraints
+            Kp:                 Proportional gain for nominal control rate
+            dt:                 Integration timestep for CBF
+            alpha_max_deg:      Maximum angle of attack limit [deg]
+            alpha_aoa_1:        First AoA Class-K coefficient
+            alpha_aoa_2:        Second AoA Class-K coefficient
+            slack_penalty_aoa:  Penalty for AoA slack variable
+            use_aoa_constraint: Whether to include AoA constraint in QP
+            delta:              Safety margin (unused in current implementation)
+        """
         # Calculate CBF function h(x) and ∇(x)
-        h, grad_h = self.calcHGradient(x[:2], also_return_h_flag=True)
-
+        pos_enu = self.model.position(x)
+        h, grad_h = self.calcHGradient(pos_enu, also_return_h_flag=True, output_convention=self.model.coord_convention)
+        
         # Calculate CBF Hessian
-        hess_h = self.calcHessianH(x)
+        hess_h = self.calcHessianH(pos_enu, output_convention=self.model.coord_convention)
 
         # System Dynamics
         f = self.model.f(x, udef_now)
-        f_x = self.model.f_x(x, udef_now)
-
-        h_dot = grad_h.T @ f    
-        h_ddot = f.T @ hess_h @ f + grad_h.T @ f_x @ f
-
-        PSI = h_ddot + 2 * alpha_1 * h_dot + alpha_2 * h
-
-        # Beta Calculation
-        # beta = (grad_h.T @ self.model.f_x(x, udef_now)) @ self.model.h(x)
-        beta = (f.T @ hess_h + grad_h.T @ self.model.f_x(x, udef_now)) @ self.model.h(x)
-
-        if PSI >= 0:
-            # No need to change the control input if PSI > 0, we are not in a danger zone
-            u_safe = np.zeros_like(udef_now)      
+        if self.model.type == "FixedWing12DOFTrainer":
+            f_x = self.model.f_x(x, udef_now, first_three_rows_only=True)
         else:
-            if np.linalg.norm(beta) < 1e-6:
-                u_safe = np.zeros_like(udef_now)
-            else:
-                u_safe = -beta.T / (np.linalg.norm(beta)**2) * PSI
-                    
+            f_x = self.model.f_x(x, udef_now)
 
+        import time
+
+        # Measure Old Solver
+        # t_start_old = time.perf_counter()
+        # u_safe_old, psi_old, h_ddot_old, h_dot_old, L_G_old = solve_cbf_qp_old(
+        #     h=h,
+        #     grad_h=grad_h,
+        #     hess_h=hess_h,
+        #     f=f,
+        #     f_x=f_x,
+        #     f_u=self.model.h(x),
+        #     u_ref=udef_now,
+        #     alpha_1=alpha_1,
+        #     alpha_2=alpha_2
+        # )
+        # t_end_old = time.perf_counter()
+        # dt_old = t_end_old - t_start_old
+
+        # Measure New Solver
+        # t_start_new = time.perf_counter()
+        u_safe, h, h_dot, h_ddot, psi_2, L_G_psi2 = solve_cbf_qp(
+            h=h,
+            grad_h=grad_h,
+            hess_h=hess_h,
+            f=f,
+            f_x=f_x,
+            f_u=self.model.h(x),
+            u_ref=udef_now,
+            u_current=u_before,
+            alpha_1=alpha_1,
+            alpha_2=alpha_2,
+            alpha_3=alpha_3,
+            alpha_u=alpha_u,
+            Kp=Kp,
+            dt=dt,
+            alpha_max=np.deg2rad(alpha_max_deg),
+            alpha_aoa_1=alpha_aoa_1,
+            alpha_aoa_2=alpha_aoa_2,
+            slack_penalty_aoa=slack_penalty_aoa,
+            # u_limits=u_limits,
+            x_state=x if use_aoa_constraint else None,
+        )
+        # t_end_new = time.perf_counter()
+        # dt_new = t_end_new - t_start_new
+
+        # Print Comparison
+        # print(f"[Timing] Old: {dt_old*1000:.4f} ms | New: {dt_new*1000:.4f} ms | Difference: {(dt_new - dt_old)*1000:.4f} ms")
+                    
         # Apply control limits
         u_safe[:3] = np.clip(u_safe[:3], self.erg_c.uLimits[:3, 0], self.erg_c.uLimits[:3, 1])
         u_safe[3] = np.clip(u_safe[3], -1, 1)
 
         # Publish debug information
         debug_msg = ObsAvoidanceDebug()
-        debug_msg.psi = float(PSI)
+        # Use simulation time for header stamp
+        stamp = Time()
+        stamp.sec = int(time_now)
+        stamp.nanosec = int((time_now - int(time_now)) * 1e9)
+        debug_msg.header.stamp = stamp
+        debug_msg.header.frame_id = f"agent_{self.agent_id}"
+        debug_msg.psi = float(psi_2)
+        debug_msg.h = float(h)
+        debug_msg.hdot = float(h_dot)
         debug_msg.hddot = float(h_ddot)
         debug_msg.two_alpha_h_hdot = float(2 * alpha_1 * h_dot)
         debug_msg.alpha2_h = float(alpha_2 * h)
-        debug_msg.beta = beta.flatten().tolist()
+        debug_msg.beta = L_G_psi2.flatten().tolist()
         debug_msg.u_safe = u_safe.flatten().tolist()
         self.obs_avoidance_debug_publisher.publish(debug_msg)
 
@@ -737,11 +861,17 @@ class Agent(Node):
 
     # ROS Related Functions -------------------------------------
 
-    def publishCk(self, ck):
+    def publishCk(self, ck, time_now):
         """
         Publish the ck values to a ROS topic
         """
         msg = CkTable()
+        # Use simulation time for header stamp
+        stamp = Time()
+        stamp.sec = int(time_now)
+        stamp.nanosec = int((time_now - int(time_now)) * 1e9)
+        msg.header.stamp = stamp
+        msg.header.frame_id = f"agent_{self.agent_id}"
         msg.model_type = self.model.type
         msg.table_size = self.Kmax + 1
         msg.l_bounds = [float(self.L1_min), float(self.L1_max), float(self.L2_min), float(self.L2_max)]
@@ -750,9 +880,11 @@ class Agent(Node):
         msg.total_erg_cost = float(self.erg_c.total_erg_cost)
         msg.total_erg_cost_in_range = float(self.erg_c.total_erg_cost_in_range)
         msg.erg_cost_reduction_perc = float((self.erg_c.init_erg_cost - self.erg_c.total_erg_cost_in_range)/self.erg_c.init_erg_cost) if self.erg_c.init_erg_cost > 0 else 0.0
-        msg.position.x = float(self.model.state[0])
-        msg.position.y = float(self.model.state[1])
-        msg.position.z = 0.0        # Assuming 2D plane for ergodic exploration
+        # Publish position in ENU convention (used by CBF and virtual obstacles)
+        pos_enu = self.model.position(self.model.state)
+        msg.position.x = float(pos_enu[0])  # East (or x for 2D models)
+        msg.position.y = float(pos_enu[1])  # North (or y for 2D models)
+        msg.position.z = float(pos_enu[2]) if len(pos_enu) > 2 else 0.0  # Up (or 0 for 2D models)
         self.ck_publisher.publish(msg)
 
     def publishData(self, state_now, u_input_now, erg_cost_now, active_cbf_flag, time_now, delta_t_Ts):
@@ -760,10 +892,29 @@ class Agent(Node):
         Publish agent data to a ROS topic
         """
         msg = AgentData()
-        msg.header.stamp = self.get_clock().now().to_msg()
+        # Use simulation time (seconds from start) instead of ROS clock time
+        stamp = Time()
+        stamp.sec = int(time_now)
+        stamp.nanosec = int((time_now - int(time_now)) * 1e9)
+        msg.header.stamp = stamp
         msg.header.frame_id = f"agent_{self.agent_id}"
         msg.simulation_time = float(time_now)
-        msg.delta_t_ts = delta_t_Ts
+        
+        # Compute ratio of real (wall-clock) time to simulation time
+        # Initialize tracking on first call
+        if not hasattr(self, '_publish_start_wall_time'):
+            self._publish_start_wall_time = time.time()
+            self._publish_start_sim_time = time_now
+        
+        elapsed_wall_time = time.time() - self._publish_start_wall_time
+        elapsed_sim_time = time_now - self._publish_start_sim_time
+        
+        # Ratio: >1 means slower than real-time, <1 means faster than real-time
+        if elapsed_sim_time > 0.1:  # Avoid division by zero and noisy early values
+            msg.delta_t_ts = float(elapsed_wall_time / elapsed_sim_time)
+        else:
+            msg.delta_t_ts = 1.0  # Default to 1.0 at start
+        
         msg.num_of_states = self.model.num_of_states
         msg.num_of_inputs = self.model.num_of_inputs
         msg.states = [float(x) for x in state_now.flatten()]
@@ -821,6 +972,9 @@ class Agent(Node):
                     msg.dimensions = [obs.width, obs.height]
                 elif obs.type == "circle":
                     msg.dimensions = [obs.r]
+                elif obs.type == "sphere":
+                    msg.position.z = float(obs.pos[2])
+                    msg.dimensions = [obs.r]
                 elif obs.type == "wall":
                     msg.dimensions = [float(obs.n[0]), float(obs.n[1]), float(obs.wall_length)]
                 else:
@@ -868,16 +1022,17 @@ class Agent(Node):
     def updateInRangeAgents(self):
         """Update the list of agents within antenna range"""
         current_in_range = set()
-        my_position = np.array([self.model.state[0], self.model.state[1]])
+        # Use ENU position for consistent coordinate frame with other agents
+        my_position_enu = self.model.position(self.model.state)[:2]  # Only x,y (East, North)
         
         for agent_id in self.discovered_agents:
             if agent_id == self.agent_id:
                 continue
                 
-            # Check if we have position data for this agent
+            # Check if we have position data for this agent (already in ENU)
             if agent_id in self.agent_positions:
                 other_position = np.array(self.agent_positions[agent_id])
-                distance = np.linalg.norm(my_position - other_position)
+                distance = np.linalg.norm(my_position_enu - other_position)
                 
                 if distance <= self.antenna_rad:
                     current_in_range.add(agent_id)
@@ -909,7 +1064,7 @@ class Agent(Node):
         # Lets add a virtual obstacle in a safe initial position (far from current agent) to avoid colliding with one another
         # This will be updated to the correct position when the first message is received
         safe_initial_pos = [self.model.state[0] + 1000.0, self.model.state[1] + 1000.0]  # Far away initial position
-        virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+        virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=self.RADIUS_OBS_VIRTUAL, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
         saveObstaclesToMemory(self, [virtual_obs])
         
 
@@ -983,7 +1138,7 @@ class Agent(Node):
             
             if not obstacle_found:
                 # Create virtual obstacle if it doesn't exist
-                virtual_obs = Obstacle(pos=[msg.position.x, msg.position.y], dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                virtual_obs = Obstacle(pos=[msg.position.x, msg.position.y], dimensions=self.RADIUS_OBS_VIRTUAL, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
                 saveObstaclesToMemory(self, [virtual_obs])
 
             # Convert flattened row-major form back to table
@@ -1149,13 +1304,151 @@ class Agent(Node):
                 # Create virtual obstacle if we have position data for this agent
                 if agent_id in self.agent_positions:
                     pos = self.agent_positions[agent_id]
-                    virtual_obs = Obstacle(pos=[pos[0], pos[1]], dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                    virtual_obs = Obstacle(pos=[pos[0], pos[1]], dimensions=self.RADIUS_OBS_VIRTUAL, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
                     saveObstaclesToMemory(self, [virtual_obs])
                     self.get_logger().info(f'Created virtual obstacle for compatible agent_{agent_id} at position {pos}')
                 else:
                     # Create at safe initial position if no position data yet
                     safe_initial_pos = [self.model.state[0] + 1000.0, self.model.state[1] + 1000.0]
-                    virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=0.6, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
+                    virtual_obs = Obstacle(pos=safe_initial_pos, dimensions=self.RADIUS_OBS_VIRTUAL, obs_type='circle', kappa=self.KAPPA_OBS_VIRTUAL, rho0=self.RHO_OBS_VIRTUAL, obs_name=f"agent_{agent_id}")
                     saveObstaclesToMemory(self, [virtual_obs])
                     self.get_logger().info(f'Created virtual obstacle for compatible agent_{agent_id} at safe initial position')
+
+    # ===== Clock Synchronization Methods =====
+    
+    def enableClockSync(self, expected_agent_ids=None):
+        """
+        Enable clock synchronization with other agents.
+        
+        Args:
+            expected_agent_ids: List/set of agent IDs to sync with. If None, will use discovered agents.
+        """
+        self.sync_clocks_flag = True
+        if expected_agent_ids is not None:
+            self.expected_agents_for_sync = set(expected_agent_ids) - {self.agent_id}
+        self.get_logger().info(f"Clock sync enabled. Expected agents: {sorted(self.expected_agents_for_sync) if self.expected_agents_for_sync else 'auto-discover'}")
+    
+    def disableClockSync(self):
+        """Disable clock synchronization."""
+        self.sync_clocks_flag = False
+        self.sync_event.set()  # Release any waiting threads
+        self.get_logger().info("Clock sync disabled")
+    
+    def syncBarrierCallback(self, msg):
+        """Callback when receiving sync barrier messages from other agents."""
+        if not self.sync_clocks_flag:
+            return
+            
+        if msg.agent_id == self.agent_id:
+            return  # Ignore our own messages
+        
+        with self.sync_lock:
+            self.agent_sync_steps[msg.agent_id] = msg.sim_step
+            
+            # Check if all expected agents have reached current step
+            if self._allAgentsSynced():
+                self.sync_event.set()
+    
+    def _allAgentsSynced(self):
+        """Check if all expected agents have reached the current sync step."""
+        # Determine which agents we're waiting for
+        if self.expected_agents_for_sync:
+            agents_to_check = self.expected_agents_for_sync
+        else:
+            # Use discovered agents (excluding self)
+            agents_to_check = self.discovered_agents - {self.agent_id}
+        
+        if not agents_to_check:
+            return True  # No other agents to wait for
+        
+        # Check if all agents have reached at least our current step
+        for agent_id in agents_to_check:
+            if agent_id not in self.agent_sync_steps:
+                return False
+            if self.agent_sync_steps[agent_id] < self.sync_step:
+                return False
+        return True
+    
+    def publishSyncBarrier(self, sim_step, sim_time):
+        """Publish sync barrier message to signal completion of a step."""
+        if not self.sync_clocks_flag:
+            return
+        
+        # Check if ROS context is still valid
+        try:
+            if not self.context.ok():
+                return
+        except:
+            return
+            
+        try:
+            msg = SyncBarrier()
+            msg.agent_id = int(self.agent_id)
+            msg.sim_step = int(sim_step)
+            msg.sim_time = float(sim_time)
+            msg.timestamp = self.get_clock().now().to_msg()
+            self.sync_publisher.publish(msg)
+        except Exception:
+            pass  # Silently ignore publish errors during shutdown
+    
+    def waitForSync(self, sim_step, sim_time, timeout_sec=5.0):
+        """
+        Wait for all other agents to reach the same simulation step.
+        
+        Args:
+            sim_step: Current simulation step index
+            sim_time: Current simulation time
+            timeout_sec: Maximum time to wait for sync (default 5s)
+            
+        Returns:
+            True if sync achieved, False if timeout or shutdown
+        """
+        if not self.sync_clocks_flag:
+            return True
+        
+        # Check if ROS context is still valid
+        try:
+            if not self.context.ok():
+                return False
+        except:
+            return False
+        
+        self.sync_step = sim_step
+        self.sync_sim_time = sim_time
+        
+        # Reset sync event
+        self.sync_event.clear()
+        
+        # Publish our current step
+        self.publishSyncBarrier(sim_step, sim_time)
+        
+        # Check if already synced (in case we received messages while processing)
+        with self.sync_lock:
+            if self._allAgentsSynced():
+                return True
+        
+        # Wait for other agents with timeout
+        synced = self.sync_event.wait(timeout=timeout_sec)
+        
+        if not synced:
+            # Only warn if not shutting down
+            try:
+                if self.context.ok():
+                    self.get_logger().warn(f"Sync timeout at step {sim_step}. Agent sync states: {self.agent_sync_steps}")
+            except:
+                pass
+        
+        return synced
+    
+    def getSyncStatus(self):
+        """Get current synchronization status for debugging."""
+        with self.sync_lock:
+            return {
+                'enabled': self.sync_clocks_flag,
+                'current_step': self.sync_step,
+                'current_sim_time': self.sync_sim_time,
+                'agent_steps': dict(self.agent_sync_steps),
+                'expected_agents': list(self.expected_agents_for_sync) if self.expected_agents_for_sync else 'auto'
+            }
+
             

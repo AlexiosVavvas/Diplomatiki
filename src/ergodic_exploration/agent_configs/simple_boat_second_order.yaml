@@ -87,3 +87,14 @@ flags:
   localise_targets: true
   update_eid: false
   save_images: false
+
+# Phi (exploration density) configuration
+# type: 'uniform' for constant uniform coverage, 'gaussian_bumps' for Gaussian bump-based coverage
+phi:
+  type: uniform  # Options: 'uniform', 'gaussian_bumps'
+  # Uncomment and configure bumps if type is 'gaussian_bumps'
+  # bumps:
+  #   - x_pos_perc: 0.7
+  #     y_pos_perc: 0.3
+  #     height: 5
+  #     width_scale: 0.7

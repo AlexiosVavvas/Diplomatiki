@@ -9,27 +9,56 @@ import rclpy.parameter
 import argparse
 
 # TODO: Integral of Phi should be = 1, and phi!=0 everywhere on the domain. Make sure EID updates respect that
-def createPhiFunc(L1_BOUNDS=[0.0, 10.0], L2_BOUNDS=[0.0, 10.0]):
-    """Creates a normalized phi function with multiple Gaussian bumps"""
+def createPhiFunc(L1_BOUNDS=[0.0, 10.0], L2_BOUNDS=[0.0, 10.0], bumps_config_raw=None, base_level=0.01):
+    """
+    Creates a normalized phi function with multiple Gaussian bumps.
+    
+    Args:
+        L1_BOUNDS: [min, max] bounds for the first dimension
+        L2_BOUNDS: [min, max] bounds for the second dimension
+        bumps_config_raw: List of bump configurations, each bump is a dict with:
+            - x_pos_perc: x position as percentage of L1 range (0.0 to 1.0)
+            - y_pos_perc: y position as percentage of L2 range (0.0 to 1.0)
+            - height: height/amplitude of the bump
+            - width_scale: width scaling factor (multiplied by width_base)
+        base_level: Base level added to bump values to ensure some exploration
+                   happens everywhere, not just at bump locations (default: 0.01)
+            
+    Returns:
+        Normalized phi function
+    """
     
     L1_min, L1_max = L1_BOUNDS
     L2_min, L2_max = L2_BOUNDS
     L1_range = L1_max - L1_min
     L2_range = L2_max - L2_min
     
+    # Width scaling factor: smaller width = wider bump
+    # For bump visible over ~20% of domain, use: width_scale / L_range²
+    width_base = 100.0 / (L1_range * L2_range)  # Scales with domain area
+    
+    # Default bump configuration if none provided
+    if bumps_config_raw is None:
+        bumps_config_raw = [
+            {'x_pos_perc': 0.7, 'y_pos_perc': 0.3, 'height': 5, 'width_scale': 0.7}
+        ]
+    
+    # Convert percentage-based config to absolute positions
     # Bump configuration: (x_pos, y_pos, height, width)
-    bumps_config = [
-        (L1_min + 0.3 * L1_range, L2_min + 0.8 * L2_range, 5, 0.7),
-        (L1_min + 0.7 * L1_range, L2_min + 0.2 * L2_range, 4, 0.7), 
-        (L1_min + 0.15 * L1_range, L2_min + 0.4 * L2_range, 3, 15.2),
-        (L1_min + 0.85 * L1_range, L2_min + 0.6 * L2_range, 4.5, 6.3)
-    ]
+    # width controls sharpness: larger = sharper/narrower, smaller = wider/smoother
+    bumps_config = []
+    for bump in bumps_config_raw:
+        x_pos = L1_min + bump['x_pos_perc'] * L1_range
+        y_pos = L2_min + bump['y_pos_perc'] * L2_range
+        height = bump['height']
+        width = width_base * bump['width_scale']
+        bumps_config.append((x_pos, y_pos, height, width))
     
     def phiUnnormalized(s):
         x, y = s[0], s[1]
         bumps = sum(h * np.exp(-w * ((x-px)**2 + (y-py)**2)) 
                    for px, py, h, w in bumps_config)
-        return bumps + 0.01
+        return bumps + base_level
     
     # Calculate normalization constant
     from scipy.integrate import dblquad
@@ -191,6 +220,49 @@ def setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS):
         print("Required section: 'targets' -> 'ekf' with all EKF parameters")
         sys.exit(3)
 
+    # Phi configuration - optional, defaults to uniform coverage
+    phi_config = agent_config.get('phi', {})
+    PHI_TYPE = phi_config.get('type', 'uniform')  # 'uniform' or 'gaussian_bumps'
+    BASE_LEVEL = phi_config.get('base_level', 0.01)  # Base exploration level for gaussian_bumps
+    
+    BUMPS_CONFIG = None
+    if PHI_TYPE == 'gaussian_bumps':
+        bumps_raw = phi_config.get('bumps', None)
+        if bumps_raw is None:
+            print(f"WARNING: phi type is 'gaussian_bumps' but no 'bumps' configuration provided.")
+            print(f"         Falling back to uniform coverage.")
+            PHI_TYPE = 'uniform'
+        else:
+            # Validate and convert bumps configuration
+            BUMPS_CONFIG = []
+            for i, bump in enumerate(bumps_raw):
+                try:
+                    bump_entry = {
+                        'x_pos_perc': bump['x_pos_perc'],
+                        'y_pos_perc': bump['y_pos_perc'],
+                        'height': bump['height'],
+                        'width_scale': bump['width_scale']
+                    }
+                    # Validate percentage values
+                    if not (0.0 <= bump_entry['x_pos_perc'] <= 1.0):
+                        print(f"WARNING: Bump {i} x_pos_perc={bump_entry['x_pos_perc']} is outside [0, 1] range")
+                    if not (0.0 <= bump_entry['y_pos_perc'] <= 1.0):
+                        print(f"WARNING: Bump {i} y_pos_perc={bump_entry['y_pos_perc']} is outside [0, 1] range")
+                    BUMPS_CONFIG.append(bump_entry)
+                except KeyError as e:
+                    print(f"ERROR: Bump {i} is missing required field: {e}")
+                    print(f"       Each bump must have: x_pos_perc, y_pos_perc, height, width_scale")
+                    sys.exit(3)
+            print(f"INFO: Using gaussian_bumps phi coverage with {len(BUMPS_CONFIG)} bump(s), base_level={BASE_LEVEL}:")
+            for i, bump in enumerate(BUMPS_CONFIG):
+                print(f"       Bump {i+1}: pos=({bump['x_pos_perc']*100:.0f}%, {bump['y_pos_perc']*100:.0f}%), height={bump['height']}, width_scale={bump['width_scale']}")
+    elif PHI_TYPE != 'uniform':
+        print(f"WARNING: Unknown phi type '{PHI_TYPE}'. Using 'uniform' coverage.")
+        PHI_TYPE = 'uniform'
+    
+    if PHI_TYPE == 'uniform':
+        print(f"INFO: Using uniform phi coverage (constant density across domain)")
+
     print(f"Loaded configuration: Model={MODEL_TYPE}, Config file={parsed_args.agent_config}\n")
     
     # Return complete configuration
@@ -207,7 +279,10 @@ def setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS):
         'SAVE_IMAGES_FLAG': SAVE_IMAGES_FLAG,
         'IMAX': IMAX,
         'REAL_TARGET_POSITIONS': REAL_TARGET_POSITIONS,
-        'EKF_PARAMS': EKF_PARAMS
+        'EKF_PARAMS': EKF_PARAMS,
+        'PHI_TYPE': PHI_TYPE,
+        'BUMPS_CONFIG': BUMPS_CONFIG,
+        'BASE_LEVEL': BASE_LEVEL
     }
 
 # -----------------------------------------------------------------------------------
@@ -236,6 +311,9 @@ def main(args=None):
     parser.add_argument('--talk_alike_flag',    type=lambda x: x.lower() == 'true', required=False, default=None,   help='Override weather to communicate only with similar model (true/false)')
     parser.add_argument('--same_l_bounds_flag', type=lambda x: x.lower() == 'true', required=False, default=None,   help='Override whether to communicate only with agents having same L bounds (true/false)')
     parser.add_argument('--show_init_phi',      type=lambda x: x.lower() == 'true', required=False, default=False,  help='Whether to show initial phi function (original + reconstructed) (true/false)')
+    parser.add_argument('--sync_clocks_flag',   type=lambda x: x.lower() == 'true', required=False, default=False,  help='Enable clock synchronization across agents (true/false)')
+    parser.add_argument('--sync_agent_ids',     type=int, nargs='*',                required=False, default=None,   help='List of agent IDs to sync with (e.g., --sync_agent_ids 1 2 3). If not provided, syncs with discovered agents.')
+    parser.add_argument('--sync_freq',          type=int,                           required=False, default=None,   help='Sync every N iterations. Default syncs every Ts. Use smaller values (e.g., 50-100) for tighter sync during collision tests.')
     # Parse known args only, keep ROS args separate
     parsed_args, ros_args = parser.parse_known_args()  
     AGENT_ID = parsed_args.agent_id
@@ -244,6 +322,9 @@ def main(args=None):
     L2_BOUNDS = [parsed_args.l_bounds[2], parsed_args.l_bounds[3]]
     OBSTACLES_YAML_PATH = parsed_args.obstacles_yaml
     SHOW_INIT_PHI = parsed_args.show_init_phi
+    SYNC_CLOCKS_FLAG = parsed_args.sync_clocks_flag
+    SYNC_AGENT_IDS = parsed_args.sync_agent_ids
+    SYNC_FREQ = parsed_args.sync_freq
 
     # Load and setup agent configuration with override handling
     config = setupAgentConfig(parsed_args, L1_BOUNDS, L2_BOUNDS)
@@ -262,6 +343,9 @@ def main(args=None):
     IMAX = config['IMAX']
     REAL_TARGET_POSITIONS = config['REAL_TARGET_POSITIONS']
     EKF_PARAMS = config['EKF_PARAMS']
+    PHI_TYPE = config['PHI_TYPE']
+    BUMPS_CONFIG = config['BUMPS_CONFIG']
+    BASE_LEVEL = config['BASE_LEVEL']
     
 
     # ===== Dynamics Model =====
@@ -296,14 +380,27 @@ def main(args=None):
         # Extract safety parameters (CBF) - all required
         CBF_SKIP_ITER = control_config['cbf_skip_iter']
         DELTA_SAFE = control_config['delta_safe']
-        ALPHA_HDOT = control_config['alpha_hdot']
-        ALPHA_H = control_config['alpha_h']
+        # HOCBF Class-K function coefficients (relative degree 3)
+        ALPHA_1 = control_config['alpha_1']
+        ALPHA_2 = control_config['alpha_2']
+        ALPHA_3 = control_config['alpha_3']
+        # Input rate constraints
+        ALPHA_U = control_config['alpha_u']
+        CBF_KP = control_config['cbf_Kp']
+        CBF_DT = control_config['cbf_dt']
+        # Angle of Attack constraint parameters
+        USE_AOA_CONSTRAINT = control_config.get('use_aoa_constraint', True)  # Default True for backward compatibility
+        ALPHA_MAX_DEG = control_config['alpha_max_deg']
+        ALPHA_AOA_1 = control_config['alpha_aoa_1']
+        ALPHA_AOA_2 = control_config['alpha_aoa_2']
+        SLACK_PENALTY_AOA = control_config['slack_penalty_aoa']
         KAPPA_WALL = control_config['kappa_wall']
         RHO_WALL = control_config['rho_wall']
         KAPPA_OBS = control_config['kappa_obs']
         RHO_OBS = control_config['rho_obs']
         KAPPA_OBS_VIRTUAL = control_config['kappa_obs_virtual']
         RHO_OBS_VIRTUAL = control_config['rho_obs_virtual']
+        RADIUS_OBS_VIRTUAL = control_config.get('radius_obs_virtual', 5.0)  # Default 5.0 if not specified
         
         # Extract system parameters - all required
         PUBLISH_DATA_FREQ = system_config['publish_data_freq']
@@ -458,14 +555,20 @@ def main(args=None):
     # ROS Initialization
     rclpy.init(args=ros_args)
 
+    # Create phi function based on configuration
+    if PHI_TYPE == 'gaussian_bumps':
+        phi_func = createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS, bumps_config_raw=BUMPS_CONFIG, base_level=BASE_LEVEL)
+    else:
+        # Uniform coverage (default)
+        phi_func = lambda s: 1/((L1_BOUNDS[1]-L1_BOUNDS[0])*(L2_BOUNDS[1]-L2_BOUNDS[0]))
+
     # Generate Agent and connect to an ergodic controller object
     agent = Agent(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS, Kmax=KMAX, 
                   dynamics_model=dynamic_model,
                   agent_id=AGENT_ID, antenna_rad=ANTENNA_RADIUS, antenna_range_flag=ANTENNA_RANGE_FLAG,
                   same_l_bounds_flag=SAME_L_BOUNDS_FLAG, real_target_positions=REAL_TARGET_POSITIONS, ekf_params=EKF_PARAMS,
-                  KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL,
-                  phi=lambda s: 1/((L1_BOUNDS[1]-L1_BOUNDS[0])*(L2_BOUNDS[1]-L2_BOUNDS[0])))   # Start with uniform phi
-                #   phi=createPhiFunc(L1_BOUNDS=L1_BOUNDS, L2_BOUNDS=L2_BOUNDS))      
+                  KAPPA_OBS_VIRTUAL=KAPPA_OBS_VIRTUAL, RHO_OBS_VIRTUAL=RHO_OBS_VIRTUAL, RADIUS_OBS_VIRTUAL=RADIUS_OBS_VIRTUAL,
+                  phi=phi_func)      
 
     agent.erg_c = DecentralisedErgodicController(agent, uNominal=u_nominal, Q=Q_, R = R_, uLimits=u_limits_init,
                                                  T_sampling=TS, T_horizon=T_H, deltaT_erg=deltaT_ERG,
@@ -553,6 +656,15 @@ def main(args=None):
     agent.basis.phi = agent.modifedPhiForObstacles(agent.basis.phi, obs_to_exclude="None")
     agent.basis.precalcAllPhiK()
 
+    # ===== Clock Synchronization Setup =====
+    if SYNC_CLOCKS_FLAG:
+        agent.enableClockSync(expected_agent_ids=SYNC_AGENT_IDS)
+        agent.get_logger().info(f"Clock synchronization ENABLED for agent {AGENT_ID}")
+        if SYNC_AGENT_IDS:
+            agent.get_logger().info(f"  Syncing with agents: {SYNC_AGENT_IDS}")
+        else:
+            agent.get_logger().info(f"  Syncing with all discovered agents")
+
     if SHOW_INIT_PHI:
         # Visualize H-field
         vis.visHfield(agent, L_limits=[agent.L1_min-0.5, agent.L1_max+0.5, agent.L2_min-0.5, agent.L2_max+0.5], delta=DELTA_SAFE, num_of_points=200)
@@ -624,13 +736,19 @@ def main(args=None):
                     if len(in_range_ck_data) > 0:
                         agent.erg_c.ck_aver_others = np.mean(in_range_ck_data, axis=0)
                     else:
-                        # If no agent in the neighborhood use own ck as average for in-rangers
-                        agent.erg_c.ck_aver_others = agent.basis.ck
+                        # If no agent in the neighborhood, use zeros (single agent case)
+                        # Using own ck would double the contribution and cause oscillations
+                        agent.erg_c.ck_aver_others = np.zeros_like(agent.basis.ck)
                     ck_total_in_range = np.mean(in_range_ck_data + [agent.basis.ck], axis=0) if len(in_range_ck_data) > 0 else agent.basis.ck
                     agent.erg_c.total_erg_cost_in_range = agent.erg_c.calcErgodicCost(ck_total_in_range)
                 else:
-                    if len(other_agent_ck_data) > 0:
-                        agent.erg_c.ck_aver_others = ck_total
+                    # Only set ck_aver_others if there are OTHER agents (not including self)
+                    other_agent_ck_only = [ck for aid, ck in agent.getAgentCkData().items() if aid != agent.agent_id and ck is not None]
+                    if len(other_agent_ck_only) > 0:
+                        agent.erg_c.ck_aver_others = np.mean(other_agent_ck_only, axis=0)
+                    else:
+                        # Single agent case: use zeros to avoid doubling ck
+                        agent.erg_c.ck_aver_others = np.zeros_like(agent.basis.ck)
                     agent.erg_c.total_erg_cost_in_range = agent.erg_c.total_erg_cost
                 # Reset initial cost for calculations later
                 if agent.erg_c.init_erg_cost == -1:
@@ -756,8 +874,17 @@ def main(args=None):
 
             # Lets apply the CBF Safety Filter to ergodic output
             # Apply safety control every 5 iterations or every one if we were near an obstacle before
-            if np.any(u_safe_list[-1] != 0) or i%CBF_SKIP_ITER == 0:
-                u_safe = agent.calcUsafe(agent.model.state, u, alpha_1=ALPHA_HDOT, alpha_2=ALPHA_H, delta=DELTA_SAFE)
+            active_cbf_flag = np.any(np.abs(u_safe_list[-1]) > 1e-4) or i%CBF_SKIP_ITER == 0
+            if active_cbf_flag:
+                u_safe = agent.calcUsafe(
+                    agent.model.state, u, u_before, time_now=time_list[i],
+                    alpha_1=ALPHA_1, alpha_2=ALPHA_2, alpha_3=ALPHA_3,
+                    alpha_u=ALPHA_U, Kp=CBF_KP, dt=CBF_DT,
+                    alpha_max_deg=ALPHA_MAX_DEG, alpha_aoa_1=ALPHA_AOA_1, 
+                    alpha_aoa_2=ALPHA_AOA_2, slack_penalty_aoa=SLACK_PENALTY_AOA,
+                    use_aoa_constraint=USE_AOA_CONSTRAINT,
+                    delta=DELTA_SAFE
+                )
             else:
                 u_safe = np.zeros((agent.model.num_of_inputs,))
             u_safe_list.append(u_safe.copy())  # Store the safe control action for later use
@@ -776,7 +903,7 @@ def main(args=None):
             # ROS Send data to data topic
             if not shutdown_flag.is_set() and i % PUBLISH_DATA_FREQ == 0:
                 agent.publishData(state_now=agent.model.state, u_input_now=u, erg_cost_now=erg_cost, 
-                                  active_cbf_flag=True if int(np.any(u_safe != 0)) == 1 else False,
+                                  active_cbf_flag=active_cbf_flag,
                                   time_now=time_list[i], delta_t_Ts=delta_time / agent.erg_c.Ts)
 
             # TODO: Here we should simulate forward for simulation_dt with a dt, instead of stepping. Implement model simulation function
@@ -823,10 +950,19 @@ def main(args=None):
             delta_time = current_time - last_iter_time if (i%Ts_iter == 0) else delta_time
             last_iter_time = current_time
 
-            # if delta_time < Ts_iter: delay 
-            # if delta_time < agent.erg_c.Ts:
-            #     time.sleep(agent.erg_c.Ts - delta_time)
-            #     delta_time = agent.erg_c.Ts  # We waited the remaining time
+            # ===== Clock Synchronization =====
+            # Sync frequency: use custom value or default to Ts_iter
+            sync_interval = SYNC_FREQ if SYNC_FREQ is not None else Ts_iter
+            if agent.sync_clocks_flag and i % sync_interval == 0:
+                # Wait for all agents to reach this step before proceeding
+                sync_success = agent.waitForSync(sim_step=i, sim_time=time_list[i], timeout_sec=10.0)
+                if not sync_success and not shutdown_flag.is_set():
+                    agent.get_logger().warn(f"Sync timeout at iteration {i}, continuing anyway...")
+            elif not agent.sync_clocks_flag:
+                # Original behavior: if delta_time < Ts: delay 
+                if delta_time < agent.erg_c.Ts:
+                    time.sleep(agent.erg_c.Ts - delta_time)
+                    delta_time = agent.erg_c.Ts  # We waited the remaining time
             
             i += 1
 

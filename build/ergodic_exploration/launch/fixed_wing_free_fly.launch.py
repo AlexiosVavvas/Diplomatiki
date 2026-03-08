@@ -1,1 +1,0 @@
-/home/avavvas/dipl/src/ergodic_exploration/launch/fixed_wing_free_fly.launch.py

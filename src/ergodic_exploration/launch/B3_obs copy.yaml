@@ -1,0 +1,43 @@
+obstacles:
+  # Avoiding bumps at ~(100, 260) top-left and ~(260, 100) bottom-right
+  
+  # Top edge center - guards upper passage
+  - pos: [90.0, 130.0]
+    dimensions: 20.0
+    kappa: 10
+    rho: 15
+    obs_type: 'circle'
+    obs_name: "Circle TL"
+
+  # Bottom edge center - guards lower passage
+  - pos: [160.0, 120.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle B"
+
+  - pos: [150.0, 190.0]
+    dimensions: 20.0
+    obs_type: 'circle'
+    obs_name: "Circle TR"
+
+walls:
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [125, 165.0, 0]               # Explicit position [x, y, z]
+    dimensions: [300, -300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    # kappa: 40
+    # rho: 40
+    obs_name: "Top Wall 1"             # Descriptive name
+
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [175.0, 135.0, 0]               # Explicit position [x, y, z]
+    dimensions: [-300, 300, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    # kappa: 40
+    # rho: 40
+    obs_name: "Top Wall 2"             # Descriptive name
+
+  # - obs_type: 'wall'                   # Type: 'wall'
+  #   pos: [0, 0, 360]               # Explicit position [x, y, z]
+  #   dimensions: [0, 0, 1]    # Normal vector [nx, ny, nz] - magnitude = visual length
+  #   # kappa: 40
+  #   rho: 150
+  #   obs_name: "Low Barrier Wall"       # Descriptive name

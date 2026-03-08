@@ -1,0 +1,114 @@
+# Fixed Wing 12DOF Trainer Agent Configuration
+# Agent type and model parameters
+agent:
+  model_type: "FixedWing12DOFTrainer"
+  
+  # Dynamics model parameters
+  dynamics:
+    dt: 0.0005              # def: 0.001 s
+    v_trim: 16.0            # [m/s] Desired trim speed
+    use_linear_f: false     # Whether to use linearised model for f(x,u)
+    use_linear_fx_fu: false # Whether to use linearised model for f_x, f_u
+    
+  # Control parameters
+  control:
+    # Control limits: [elevator, aileron, rudder, throttle]
+    # elevator/aileron/rudder: ±10 deg ~= ±0.1745 rad
+    # throttle: 0..1
+    u_limits_init: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    u_limits: [[-0.28, 0.28], [-0.2, 0.2], [-0.2, 0.2], [0.0, 1.0]]
+    time_to_apply_ulimits: 0.0  # [s] after which to switch u_limits
+    u_nominal: "trim"  # Special value indicating to use trim inputs
+    
+    # Ergodic controller parameters
+    Q: 0.001  # 200-2000
+    # R matrix - less penalty on throttle changes
+    R: [[1.4, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.01]]
+    prediction_dt_multiplier: 40  # PREDICTION_DT = dt * multiplier
+    relax_factor: 0.7
+    
+    # Timing parameters
+    ts: 0.01                # Sampling time
+    t_h: 0.5                # Horizon time
+    delta_t_erg: 0.01        # Ergodic time window
+    
+    # Optimization parameters
+    inf_buf_flag: false      # Whether to use infinite states buffer
+    bar_weight: 0
+    update_eid_freq: 2640   # How often to update EID phi function (110*2*3*4)
+    
+    # Safety parameters (CBF) --------------------------------------
+    cbf_skip_iter: 1        # How often to apply CBF safety filter
+    delta_safe: 0.2
+    # HOCBF Class-K function coefficients (relative degree 3 safety constraint)
+    alpha_1: 0.1             # First order coefficient
+    alpha_2: 3.0             # Second order coefficient  
+    alpha_3: 15.0            # Third order coefficient
+    # Input rate constraints
+    alpha_u: 50.0            # Aggressiveness for input limit constraints
+    cbf_Kp: 5.0              # Proportional gain for nominal control rate
+    cbf_dt: 0.005            # Integration timestep for CBF
+    # Angle of Attack constraint (relative degree 2)
+    use_aoa_constraint: false  # Whether to include AoA constraint in QP (set false to disable)    
+    alpha_max_deg: 3.0       # Maximum angle of attack limit [deg]
+    alpha_aoa_1: 10.0        # First AoA Class-K coefficient
+    alpha_aoa_2: 15.0        # Second AoA Class-K coefficient
+    slack_penalty_aoa: 300.0 # Penalty for AoA slack variable (higher = harder constraint)
+    
+    kappa_wall: 200  # 30.0
+    rho_wall: 60.0  # 30.0
+    
+    kappa_obs: 200   # 30
+    rho_obs: 40     # 30.0
+    
+    kappa_obs_virtual: 2000    # Parameters for avoiding other agents
+    rho_obs_virtual: 50.0
+    radius_obs_virtual: 3.0   # Radius of virtual obstacle for other agents
+    
+  # System parameters
+  system:
+    imax: ".inf"
+    publish_data_freq: 5    # How often to publish data to ROS topic
+  
+  # Agent communication and range parameters (optional - can be overridden by command line)
+  antenna_radius: ".inf"        # Infinite range by default
+  kmax: 2                       # Maximum Fourier modes for reconstruction
+  antenna_range_flag: false     # Whether antenna range is limited
+  talk_alike_flag: false        # Whether to communicate only with similar models
+  same_l_bounds_flag: true      # Whether to communicate only with agents having same L bounds
+
+# Target and EKF configuration
+targets:
+  # Ground truth target positions [x, y, z] - note the higher altitude
+  real_positions:
+    - [2.0, 2.0, 0.0]
+    - [4.0, 8.0, 0.0]
+    - [8.0, 6.0, 0.0]
+  
+  # EKF parameters for target estimation
+  ekf:
+    # Initial estimate covariance (3x3 diagonal values)
+    sigma_init_diag: [0.5, 0.5, 0.5]
+    
+    # Sensor noise covariance (2x2 diagonal values)
+    R_diag: [0.1, 0.1]
+    
+    # Process noise covariance (3x3 diagonal values) 
+    Q_diag: [0.0001, 0.0001, 0.0001]
+    
+    # Sensor parameters
+    sensor_range: 3.0
+    sensor_R_diag: [0.1, 0.1]  # Sensor noise covariance
+
+# System flags
+flags:
+  localise_targets: false
+  update_eid: false
+  save_images: false
+
+
+# Phi (exploration density) configuration
+# type: 'uniform' for constant uniform coverage, 'gaussian_bumps' for Gaussian bump-based coverage
+phi:
+  type: uniform  # Options: 'uniform', 'gaussian_bumps'
+  base_level: 1.1      # Base exploration level added everywhere (promotes exploration outside bumps)

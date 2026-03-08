@@ -1,0 +1,14 @@
+walls:
+  - obs_type: 'wall'                   # Type: 'wall'
+    pos: [200.0, 180.0, 0]               # Explicit position [x, y, z]
+    dimensions: [-380.0, 0.0, 0]    # Normal vector [nx, ny, nz] - magnitude = visual length
+    kappa: 200
+    rho0: 40  # 60 in saved agents
+    obs_name: "Custom Wall"       # Descriptive name
+
+  # - obs_type: 'w1.lauall'                   # Type: 'wall'
+  #   pos: [0, 0, 360]               # Explicit position [x, y, z]
+  #   dimensions: [0, 0, 1]    # Normal vector [nx, ny, nz] - magnitude = visual length
+  #   # kappa: 40
+  #   rho: 150
+  #   obs_name: "Low Barrier Wall"       # Descriptive name

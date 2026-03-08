@@ -1,0 +1,8 @@
+Turning Off all controllers lets the airplane fall and the bottom wall has to catch it and save it
+
+agent:
+    u_nominal:  trim -> none
+    kappa_wall: 200 -> 2
+
+obs: 
+    kappa: Null -> 200
